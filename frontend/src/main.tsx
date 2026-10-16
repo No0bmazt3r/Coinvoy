@@ -17,7 +17,8 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const SPLASH_MIN_MS = 1200
+// Long enough for the logo animation to finish (FR-SHELL-1 asks for at least 1.2 s).
+const SPLASH_MIN_MS = 1600
 
 // The startup screen (FR-SHELL-1) stays up until the session check answers and the minimum time has passed.
 function App() {

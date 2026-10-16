@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppRekodRouteImport } from './routes/_app/rekod'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
@@ -25,6 +26,11 @@ const AppRoute = AppRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WelcomeRoute = WelcomeRouteImport.update({
+  id: '/welcome',
+  path: '/welcome',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -61,6 +67,7 @@ const AppTanyaRoute = AppTanyaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/welcome': typeof WelcomeRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/welcome': typeof WelcomeRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -80,6 +88,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/welcome': typeof WelcomeRoute
   '/_app/rekod': typeof AppRekodRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/snap': typeof AppSnapRoute
@@ -90,13 +99,29 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/rekod' | '/settings' | '/snap' | '/tabung' | '/tanya'
+    | '/'
+    | '/login'
+    | '/welcome'
+    | '/rekod'
+    | '/settings'
+    | '/snap'
+    | '/tabung'
+    | '/tanya'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/rekod' | '/settings' | '/snap' | '/tabung' | '/tanya' | '/'
+  to:
+    | '/login'
+    | '/welcome'
+    | '/rekod'
+    | '/settings'
+    | '/snap'
+    | '/tabung'
+    | '/tanya'
+    | '/'
   id:
     | '__root__'
     | '/_app'
     | '/login'
+    | '/welcome'
     | '/_app/rekod'
     | '/_app/settings'
     | '/_app/snap'
@@ -108,6 +133,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  WelcomeRoute: typeof WelcomeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,6 +150,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/welcome': {
+      id: '/welcome'
+      path: '/welcome'
+      fullPath: '/welcome'
+      preLoaderRoute: typeof WelcomeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -194,6 +227,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  WelcomeRoute: WelcomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

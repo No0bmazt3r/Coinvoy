@@ -6,6 +6,7 @@ import { LangToggle } from '../components/LangToggle'
 import { Logo } from '../components/Logo'
 import { useI18n, type Key } from '../i18n/t'
 import { meQuery, post } from '../lib/api'
+import { introSeen } from '../lib/intro'
 
 // The API sends failed Google sign-ins back here as ?error=<reason> (docs/GOOGLE_AUTH_PORTABLE.md §2 rule 10).
 const ERRORS: Record<string, Key> = {
@@ -20,6 +21,7 @@ export const Route = createFileRoute('/login')({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData(meQuery).catch(() => null)
     if (user) throw redirect({ to: '/' })
+    if (!introSeen()) throw redirect({ to: '/welcome' })
   },
   component: Login,
 })
