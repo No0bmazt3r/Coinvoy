@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/Coinvoy-tile.png" alt="Coinvoy logo" width="180">
+  <img src="frontend/public/logo.png" alt="Coinvoy logo" width="200">
 </p>
 
 <h1 align="center">Coinvoy</h1>

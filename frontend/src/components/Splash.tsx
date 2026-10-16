@@ -7,7 +7,7 @@ export function Splash() {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-ink px-4 text-center text-on-ink">
       <div className="splash-in flex flex-col items-center gap-4">
-        <Logo onDark className="h-[132px] w-auto" />
+        <Logo className="h-[132px] w-auto" />
         <p className="text-[2rem] leading-[2.375rem] font-extrabold tracking-tight">Coinvoy</p>
         <p className="max-w-xs text-on-ink-muted">{t('app.tagline')}</p>
       </div>

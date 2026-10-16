@@ -78,15 +78,6 @@ body {
 
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
-/* The logo's ink strokes vanish on dark backgrounds, so dark mode swaps in a recoloured file. */
-.logo-dark { display: none; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .logo-light { display: none; }
-  :root:not([data-theme="light"]) .logo-dark { display: block; }
-}
-:root[data-theme="dark"] .logo-light { display: none; }
-:root[data-theme="dark"] .logo-dark { display: block; }
-
 @keyframes splash-in { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
 @keyframes splash-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 .splash-in { animation: splash-in 400ms ease-out both; }
