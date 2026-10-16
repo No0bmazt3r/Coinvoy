@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/logo.png" alt="Coinvoy logo" width="200">
+  <img src="public/Coinvoy-tile.png" alt="Coinvoy logo" width="200">
 </p>
 
 <h1 align="center">Coinvoy</h1>
@@ -76,7 +76,7 @@ Without Google credentials, use **Cuba demo** on the login screen.
 |---|---|
 | `frontend/` | React + TypeScript + Vite PWA (TanStack Router and Query, Tailwind v4) |
 | `backend/` | FastAPI + SQLAlchemy + Alembic (Google sign-in, sessions, and later the engine and AI routes) |
-| `public/` | The master logo files |
+| `public/` | Master logo files and team photos (repo assets; the app serves `frontend/public/`) |
 | `scripts/` | Repo tools (icon generation) |
 
 ## Google sign-in setup
@@ -86,3 +86,14 @@ In Google Cloud Console, create an OAuth client of type *Web application* with:
 - Authorized redirect URI: `http://localhost:5173/api/auth/google/callback`
 
 Add your Gmail as a test user while the app is in Testing mode. Then put the client ID and secret in `.env`.
+
+## Team: AI Don't Know
+
+<table>
+  <tr>
+    <td align="center" width="25%"><img src="public/team/Wardah.svg" alt="Nurul Hawardah" width="160"><br><b>Nurul Hawardah Binti Mohammad Yusoff</b></td>
+    <td align="center" width="25%"><img src="public/team/Zuyyin.svg" alt="Zuyyin Damia" width="160"><br><b>Zuyyin Damia Binti Norazmi</b></td>
+    <td align="center" width="25%"><img src="public/team/Batrisyia%20Bilqis.svg" alt="Batrisyia Bilqis" width="160"><br><b>Batrisyia Bilqis Binti Ahmad Ridzuan</b></td>
+    <td align="center" width="25%"><img src="public/team/Sharvin.svg" alt="Sharvin" width="160"><br><b>Sharvin A/L Kanesan</b></td>
+  </tr>
+</table>
