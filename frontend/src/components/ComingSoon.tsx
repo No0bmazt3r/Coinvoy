@@ -9,9 +9,13 @@ export function ComingSoon({ title, body, icon, back = false }: { title: Key; bo
   return (
     <>
       <ScreenHeader title={t(title)} back={back} />
-      <EmptyState icon={icon} body={t(body)}>
-        <span className="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-muted">{t('common.soon')}</span>
-      </EmptyState>
+      <section className="rounded-lg border border-line bg-surface">
+        <EmptyState icon={icon} body={t(body)}>
+          <span className="rounded-full border border-line px-3 py-1 text-xs font-semibold tracking-wide text-muted uppercase">
+            {t('common.soon')}
+          </span>
+        </EmptyState>
+      </section>
     </>
   )
 }

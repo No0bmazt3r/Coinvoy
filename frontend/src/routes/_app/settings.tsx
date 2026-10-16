@@ -1,12 +1,15 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { LogOut } from 'lucide-react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { ChevronRight, FileText, Languages, LogOut } from 'lucide-react'
+import { Avatar } from '../../components/Avatar'
 import { LangToggle } from '../../components/LangToggle'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { useI18n } from '../../i18n/t'
 import { meQuery, post } from '../../lib/api'
 
 export const Route = createFileRoute('/_app/settings')({ component: Settings })
+
+const ROW = 'flex min-h-14 items-center gap-3 px-4 py-3'
 
 function Settings() {
   const { t } = useI18n()
@@ -23,26 +26,35 @@ function Settings() {
 
   return (
     <>
-      <ScreenHeader title={t('settings.title')} back />
-      <div className="flex flex-col gap-4">
-        <section className="flex items-center gap-3 rounded-md border border-line bg-surface p-4">
-          {user.avatarUrl && (
-            <img src={user.avatarUrl} alt="" referrerPolicy="no-referrer" className="size-11 rounded-full" />
-          )}
-          <div className="min-w-0">
-            <p className="font-semibold">{user.displayName}</p>
-            <p className="truncate text-sm text-muted">{user.isDemo ? t('settings.demoAccount') : user.email}</p>
-          </div>
-        </section>
-        <section className="flex items-center justify-between gap-3 rounded-md border border-line bg-surface p-4">
-          <span className="font-semibold">{t('lang.label')}</span>
+      <ScreenHeader title={t('settings.title')} />
+      <section className="flex flex-col items-center gap-3 rounded-lg border border-line bg-surface px-4 py-6 text-center">
+        <Avatar user={user} className="size-20 text-3xl ring-4 ring-brand" />
+        <div className="min-w-0">
+          <p className="text-lg font-bold tracking-tight">{user.displayName}</p>
+          <p className="truncate text-sm text-muted">{user.isDemo ? t('settings.demoAccount') : user.email}</p>
+        </div>
+      </section>
+      <div className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+        <Link to="/rekod" className={`${ROW} pressable hover:bg-surface-2`}>
+          <FileText size={22} aria-hidden />
+          <span className="flex-1 font-semibold">{t('rekod.title')}</span>
+          <ChevronRight size={20} className="text-muted" aria-hidden />
+        </Link>
+        <div className={ROW}>
+          <Languages size={22} aria-hidden />
+          <span className="flex-1 font-semibold">{t('lang.label')}</span>
           <LangToggle />
-        </section>
-        <button type="button" className="btn btn-secondary" onClick={() => logout.mutate()} disabled={logout.isPending}>
-          <LogOut size={20} aria-hidden />
-          {t('settings.logout')}
-        </button>
+        </div>
       </div>
+      <button
+        type="button"
+        onClick={() => logout.mutate()}
+        disabled={logout.isPending}
+        className={`${ROW} pressable justify-center rounded-lg border border-line bg-surface font-semibold text-[var(--risky)] hover:bg-surface-2 disabled:opacity-50`}
+      >
+        <LogOut size={20} aria-hidden />
+        {t('settings.logout')}
+      </button>
     </>
   )
 }

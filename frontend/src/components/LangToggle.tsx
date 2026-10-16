@@ -15,7 +15,7 @@ export function LangToggle() {
           type="button"
           aria-pressed={lang === o.value}
           onClick={() => setLang(o.value)}
-          className={`min-h-11 min-w-12 rounded-full px-3 text-sm font-semibold ${
+          className={`min-h-11 min-w-12 rounded-full px-3 text-sm font-semibold transition-colors duration-200 ${
             lang === o.value ? 'bg-text text-bg' : 'text-muted'
           }`}
         >

@@ -41,7 +41,7 @@ function Login() {
   const message = demo.isError ? t('login.error.demo') : error ? t(ERRORS[error] ?? 'login.error.failed') : ''
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+    <main className="page-in mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
       <div className="flex justify-end pt-3">
         <LangToggle />
       </div>
