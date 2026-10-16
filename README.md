@@ -1,8 +1,5 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="frontend/public/logo-dark.png">
-    <img src="frontend/public/logo.png" alt="Coinvoy logo" width="200">
-  </picture>
+  <img src="frontend/public/logo.png" alt="Coinvoy logo" width="200">
 </p>
 
 <h1 align="center">Coinvoy</h1>
