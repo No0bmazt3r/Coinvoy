@@ -6,7 +6,7 @@
 
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "public" / "Coinvoy.png"
@@ -59,7 +59,15 @@ def main() -> None:
     mark = fit(logo, 64)
     favicon.alpha_composite(mark, (0, (64 - mark.height) // 2))
     favicon.save(OUT / "favicon.png", optimize=True)
-    print(f"icons written to {OUT.relative_to(ROOT)}")
+    # README banner: the original logo on a white rounded tile, so the black strokes stay visible on GitHub dark.
+    size, pad = 480, 56
+    tile = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(tile).rounded_rectangle((0, 0, size - 1, size - 1), radius=96, fill=(255, 255, 255, 255))
+    mark = fit(logo, size - 2 * pad)
+    tile.alpha_composite(mark, (pad, (size - mark.height) // 2))
+    tile.save(ROOT / "public" / "Coinvoy-tile.png", optimize=True)
+
+    print(f"icons written to {OUT.relative_to(ROOT)} and public/Coinvoy-tile.png")
 
 
 if __name__ == "__main__":
