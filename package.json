@@ -1,0 +1,22 @@
+{
+  "name": "coinvoy",
+  "private": true,
+  "packageManager": "pnpm@12.9.1",
+  "scripts": {
+    "bootstrap": "pnpm install && uv sync --directory backend && pnpm db:migrate",
+    "dev": "concurrently -k -n api,web -c cyan,green \"pnpm dev:api\" \"pnpm dev:web\"",
+    "dev:api": "uv run --directory backend alembic upgrade head && uv run --directory backend uvicorn app.main:app --reload --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1",
+    "dev:web": "pnpm --filter coinvoy-frontend dev",
+    "db:migrate": "uv run --directory backend alembic upgrade head",
+    "db:revision": "uv run --directory backend alembic revision --autogenerate -m",
+    "test": "uv run --directory backend pytest -q && pnpm --filter coinvoy-frontend test",
+    "lint": "uv run --directory backend ruff check . && pnpm --filter coinvoy-frontend lint",
+    "typecheck": "pnpm --filter coinvoy-frontend typecheck",
+    "build": "pnpm --filter coinvoy-frontend build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "icons": "uv run scripts/make_icons.py"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.6"
+  }
+}
