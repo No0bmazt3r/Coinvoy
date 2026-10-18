@@ -41,6 +41,7 @@ htmlcov/
 # Rider data, screenshots and model inputs never go in git (agents.md §5)
 private_data/
 backend/results/
+backend/app/llm/cache/
 
 # Logs
 logs/

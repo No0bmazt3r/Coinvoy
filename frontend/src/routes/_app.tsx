@@ -9,6 +9,7 @@ export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData(meQuery).catch(() => null)
     if (!user) throw redirect({ to: '/login' })
+    if (!user.onboarded) throw redirect({ to: '/onboarding' })
     return { user }
   },
   component: AppShell,
@@ -40,7 +41,8 @@ function AppShell() {
     <div
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
-      className="mx-auto min-h-dvh max-w-[480px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]"
+      // clip, not hidden: the slide-in from the right must not widen the page (the fixed nav jumped), and sticky headers keep working
+      className="mx-auto min-h-dvh max-w-[480px] overflow-x-clip px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]"
     >
       {/* Keyed by path so each screen's sections animate in turn on arrival */}
       <div

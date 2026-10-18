@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppJurangRouteImport } from './routes/_app/jurang'
 import { Route as AppRekodRouteImport } from './routes/_app/rekod'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSnapRouteImport } from './routes/_app/snap'
@@ -28,6 +31,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WelcomeRoute = WelcomeRouteImport.update({
   id: '/welcome',
   path: '/welcome',
@@ -36,6 +49,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppJurangRoute = AppJurangRouteImport.update({
+  id: '/jurang',
+  path: '/jurang',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRekodRoute = AppRekodRouteImport.update({
@@ -67,7 +85,10 @@ const AppTanyaRoute = AppTanyaRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/jurang': typeof AppJurangRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -76,7 +97,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/jurang': typeof AppJurangRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -88,7 +112,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/login': typeof LoginRoute
+  '/onboarding': typeof OnboardingRoute
+  '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/jurang': typeof AppJurangRoute
   '/_app/rekod': typeof AppRekodRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/snap': typeof AppSnapRoute
@@ -101,7 +128,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/onboarding'
+    | '/privacy'
     | '/welcome'
+    | '/jurang'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -110,7 +140,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
+    | '/onboarding'
+    | '/privacy'
     | '/welcome'
+    | '/jurang'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -121,7 +154,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/login'
+    | '/onboarding'
+    | '/privacy'
     | '/welcome'
+    | '/_app/jurang'
     | '/_app/rekod'
     | '/_app/settings'
     | '/_app/snap'
@@ -133,6 +169,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   LoginRoute: typeof LoginRoute
+  OnboardingRoute: typeof OnboardingRoute
+  PrivacyRoute: typeof PrivacyRoute
   WelcomeRoute: typeof WelcomeRoute
 }
 
@@ -152,6 +190,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/welcome': {
       id: '/welcome'
       path: '/welcome'
@@ -164,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/jurang': {
+      id: '/_app/jurang'
+      path: '/jurang'
+      fullPath: '/jurang'
+      preLoaderRoute: typeof AppJurangRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/rekod': {
@@ -205,6 +264,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppJurangRoute: typeof AppJurangRoute
   AppRekodRoute: typeof AppRekodRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSnapRoute: typeof AppSnapRoute
@@ -214,6 +274,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppJurangRoute: AppJurangRoute,
   AppRekodRoute: AppRekodRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSnapRoute: AppSnapRoute,
@@ -227,6 +288,8 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   LoginRoute: LoginRoute,
+  OnboardingRoute: OnboardingRoute,
+  PrivacyRoute: PrivacyRoute,
   WelcomeRoute: WelcomeRoute,
 }
 export const routeTree = rootRouteImport

@@ -1,0 +1,18 @@
+{
+  "_source": "Team estimate, 19 Oct 2026, NOT measured. Replace with medians from consented rider histories (decisions.md E1). Used only as the cold-start prior, labelled 'anggaran awal' in the app.",
+  "rho": 0.5,
+  "platforms": {
+    "grab":       { "rate_sen_per_hour": 1200, "log_sd": 0.25, "default_hours": 45 },
+    "foodpanda":  { "rate_sen_per_hour": 1100, "log_sd": 0.28, "default_hours": 45 },
+    "shopeefood": { "rate_sen_per_hour": 1000, "log_sd": 0.30, "default_hours": 40 },
+    "lalamove":   { "rate_sen_per_hour": 1400, "log_sd": 0.32, "default_hours": 40 },
+    "other":      { "rate_sen_per_hour": 1100, "log_sd": 0.30, "default_hours": 40 }
+  },
+  "city_multiplier": {
+    "kuala lumpur": 1.1,
+    "selangor": 1.05,
+    "penang": 1.0,
+    "johor bahru": 1.0,
+    "ipoh": 0.9
+  }
+}

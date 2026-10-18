@@ -1,43 +1,13 @@
-import json
-
-import httpx
-import openai
 import pytest
 from fastapi import HTTPException
 from pydantic import BaseModel
 
-from app.config import settings
 from app.llm import client as llm
 
 
 class Week(BaseModel):
     gross_rm: float | None
     trips: int | None
-
-
-def _completion(content: str) -> dict:
-    return {"id": "x", "object": "chat.completion", "created": 0, "model": "m",
-            "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": content}}],
-            "usage": {"prompt_tokens": 10, "completion_tokens": 5, "total_tokens": 15}}
-
-
-@pytest.fixture
-def provider(monkeypatch):
-    """A fake OpenAI-compatible provider. Set `.reply` (or `.reject_schema`) and inspect `.requests`."""
-    state = type("P", (), {"reply": "{}", "reject_schema": False, "requests": []})()
-
-    def handle(request: httpx.Request) -> httpx.Response:
-        body = json.loads(request.content)
-        state.requests.append(body)
-        if state.reject_schema and "response_format" in body:
-            return httpx.Response(400, json={"error": {"message": "response_format not supported"}})
-        return httpx.Response(200, json=_completion(state.reply))
-
-    monkeypatch.setattr(settings, "llm_model", "shared-model")
-    monkeypatch.setattr(settings, "llm_model_snap", "vision-model")
-    monkeypatch.setattr(llm, "_client", openai.OpenAI(base_url="http://fake/v1", api_key="k", max_retries=0,
-                                                      http_client=httpx.Client(transport=httpx.MockTransport(handle))))
-    return state
 
 
 def test_route_model_override_and_fallback(provider):

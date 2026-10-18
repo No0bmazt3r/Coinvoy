@@ -4,13 +4,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 
-from app.api import auth
+from app.api import advisor, auth, benefits, expenses, home, profile, records, snap, weeks
 from app.config import settings
 
 log = logging.getLogger("coinvoy")
 
 app = FastAPI(title="Coinvoy API", docs_url="/api/docs", openapi_url="/api/openapi.json")
-app.include_router(auth.router)
+for module in (auth, profile, weeks, home, snap, advisor, benefits, records, expenses):
+    app.include_router(module.router)
 
 if not settings.google_configured:
     log.warning("GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET not set: Google sign-in is off, the demo login still works.")
@@ -38,3 +39,10 @@ async def http_error(_request: Request, exc: HTTPException) -> JSONResponse:
 @app.get("/api/health")
 def health() -> dict:
     return {"ok": True}
+
+
+@app.get("/api/meta")
+def meta() -> dict:
+    """Public facts the privacy page shows: who processes screenshots and chat, and where."""
+    return {"llmEnabled": settings.llm_configured, "llmProvider": settings.llm_provider_name or None,
+            "llmRegion": settings.llm_region_note or None, "noticeVersion": "2026-10"}

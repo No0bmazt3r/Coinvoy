@@ -16,6 +16,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from app.api.profile import user_json
 from app.auth import (
     create_session,
     current_user,
@@ -180,11 +181,5 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)) 
 
 
 @router.get("/me")
-def me(user: User = Depends(current_user)) -> dict:
-    return {"user": {
-        "id": str(user.id),
-        "email": user.email,
-        "displayName": user.display_name,
-        "avatarUrl": user.avatar_url,
-        "isDemo": user.is_demo,
-    }}
+def me(user: User = Depends(current_user), db: Session = Depends(get_db)) -> dict:
+    return {"user": user_json(db, user)}
