@@ -58,7 +58,7 @@ function Cuti() {
         </label>
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold">{t('cuti.length')}</span>
-          <div className="flex gap-2" role="group" aria-label={t('cuti.length')}>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t('cuti.length')}>
             {[1, 2, 3, 4].map((n) => <Chip key={n} on={length === n} onClick={() => { setLength(n); setPreview(null) }}>{t('cuti.weeksN', { n })}</Chip>)}
           </div>
         </div>

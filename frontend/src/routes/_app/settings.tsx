@@ -8,7 +8,7 @@ import { MoneyField } from '../../components/MoneyField'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, errorText, meQuery, type Platform, post, type User } from '../../lib/api'
+import { api, clearOfflineData, errorText, meQuery, type Platform, post, type User } from '../../lib/api'
 import { applyAppearance } from '../../lib/appearance'
 import { CITIES, Chip, PLATFORMS, PRIVACY_VERSION } from '../onboarding'
 
@@ -51,6 +51,8 @@ function Settings() {
   const logout = useMutation({
     mutationFn: () => post('/api/auth/logout'),
     onSettled: async () => {
+      clearOfflineData()
+      queryClient.clear()
       queryClient.setQueryData(meQuery.queryKey, null)
       await navigate({ to: '/login' })
     },
@@ -185,6 +187,7 @@ function DeleteAccount() {
   const remove = useMutation({
     mutationFn: () => api('/api/me', { method: 'DELETE', body: { confirm: word } }),
     onSuccess: async () => {
+      clearOfflineData()
       queryClient.clear()
       queryClient.setQueryData(meQuery.queryKey, null)
       await navigate({ to: '/login' })

@@ -13,7 +13,7 @@ const PRIVACY_VERSION = '2026-10'
 
 export async function seedDemo(user: User) {
   const now = thisWeek()
-  await db.update(schema.users).set({ city: 'Ipoh', defaultHours: 45, essentialsWeekSen: 45_000, paydayWeekday: 0, pocketReady: true, onboardedAt: new Date() }).where(eq(schema.users.id, user.id))
+  await db.update(schema.users).set({ city: 'Ipoh', defaultHours: 45, essentialsWeekSen: 38_000, paydayWeekday: 0, pocketReady: true, onboardedAt: new Date() }).where(eq(schema.users.id, user.id))
   await db.insert(schema.consents).values([
     { userId: user.id, kind: 'privacy', version: PRIVACY_VERSION, granted: true },
     { userId: user.id, kind: 'llm_processing', version: PRIVACY_VERSION, granted: true },
@@ -41,6 +41,6 @@ export async function seedDemo(user: User) {
   await db.update(schema.pots).set({ balanceSen: 52_000 }).where(eq(schema.pots.id, pots.penampan.id))
   await db.update(schema.pots).set({ balanceSen: 4_000, weeklySen: 1_000 }).where(eq(schema.pots.id, pots.isaraan.id))
   await db.insert(schema.contributions).values({ userId: user.id, kind: 'isaraan', amountSen: 20_000, matchSen: 4_000, year: Number(todayKL().slice(0, 4)) })
-  await db.insert(schema.leavePlans).values({ userId: user.id, kind: 'planned', label: 'Cuti akhir tahun', startWeek: addWeeks(now, 9), weeks: 1, setAsideWeekSen: 7_000 })
-  await recompute(db, { ...user, city: 'Ipoh', defaultHours: 45, essentialsWeekSen: 45_000 })
+  await db.insert(schema.leavePlans).values({ userId: user.id, kind: 'planned', label: 'Cuti akhir tahun', startWeek: addWeeks(now, 9), weeks: 1, setAsideWeekSen: 5_000 })
+  await recompute(db, { ...user, city: 'Ipoh', defaultHours: 45, essentialsWeekSen: 38_000 })
 }

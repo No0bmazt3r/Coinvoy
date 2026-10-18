@@ -1,0 +1,78 @@
+# Every push and PR: lint, types, tests, the bundle budget, a secret scan, and both Docker images (architecture §14).
+name: ci
+on:
+  push:
+  pull_request:
+
+jobs:
+  ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "0.13.1" }
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+      - run: uv sync --directory ml
+      - run: uv run --directory ml ruff check .
+      - run: uv run --directory ml pytest -q
+
+  api:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        db: [pglite, postgres]
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_USER: coinvoy, POSTGRES_PASSWORD: coinvoy, POSTGRES_DB: coinvoy_test }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - uses: astral-sh/setup-uv@v6
+        with: { version: "0.13.1" }
+      - run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0
+      - run: pnpm install --frozen-lockfile
+      - run: uv sync --directory ml # the API tests start the real ML service
+      - run: pnpm --filter coinvoy-api typecheck
+      - run: pnpm --filter coinvoy-api lint
+      - run: pnpm --filter coinvoy-api test
+        env:
+          TEST_DATABASE_URL: ${{ matrix.db == 'postgres' && 'postgres://coinvoy:coinvoy@localhost:5432/coinvoy_test' || '' }}
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter coinvoy-frontend typecheck
+      - run: pnpm --filter coinvoy-frontend lint
+      - run: pnpm --filter coinvoy-frontend test
+      - run: pnpm --filter coinvoy-frontend build
+      - name: Initial JS + CSS ≤ 300 KB gzipped (NFR-1)
+        run: |
+          size=$(cat frontend/dist/assets/index-*.js frontend/dist/assets/index-*.css | gzip -c | wc -c)
+          echo "initial bundle: $size bytes gzipped"
+          test "$size" -le 307200
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f Dockerfile.api -t coinvoy-api .
+      - run: docker build -f Dockerfile.ml -t coinvoy-ml .

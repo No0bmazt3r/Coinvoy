@@ -32,6 +32,9 @@ function App() {
   return ready ? <RouterProvider router={router} /> : <Splash />
 }
 
+// Offline shell + last home data (NFR-3). Production only, so dev always sees fresh code.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

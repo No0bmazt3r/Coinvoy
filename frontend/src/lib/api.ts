@@ -187,6 +187,9 @@ export const expensesQuery = (week: string) => queryOptions({ queryKey: ['expens
 export const metaQuery = queryOptions({ queryKey: ['meta'], staleTime: Infinity, queryFn: () => api<{ llmEnabled: boolean; llmProvider: string | null; llmRegion: string | null; noticeVersion: string; googleEnabled: boolean }>('/api/meta') })
 export const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => (await api<{ bills: Bill[] }>('/api/bills')).bills })
 
+/** Drop the offline copy of personal data (sign-out, account deletion). */
+export const clearOfflineData = () => navigator.serviceWorker?.controller?.postMessage('clear-data')
+
 export async function post(path: string): Promise<void> {
   await api(path, { method: 'POST' })
 }

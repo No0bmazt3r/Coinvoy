@@ -1,0 +1,9 @@
+{
+  "_how": "Fill from your provider's pricing page, then set 'checked' to that date. Keys are the exact model ids in llm_usage.model. Nothing here is a real price yet.",
+  "checked": "",
+  "usdToMyr": 4.5,
+  "hostingMyrPerMonth": 0,
+  "models": {
+    "example/model-id": { "inputPerMillionUsd": 0, "outputPerMillionUsd": 0 }
+  }
+}

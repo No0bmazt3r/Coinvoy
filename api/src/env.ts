@@ -14,7 +14,8 @@ const schema = z.object({
   DEMO_ENABLED: bool(true),
   AUTH_RATE_PER_MIN: z.coerce.number().default(30), // per IP on /api/auth/*
   // The Python ML service (engine, BM classifier, Penyata renderer)
-  ML_URL: z.url().default('http://127.0.0.1:8001'),
+  // Render's private-service reference gives host:port, so a missing scheme means plain http on the private network.
+  ML_URL: z.preprocess((v) => (typeof v === 'string' && v && !/^https?:\/\//.test(v) ? `http://${v}` : v), z.url().default('http://127.0.0.1:8001')),
   ML_TOKEN: z.string().default(''),
   // Any OpenAI-compatible LLM provider (see .env.example). Empty key = AI off, manual entry still works.
   LLM_BASE_URL: z.url().default('https://openrouter.ai/api/v1'),

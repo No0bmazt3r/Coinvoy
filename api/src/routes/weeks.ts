@@ -90,7 +90,7 @@ async function contributeToIndex(user: ReturnType<typeof userOf>, weeks: z.infer
 }
 
 weeksRouter.get('/weeks', async (_req, res) => {
-  const rows = await db.select().from(schema.earnings).where(eq(schema.earnings.userId, userOf(res).id)).orderBy(desc(schema.earnings.weekStart))
+  const rows = await db.select().from(schema.earnings).where(eq(schema.earnings.userId, userOf(res).id)).orderBy(desc(schema.earnings.weekStart), schema.earnings.platform)
   const weeks = new Map<string, Earning[]>()
   for (const e of rows) weeks.set(e.weekStart, [...(weeks.get(e.weekStart) ?? []), e])
   res.json({
