@@ -1,7 +1,239 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { FileText } from 'lucide-react'
-import { ComingSoon } from '../../components/ComingSoon'
+import { Copy, Download, FileText, Link2, Lock, Mic, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { ErrorState } from '../../components/ErrorState'
+import { ScreenHeader } from '../../components/ScreenHeader'
+import { Sheet } from '../../components/Sheet'
+import { Skeleton } from '../../components/Skeleton'
+import { useI18n, type Key } from '../../i18n/t'
+import { api, errorText, expensesQuery, linksQuery, penyataQuery, type Week, weeksQuery } from '../../lib/api'
+import { thisWeekStart, weekLabel } from '../../lib/dates'
+import { formatRM } from '../../lib/money'
 
-export const Route = createFileRoute('/_app/rekod')({
-  component: () => <ComingSoon title="rekod.title" body="rekod.soonBody" icon={FileText} back />,
-})
+export const Route = createFileRoute('/_app/rekod')({ component: Rekod })
+
+type Parsed = { amountSen: number | null; category: string | null; tier: string; confidence: number }
+type Payslip = {
+  weekStart: string
+  platforms: { platform: string; grossSen: number; commissionSen: number; incentivesSen: number; tipsSen: number; netSen: number; verification: string }[]
+  netSen: number
+  costs: Record<string, number>
+  salarySen: number | null
+  perkeso: { deductedAtSource: boolean; estimateSen: number }
+  transfer: { direction: string; amountSen: number; status: string } | null
+}
+const CATEGORIES = ['minyak', 'servis', 'ansuran', 'makan', 'telefon', 'parking', 'tol', 'sewa', 'keluarga', 'motor_tahunan', 'lain']
+
+// Rekod: weeks, payslips, the Penyata and officer links, and costs (FR-SLIP-1..5, FR-SNAP-6).
+function Rekod() {
+  const { t, lang } = useI18n()
+  const weeks = useQuery(weeksQuery)
+  const [open, setOpen] = useState<Week | null>(null)
+  return (
+    <>
+      <ScreenHeader title={t('rekod.title')} back />
+      <Costs />
+      <PenyataCard />
+      <section aria-labelledby="weeks" className="flex flex-col gap-2">
+        <h2 id="weeks" className="px-1 text-sm font-semibold text-muted">{t('rekod.weeks')}</h2>
+        {weeks.isPending ? <Skeleton className="h-40" /> : weeks.isError ? <ErrorState error={weeks.error} onRetry={() => weeks.refetch()} /> : weeks.data.length === 0 ? (
+          <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('rekod.noWeeks')}</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+            {weeks.data.map((w) => (
+              <li key={w.weekStart}>
+                <button type="button" onClick={() => setOpen(w)} className="pressable flex w-full items-center gap-3 p-4 text-left hover:bg-surface-2">
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">{weekLabel(w.weekStart, lang)}</span>
+                    <span className="block text-[0.8125rem] text-muted">
+                      {w.platforms.map((p) => t(`platform.${p.platform}` as Key)).join(' · ')} · {t(w.verification === 'checked' ? 'source.checked' : 'source.self')}
+                    </span>
+                  </span>
+                  <b className="tabular-nums">{formatRM(w.netSen)}</b>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+      <Sheet open={open !== null} onClose={() => setOpen(null)} title={open ? t('slip.title', { week: weekLabel(open.weekStart, lang) }) : ''}>
+        {open && <PayslipView week={open} onDone={() => setOpen(null)} />}
+      </Sheet>
+    </>
+  )
+}
+
+function PayslipView({ week, onDone }: { week: Week; onDone: () => void }) {
+  const { t } = useI18n()
+  const queryClient = useQueryClient()
+  const slip = useQuery({ queryKey: ['payslip', week.weekStart], queryFn: () => api<Payslip>(`/api/payslip/${week.weekStart}`) })
+  const remove = useMutation({
+    mutationFn: async () => {
+      for (const p of week.platforms) await api(`/api/earnings/${p.id}`, { method: 'DELETE' })
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries()
+      onDone()
+    },
+  })
+  if (!slip.data) return <Skeleton className="h-48" />
+  const s = slip.data
+  const row = (label: string, sen: number, strong = false) => (
+    <div className="flex justify-between gap-3 py-1 text-sm"><span className="text-muted">{label}</span><span className={`tabular-nums ${strong ? 'font-bold' : ''}`}>{formatRM(sen)}</span></div>
+  )
+  return (
+    <div className="flex max-h-[70dvh] flex-col gap-3 overflow-y-auto">
+      {s.platforms.map((p) => (
+        <div key={p.platform} className="rounded-[var(--radius-sm)] bg-surface-2 p-3">
+          <p className="font-semibold">{t(`platform.${p.platform}` as Key)} <span className="text-[0.8125rem] font-normal text-muted">· {t(p.verification === 'checked' ? 'source.checked' : 'source.self')}</span></p>
+          {row(t('snap.gross'), p.grossSen)}
+          {p.commissionSen > 0 && row(t('snap.commission'), -p.commissionSen)}
+          {p.incentivesSen > 0 && row(t('snap.incentives'), p.incentivesSen)}
+          {p.tipsSen > 0 && row(t('snap.tips'), p.tipsSen)}
+        </div>
+      ))}
+      {row(t('slip.net'), s.netSen, true)}
+      {Object.entries(s.costs).map(([c, sen]) => <div key={c}>{row(t(`cost.${c}` as Key), -sen)}</div>)}
+      {s.salarySen !== null && row(t('slip.salary'), s.salarySen, true)}
+      {s.transfer && row(t(s.transfer.direction === 'in' ? 'slip.toPocket' : 'slip.fromPocket'), s.transfer.amountSen)}
+      <p className="text-[0.8125rem] text-muted">{s.perkeso.deductedAtSource ? t('slip.perkesoDeducted', { amount: formatRM(s.perkeso.estimateSen) }) : t('slip.perkesoReserve')}</p>
+      <button type="button" className="btn btn-secondary text-[var(--risky)]" disabled={remove.isPending} onClick={() => remove.mutate()}>
+        <Trash2 size={18} aria-hidden /> {t('slip.delete')}
+      </button>
+    </div>
+  )
+}
+
+function PenyataCard() {
+  const { t, lang } = useI18n()
+  const p = useQuery(penyataQuery)
+  const links = useQuery({ ...linksQuery, enabled: p.data?.unlocked === true })
+  const queryClient = useQueryClient()
+  const [made, setMade] = useState<string | null>(null)
+  const create = useMutation({
+    mutationFn: () => api<{ path: string }>('/api/officer-links', { body: { months: 3 } }),
+    onSuccess: (r) => {
+      setMade(`${location.origin}${r.path}`)
+      queryClient.invalidateQueries({ queryKey: ['links'] })
+    },
+  })
+  const revoke = useMutation({ mutationFn: (id: number) => api(`/api/officer-links/${id}`, { method: 'DELETE' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['links'] }) })
+  if (!p.data) return <Skeleton className="h-28" />
+  if (!p.data.unlocked) {
+    return (
+      <section className="flex flex-col gap-2 rounded-lg border border-dashed border-line bg-surface p-4">
+        <h2 className="flex items-center gap-2 font-semibold"><Lock size={18} aria-hidden /> {t('penyata.title')}</h2>
+        <p className="text-sm text-muted">{t('penyata.locked', { n: p.data.weeksLogged, total: p.data.unlockAt })}</p>
+        <div className="h-2 overflow-hidden rounded-full bg-surface-2" aria-hidden><div className="h-full rounded-full bg-brand" style={{ width: `${(p.data.weeksLogged / p.data.unlockAt) * 100}%` }} /></div>
+      </section>
+    )
+  }
+  const s = p.data.summary!
+  return (
+    <section aria-labelledby="penyata" className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-4">
+      <h2 id="penyata" className="flex items-center gap-2 font-semibold"><FileText size={18} aria-hidden /> {t('penyata.title')}</h2>
+      <p className="text-sm text-muted">{t('penyata.summary', { avg: formatRM(s.avgSen, { whole: true }), weeks: s.weeks })} · {t(`source.${s.source}` as Key)}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {[3, 6].map((m) => (
+          <a key={m} href={`/api/penyata.pdf?months=${m}&lang=${lang}`} className="btn btn-secondary px-2"><Download size={18} aria-hidden /> {t('penyata.months', { n: m })}</a>
+        ))}
+      </div>
+      <button type="button" className="btn btn-primary" disabled={create.isPending} onClick={() => create.mutate()}><Link2 size={18} aria-hidden /> {t('penyata.link')}</button>
+      {made && (
+        <div className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface-2 p-3">
+          <code className="min-w-0 flex-1 truncate text-sm">{made}</code>
+          <button type="button" aria-label={t('penyata.copy')} onClick={() => navigator.clipboard?.writeText(made)} className="pressable grid size-11 place-items-center rounded-full hover:bg-surface"><Copy size={18} aria-hidden /></button>
+        </div>
+      )}
+      {links.data?.filter((l) => !l.revoked).map((l) => (
+        <div key={l.id} className="flex items-center gap-2 text-sm">
+          <span className="min-w-0 flex-1 text-muted">{t('penyata.linkRow', { date: l.expiresAt.slice(0, 10), n: l.openedCount })}</span>
+          <button type="button" className="btn-ghost font-semibold text-[var(--risky)]" onClick={() => revoke.mutate(l.id)}>{t('penyata.revoke')}</button>
+        </div>
+      ))}
+      <p className="text-[0.8125rem] text-muted">{t('penyata.notCredit')}</p>
+    </section>
+  )
+}
+
+// BM cost quick entry (FR-SNAP-6, FR-SNAP-9): "minyak 40" → a parsed chip → save. Voice where the browser supports it.
+function Costs() {
+  const { t, lang } = useI18n()
+  const week = thisWeekStart()
+  const list = useQuery(expensesQuery(week))
+  const queryClient = useQueryClient()
+  const [text, setText] = useState('')
+  const [parsed, setParsed] = useState<Parsed | null>(null)
+  const [category, setCategory] = useState('lain')
+  const parse = useMutation({
+    mutationFn: (q: string) => api<Parsed>('/api/expenses/parse', { body: { text: q } }),
+    onSuccess: (p) => {
+      setParsed(p)
+      setCategory(p.category ?? 'lain')
+    },
+  })
+  const save = useMutation({
+    mutationFn: () => api('/api/expenses', { body: { amountSen: parsed!.amountSen, category, note: text, parseTier: parsed!.tier === 'none' ? 'manual' : parsed!.tier, input: 'text' } }),
+    onSuccess: () => {
+      setText('')
+      setParsed(null)
+      queryClient.invalidateQueries({ queryKey: ['expenses'] })
+    },
+  })
+  const remove = useMutation({ mutationFn: (id: number) => api(`/api/expenses/${id}`, { method: 'DELETE' }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }) })
+  const Speech = (window as unknown as { SpeechRecognition?: new () => SpeechLike; webkitSpeechRecognition?: new () => SpeechLike }).SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition?: new () => SpeechLike }).webkitSpeechRecognition
+  const listen = () => {
+    if (!Speech) return
+    const rec = new Speech()
+    rec.lang = 'ms-MY'
+    rec.onresult = (e) => {
+      const said = e.results[0]?.[0]?.transcript ?? ''
+      setText(said)
+      if (said) parse.mutate(said)
+    }
+    rec.start()
+  }
+  const total = (list.data ?? []).reduce((a, x) => a + x.amountSen, 0)
+  return (
+    <section aria-labelledby="costs" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
+      <div className="flex items-baseline justify-between">
+        <h2 id="costs" className="font-semibold">{t('cost.title')}</h2>
+        <span className="text-sm text-muted tabular-nums">{formatRM(total)}</span>
+      </div>
+      <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (text.trim()) parse.mutate(text.trim()) }}>
+        <input value={text} onChange={(e) => { setText(e.target.value); setParsed(null) }} maxLength={120} placeholder={t('cost.placeholder')} aria-label={t('cost.placeholder')} className="h-12 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3" />
+        {Speech && <button type="button" onClick={listen} aria-label={t('cost.voice')} className="btn btn-secondary w-12 shrink-0 px-0"><Mic size={20} aria-hidden /></button>}
+        <button type="submit" className="btn btn-primary w-auto shrink-0" disabled={!text.trim() || parse.isPending}>{t('cost.read')}</button>
+      </form>
+      {parsed && (
+        <div className="flex flex-col gap-2 rounded-[var(--radius-sm)] bg-surface-2 p-3">
+          {parsed.amountSen === null ? <p className="text-sm text-[var(--careful)]">{t('cost.noAmount')}</p> : (
+            <div className="flex flex-wrap items-center gap-2">
+              <b className="tabular-nums">{formatRM(parsed.amountSen)}</b>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label={t('cost.category')} className="h-11 rounded-full border border-line-strong bg-surface px-3 text-sm font-semibold">
+                {CATEGORIES.map((c) => <option key={c} value={c}>{t(`cost.${c}` as Key)}</option>)}
+              </select>
+              <span className="text-[0.8125rem] text-muted">{t(`cost.tier.${parsed.tier}` as Key)}</span>
+              <button type="button" className="btn btn-primary ml-auto w-auto" disabled={save.isPending} onClick={() => save.mutate()}>{t('common.save')}</button>
+            </div>
+          )}
+        </div>
+      )}
+      {(parse.isError || save.isError) && <p className="text-sm text-[var(--risky)]">{errorText(parse.error ?? save.error, lang, t('common.tryAgain'))}</p>}
+      {list.data && list.data.length > 0 && (
+        <ul className="flex flex-col divide-y divide-line text-sm">
+          {list.data.map((x) => (
+            <li key={x.id} className="flex items-center gap-2 py-2">
+              <span className="min-w-0 flex-1 truncate">{t(`cost.${x.category}` as Key)}{x.note ? ` · ${x.note}` : ''}</span>
+              <span className="tabular-nums">{formatRM(x.amountSen)}</span>
+              <button type="button" aria-label={t('common.delete')} onClick={() => remove.mutate(x.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2"><Trash2 size={18} aria-hidden /></button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+type SpeechLike = { lang: string; start: () => void; onresult: (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void }

@@ -4,6 +4,7 @@ Stateless on purpose: no database, no users, no LLM. The TypeScript API (api/) l
 JSON, and stores what comes back. Every call needs the shared X-ML-Token when ML_TOKEN is set.
 """
 
+import io
 import os
 import re
 from datetime import date
@@ -13,6 +14,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
+from pypdf import PdfReader
 
 from app.engine import explain
 from app.engine.calendar import weeks_between
@@ -172,11 +174,12 @@ def jurang_route(body: InputsOnly) -> dict:
     while lo < hi:
         mid = (lo + hi) // 2
         lo, hi = (lo, mid) if solve(inp, Scenario(hours=mid)).salary_sen >= essentials else (mid + 1, hi)
-    return {"active": True, "essentialsSen": essentials, "salarySen": now.salary_sen, "gapSen": now.jurang["gap_sen"],
+    safe = essentials - now.jurang["gap_sen"]  # the safe salary before any build-up hold-back
+    return {"active": True, "essentialsSen": essentials, "salarySen": safe, "gapSen": now.jurang["gap_sen"],
             "hours": {"plannedHours": inp.planned_hours, "hours": hi, "extraHours": hi - inp.planned_hours,
                       "salarySen": solve(inp, Scenario(hours=hi)).salary_sen, "closesGap": reach,
                       "fatigue": hi > FATIGUE_HOURS},
-            "costs": {"cutSen": now.jurang["gap_sen"], "essentialsAfterSen": now.salary_sen}}
+            "costs": {"cutSen": now.jurang["gap_sen"], "essentialsAfterSen": safe}}
 
 
 class LeavePreviewIn(Camel):
@@ -227,6 +230,25 @@ def penyata_route(body: PenyataIn) -> Response:
     if body.format == "html":
         return HTMLResponse(penyata.render_html(body.name, data, body.lang, body.generated, body.expires))
     return Response(penyata.render_pdf(body.name, data, body.lang, body.generated), media_type="application/pdf")
+
+
+@app.post("/statement/text")
+async def statement_text(request: Request) -> dict:
+    """A bank or e-wallet statement PDF → its text lines (FR-SNAP-10). Read in memory, never stored; the API does the
+    matching. Limited to 10 pages and 5 MB."""
+    raw = await request.body()
+    if len(raw) > 5 * 1024 * 1024:
+        raise HTTPException(413, "too big")
+    try:
+        reader = PdfReader(io.BytesIO(raw))
+        if reader.is_encrypted:
+            raise HTTPException(422, "encrypted")
+        text = "\n".join((page.extract_text() or "") for page in reader.pages[:10])
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 - any unreadable file is the same answer to the rider
+        raise HTTPException(422, "unreadable") from e
+    return {"lines": [ln.strip() for ln in text.splitlines() if ln.strip()][:2000]}
 
 
 @app.get("/health")

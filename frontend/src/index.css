@@ -43,6 +43,12 @@
   --outline: transparent;
 }
 
+/* Accents unlocked by streak level (FR-STRK-4). Cosmetic only; all keep ink text above 4.5:1. */
+:root[data-accent="aqua"] { --brand: #5EEAD4; }
+:root[data-accent="amber"] { --brand: #FCD34D; }
+:root[data-accent="pink"] { --brand: #F9A8D4; }
+:root[data-accent="sky"] { --brand: #7DD3FC; }
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

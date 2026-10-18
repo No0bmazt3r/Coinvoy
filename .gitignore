@@ -1,4 +1,4 @@
-# One .gitignore for the whole repo (frontend, backend, scripts).
+# One .gitignore for the whole repo (frontend, api, ml, scripts).
 
 # Planning docs stay local
 docs/
@@ -21,7 +21,7 @@ dist-ssr/
 coverage/
 *.local
 
-# Python (backend)
+# Python (ml)
 .venv/
 __pycache__/
 *.py[cod]
@@ -40,8 +40,11 @@ htmlcov/
 
 # Rider data, screenshots and model inputs never go in git (agents.md §5)
 private_data/
-backend/results/
-backend/app/llm/cache/
+ml/results/
+api/.llm-cache/
+
+# Local embedded Postgres (PGlite)
+api/.pglite/
 
 # Logs
 logs/

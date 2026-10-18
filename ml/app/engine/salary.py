@@ -147,9 +147,9 @@ def _income(inp: Inputs, plan: _Plan) -> np.ndarray:
     return np.hstack([np.full((N_PATHS, 1), float(inp.last_week_net_sen)), future]), fc
 
 
-def _solve(inp: Inputs, plan: _Plan, income: np.ndarray) -> tuple[int, float, np.ndarray]:
+def _solve(inp: Inputs, plan: _Plan, income: np.ndarray, with_build_up: bool = True) -> tuple[int, float, np.ndarray]:
     target = TARGET_WEEKS_OF_ESSENTIALS * inp.essentials_week_sen
-    build_up = inp.buffer_sen < target
+    build_up = with_build_up and inp.buffer_sen < target
 
     def run(s: int) -> np.ndarray:
         return buffers(inp.buffer_sen, income, s, plan.outflows, plan.cuti_pays, inp.cuti_sen, plan.cuti_in)
@@ -182,9 +182,12 @@ def solve(inp: Inputs, sc: Scenario = Scenario()) -> Result:
         richer = replace(inp, buffer_sen=inp.buffer_sen + 10_000)
         build_up = {"target_sen": target, "buffer_sen": inp.buffer_sen,
                     "per_100_sen": _solve(richer, plan, income)[0] - salary}
+    # Jurang is about low income, not the saving phase: compare essentials with the safe salary before the
+    # build-up hold-back, so a rider who earns enough isn't told they're short while their buffer fills.
+    safe = _solve(inp, plan, income, with_build_up=False)[0] if build_up else salary
     jurang = None
-    if inp.essentials_week_sen and salary < inp.essentials_week_sen:
-        jurang = {"essentials_sen": inp.essentials_week_sen, "gap_sen": inp.essentials_week_sen - salary}
+    if inp.essentials_week_sen and safe < inp.essentials_week_sen:
+        jurang = {"essentials_sen": inp.essentials_week_sen, "gap_sen": inp.essentials_week_sen - safe}
 
     from_cuti = int(min(salary * plan.cuti_pays[0], inp.cuti_sen + plan.cuti_in[0]))
     nxt = income[:, 1:5]

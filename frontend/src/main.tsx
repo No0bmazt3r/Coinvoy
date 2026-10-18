@@ -5,9 +5,11 @@ import { createRoot } from 'react-dom/client'
 import { Splash } from './components/Splash'
 import { I18nProvider } from './i18n/I18nProvider'
 import { meQuery } from './lib/api'
+import { restoreAppearance } from './lib/appearance'
 import { routeTree } from './routeTree.gen'
 import './index.css'
 
+restoreAppearance()
 const queryClient = new QueryClient()
 const router = createRouter({ routeTree, context: { queryClient }, defaultPreload: 'intent' })
 

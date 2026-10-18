@@ -42,7 +42,7 @@ export async function rider(nets = NETS) {
 /** A fake OpenAI-compatible provider. Queue replies (string = content, object = a full message). */
 export function fakeLlm() {
   const state = { replies: [] as (string | Record<string, unknown>)[], reply: '{}' as string | Record<string, unknown>, rejectSchema: false, requests: [] as Record<string, unknown>[] }
-  const fetch = async (_url: RequestInfo | URL, init?: RequestInit) => {
+  const fetch = async (_url: string | URL | Request, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body))
     state.requests.push(body)
     if (state.rejectSchema && body.response_format) return new Response(JSON.stringify({ error: { message: 'response_format not supported' } }), { status: 400 })

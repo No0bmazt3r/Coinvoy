@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url'
 import express, { type RequestHandler } from 'express'
 import { env, googleConfigured, llmConfigured } from './env.ts'
 import { ApiError, errorHandler } from './errors.ts'
+import { accountRouter } from './routes/account.ts'
 import { advisorRouter } from './routes/advisor.ts'
 import { authRouter } from './routes/auth.ts'
 import { benefitsRouter } from './routes/benefits.ts'
@@ -65,7 +66,7 @@ export function createApp() {
     void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured() }),
   )
   app.use('/api/auth', rateLimit(env.AUTH_RATE_PER_MIN), authRouter)
-  app.use('/api', profileRouter, weeksRouter, homeRouter, snapRouter, advisorRouter, benefitsRouter, expensesRouter)
+  app.use('/api', profileRouter, weeksRouter, homeRouter, snapRouter, advisorRouter, benefitsRouter, expensesRouter, accountRouter)
   app.use(recordsRouter)
   app.use('/api', (_req, _res, next) => next(new ApiError(404, 'not_found', 'Tidak dijumpai.', 'Not found.')))
 

@@ -2,6 +2,7 @@ import { queryOptions } from '@tanstack/react-query'
 
 export type Platform = 'grab' | 'foodpanda' | 'shopeefood' | 'lalamove' | 'other'
 export type Risk = 'selamat' | 'berhati' | 'berisiko'
+export type Accent = 'lime' | 'aqua' | 'amber' | 'pink' | 'sky'
 
 export type User = {
   id: string
@@ -16,6 +17,8 @@ export type User = {
   defaultHours: number | null
   essentialsWeekSen: number | null
   pocketReady: boolean
+  sickDaysCovered: number
+  accent: Accent
   platforms: Platform[]
   onboarded: boolean
   consents: Partial<Record<'privacy' | 'llm_processing' | 'indeks_rider', { granted: boolean; version: string }>>
@@ -54,6 +57,19 @@ export type Transfer = {
 
 export type Pot = { kind: string; balanceSen: number; targetSen: number; weeklySen: number }
 
+export type Streak = {
+  weeks: number
+  atRisk: boolean
+  frozenThisWeek: boolean
+  level: number
+  nextLevelAt: number | null
+  accents: Accent[]
+  transfersConfirmed: number
+  gajiKept: number
+  freezesLeft: number
+  badges?: { kind: string; at: string }[]
+}
+
 export type Home = {
   salary: Salary | null
   transfer: Transfer | null
@@ -61,7 +77,28 @@ export type Home = {
   lastLoggedWeek: string | null
   needsSnap: boolean
   weeksLogged: number
+  checkinDue: string | null
+  streak: Streak
 }
+
+export type Leave = { id: number; kind: 'planned' | 'sick'; label: string | null; startWeek: string; weeks: number; days: number | null; setAsideWeekSen: number; status: string }
+export type LeavePreview = { weeksUntil: number; setAsideWeekSen: number; salarySen: number; salaryDeltaSen: number; pSafe: number; risk: Risk }
+export type Caruman = {
+  isaraan: { rate: number; capSen: number; paidYearSen: number; matchYearSen: number; fullMatchNeedsSen: number; leftForFullMatchSen: number; weeklySen: number }
+  perkeso: { deductedAtSource: boolean; rate: number }
+  governmentClaimedSen: number
+}
+export type Week = { weekStart: string; netSen: number; hours: number | null; verification: 'self' | 'checked'; platforms: (Draft & { id: number; netSen: number; verification: string })[] }
+export type Penyata = {
+  weeksLogged: number
+  unlockAt: number
+  unlocked: boolean
+  summary: { avgSen: number; minSen: number; maxSen: number; weeks: number; trend: 'up' | 'down' | 'flat'; source: 'self' | 'checked' | 'verified' } | null
+}
+export type OfficerLink = { id: number; months: number; expiresAt: string; revoked: boolean; openedCount: number; createdAt: string }
+export type Message = { id?: number; role: 'user' | 'assistant'; content: string; risk: Risk | null; guardTriggered?: boolean; at: string }
+export type Lesson = { topic: string; title: string; text: string }
+export type Expense = { id: number; weekStart: string; amountSen: number; category: string; note: string | null; parseTier: string | null }
 
 export type Draft = {
   weekStart: string
@@ -138,6 +175,16 @@ export const meQuery = queryOptions({
 
 export const homeQuery = queryOptions({ queryKey: ['home'], queryFn: () => api<Home>('/api/home') })
 export const potsQuery = queryOptions({ queryKey: ['pots'], queryFn: async () => (await api<{ pots: Pot[] }>('/api/pots')).pots })
+export const streakQuery = queryOptions({ queryKey: ['streak'], queryFn: () => api<Streak>('/api/streak') })
+export const leaveQuery = queryOptions({ queryKey: ['leave'], queryFn: () => api<{ leave: Leave[]; sick: { daysCovered: number; daysUsed: number } }>('/api/leave') })
+export const carumanQuery = queryOptions({ queryKey: ['caruman'], queryFn: () => api<Caruman>('/api/caruman') })
+export const weeksQuery = queryOptions({ queryKey: ['weeks'], queryFn: async () => (await api<{ weeks: Week[] }>('/api/weeks')).weeks })
+export const penyataQuery = queryOptions({ queryKey: ['penyata'], queryFn: () => api<Penyata>('/api/penyata') })
+export const linksQuery = queryOptions({ queryKey: ['links'], queryFn: async () => (await api<{ links: OfficerLink[] }>('/api/officer-links')).links })
+export const messagesQuery = queryOptions({ queryKey: ['messages'], queryFn: async () => (await api<{ messages: Message[] }>('/api/tanya/messages')).messages })
+export const celikQuery = queryOptions({ queryKey: ['celik'], queryFn: async () => (await api<{ lessons: Lesson[] }>('/api/celik')).lessons })
+export const expensesQuery = (week: string) => queryOptions({ queryKey: ['expenses', week], queryFn: async () => (await api<{ expenses: Expense[] }>(`/api/expenses?week=${week}`)).expenses })
+export const metaQuery = queryOptions({ queryKey: ['meta'], staleTime: Infinity, queryFn: () => api<{ llmEnabled: boolean; llmProvider: string | null; llmRegion: string | null; noticeVersion: string; googleEnabled: boolean }>('/api/meta') })
 export const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => (await api<{ bills: Bill[] }>('/api/bills')).bills })
 
 export async function post(path: string): Promise<void> {

@@ -3,18 +3,20 @@
   "private": true,
   "packageManager": "pnpm@12.9.1",
   "scripts": {
-    "bootstrap": "pnpm install && uv sync --directory backend && pnpm db:migrate",
-    "dev": "concurrently -k -n api,web -c cyan,green \"pnpm dev:api\" \"pnpm dev:web\"",
-    "dev:api": "uv run --directory backend alembic upgrade head && uv run --directory backend uvicorn app.main:app --reload --port 8000 --proxy-headers --forwarded-allow-ips 127.0.0.1",
+    "bootstrap": "pnpm install && uv sync --directory ml",
+    "dev": "concurrently -k -n api,ml,web -c cyan,magenta,green \"pnpm dev:api\" \"pnpm dev:ml\" \"pnpm dev:web\"",
+    "dev:api": "pnpm --filter coinvoy-api dev",
+    "dev:ml": "uv run --directory ml uvicorn app.service:app --reload --port 8001",
     "dev:web": "pnpm --filter coinvoy-frontend dev",
-    "db:migrate": "uv run --directory backend alembic upgrade head",
-    "db:revision": "uv run --directory backend alembic revision --autogenerate -m",
-    "test": "uv run --directory backend pytest -q && pnpm --filter coinvoy-frontend test",
-    "lint": "uv run --directory backend ruff check . && pnpm --filter coinvoy-frontend lint",
-    "typecheck": "pnpm --filter coinvoy-frontend typecheck",
+    "db:generate": "pnpm --filter coinvoy-api db:generate",
+    "test": "uv run --directory ml pytest -q && pnpm --filter coinvoy-api test && pnpm --filter coinvoy-frontend test",
+    "lint": "uv run --directory ml ruff check . && pnpm --filter coinvoy-api lint && pnpm --filter coinvoy-frontend lint",
+    "typecheck": "pnpm --filter coinvoy-api typecheck && pnpm --filter coinvoy-frontend typecheck",
     "build": "pnpm --filter coinvoy-frontend build",
+    "start": "pnpm --filter coinvoy-api start",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "icons": "uv run scripts/make_icons.py"
+    "icons": "uv run scripts/make_icons.py",
+    "train:bm": "uv run --directory ml python scripts/make_bm_seed.py && uv run --directory ml python scripts/train_bm_classifier.py"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

@@ -64,18 +64,3 @@ def test_llm_only_fills_what_is_missing():
     assert p.tier == "llm" and p.amount_sen == 4000 and p.category == "lain"  # the parsed 40 wins over 99999
     assert parse("minyak 40", threshold=1.01, llm=llm).tier == "rules" and len(calls) == 1
 
-
-def test_parse_endpoint_without_llm(client):
-    client.post("/api/auth/demo")
-    r = client.post("/api/expenses/parse", json={"text": "isi minyak empat puluh"}).json()
-    assert r == {"amountSen": 4000, "category": "minyak", "tier": "rules", "confidence": 1.0}
-    x = client.post("/api/expenses", json={"amountSen": 4000, "category": "minyak", "parseTier": "rules"}).json()
-    assert client.get("/api/expenses").json()["expenses"][0]["id"] == x["expense"]["id"]
-
-
-def test_parse_endpoint_with_llm_fallback(client, provider):
-    client.post("/api/auth/demo")
-    provider.reply = '{"category": "lain", "amount_rm": null}'
-    r = client.post("/api/expenses/parse", json={"text": "xyzzy plugh"}).json()
-    assert r["tier"] == "llm" and r["category"] == "lain" and r["amountSen"] is None
-    assert "<note>xyzzy plugh</note>" in provider.requests[0]["messages"][1]["content"]

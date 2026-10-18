@@ -72,9 +72,22 @@ weeksRouter.post('/weeks/confirm', async (req, res) => {
       await tx.insert(schema.events).values({ userId: user.id, name: 'week_logged', props: { week: wk.weekStart, source: wk.platforms[0]!.source } })
     }
   })
+  await contributeToIndex(user, weeks)
   await recompute(db, user)
   res.json({ ok: true })
 })
+
+/** Indeks Rider (FR-IDX-1): only with the separate consent, and the rows carry no user id. */
+async function contributeToIndex(user: ReturnType<typeof userOf>, weeks: z.infer<typeof WeeksIn>['weeks']) {
+  const [consent] = await db.select().from(schema.consents).where(and(eq(schema.consents.userId, user.id), eq(schema.consents.kind, 'indeks_rider'))).orderBy(desc(schema.consents.id)).limit(1)
+  if (!consent?.granted || !user.city) return
+  const rows = weeks.flatMap((w) =>
+    w.platforms
+      .filter((p) => p.hoursOnline && p.hoursOnline > 0)
+      .map((p) => ({ city: user.city!.toLowerCase(), platform: p.platform, month: w.weekStart.slice(0, 7), rateSenPerHour: Math.round((p.grossSen - p.commissionSen + p.incentivesSen) / p.hoursOnline!) })),
+  )
+  if (rows.length) await db.insert(schema.indexContributions).values(rows)
+}
 
 weeksRouter.get('/weeks', async (_req, res) => {
   const rows = await db.select().from(schema.earnings).where(eq(schema.earnings.userId, userOf(res).id)).orderBy(desc(schema.earnings.weekStart))

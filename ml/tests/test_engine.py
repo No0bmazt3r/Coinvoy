@@ -89,6 +89,11 @@ def test_jurang_when_safe_salary_is_below_essentials():
     assert r.jurang and r.jurang["gap_sen"] == 200_000 - r.salary_sen
 
 
+def test_saving_phase_alone_is_not_a_jurang():
+    r = solve(faiz(buffer_sen=0, essentials_week_sen=45_000))  # earns ~RM630, essentials RM450, buffer empty
+    assert r.build_up and r.jurang is None
+
+
 def test_more_hours_scenario_raises_the_salary():
     inp = faiz(essentials_week_sen=0)
     assert solve(inp, Scenario(hours=60)).salary_sen > solve(inp).salary_sen

@@ -29,3 +29,6 @@ export function weekLabel(monday: string, lang: 'ms' | 'en'): string {
   const sameMonth = monday.slice(5, 7) === sunday.slice(5, 7)
   return sameMonth ? `${fmt(monday, false)}–${fmt(sunday, true)}` : `${fmt(monday, true)} – ${fmt(sunday, true)}`
 }
+
+/** This week's Monday in Malaysia. */
+export const thisWeekStart = () => weekStart(todayKL())

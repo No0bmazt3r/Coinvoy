@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { Camera, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Camera, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
+import { CheckinCard } from '../../components/CheckinCard'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { ForecastBand } from '../../components/ForecastBand'
@@ -8,8 +9,9 @@ import { JurangCard } from '../../components/JurangCard'
 import { SalaryCard } from '../../components/SalaryCard'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
+import { StreakChip } from '../../components/StreakChip'
 import { useI18n, type Key } from '../../i18n/t'
-import { homeQuery } from '../../lib/api'
+import { billsQuery, homeQuery } from '../../lib/api'
 
 export const Route = createFileRoute('/_app/')({ component: Gaji })
 
@@ -24,11 +26,15 @@ function Gaji() {
   const { t } = useI18n()
   const { user } = Route.useRouteContext()
   const home = useQuery(homeQuery)
+  const bills = useQuery(billsQuery)
   const s = home.data?.salary
 
   return (
     <>
-      <ScreenHeader title={t('gaji.greeting', { name: user.displayName.split(' ')[0] })} />
+      <ScreenHeader
+        title={t('gaji.greeting', { name: user.displayName.split(' ')[0] })}
+        action={home.data && home.data.weeksLogged > 0 ? <StreakChip streak={home.data.streak} /> : undefined}
+      />
       {home.isPending ? (
         <Skeleton className="h-72" />
       ) : home.isError ? (
@@ -45,6 +51,18 @@ function Gaji() {
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{t('gaji.snapDueTitle')}</span>
                 <span className="block text-sm text-muted">{t('gaji.snapDueBody')}</span>
+              </span>
+            </Link>
+          )}
+          {home.data.checkinDue && <CheckinCard weekStart={home.data.checkinDue} />}
+          {bills.data?.length === 0 && (
+            <Link to="/bil" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
+                <CalendarPlus size={20} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{t('gaji.billsTitle')}</span>
+                <span className="block text-sm text-muted">{t('gaji.billsBody')}</span>
               </span>
             </Link>
           )}

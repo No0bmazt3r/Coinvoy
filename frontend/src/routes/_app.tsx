@@ -1,7 +1,9 @@
-import { useRef, useState, type CSSProperties, type TouchEvent } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Outlet, createFileRoute, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
 import { BottomNav } from '../components/BottomNav'
 import { meQuery } from '../lib/api'
+import { applyAppearance } from '../lib/appearance'
 import { swipeTarget, tabDirection } from '../lib/tabs'
 
 // Every signed-in screen lives under this pathless layout: it guards the session (FR-SHELL-4), adds the bottom nav, and swipes between tabs.
@@ -18,6 +20,10 @@ export const Route = createFileRoute('/_app')({
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const navigate = useNavigate()
+  const { data: user } = useQuery(meQuery)
+  useEffect(() => {
+    if (user) applyAppearance(user.theme, user.accent)
+  }, [user])
   const start = useRef<{ x: number; y: number } | null>(null)
 
   // Tab changes (tap or swipe) slide in from the side they sit on; other screens fade up.

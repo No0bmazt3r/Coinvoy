@@ -15,7 +15,12 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppBilRouteImport } from './routes/_app/bil'
+import { Route as AppCutiRouteImport } from './routes/_app/cuti'
 import { Route as AppJurangRouteImport } from './routes/_app/jurang'
+import { Route as AppLayakRouteImport } from './routes/_app/layak'
+import { Route as AppPemberiRouteImport } from './routes/_app/pemberi'
+import { Route as AppPencapaianRouteImport } from './routes/_app/pencapaian'
 import { Route as AppRekodRouteImport } from './routes/_app/rekod'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSnapRouteImport } from './routes/_app/snap'
@@ -51,9 +56,34 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBilRoute = AppBilRouteImport.update({
+  id: '/bil',
+  path: '/bil',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCutiRoute = AppCutiRouteImport.update({
+  id: '/cuti',
+  path: '/cuti',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppJurangRoute = AppJurangRouteImport.update({
   id: '/jurang',
   path: '/jurang',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLayakRoute = AppLayakRouteImport.update({
+  id: '/layak',
+  path: '/layak',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPemberiRoute = AppPemberiRouteImport.update({
+  id: '/pemberi',
+  path: '/pemberi',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPencapaianRoute = AppPencapaianRouteImport.update({
+  id: '/pencapaian',
+  path: '/pencapaian',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRekodRoute = AppRekodRouteImport.update({
@@ -88,7 +118,12 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/bil': typeof AppBilRoute
+  '/cuti': typeof AppCutiRoute
   '/jurang': typeof AppJurangRoute
+  '/layak': typeof AppLayakRoute
+  '/pemberi': typeof AppPemberiRoute
+  '/pencapaian': typeof AppPencapaianRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -100,7 +135,12 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/bil': typeof AppBilRoute
+  '/cuti': typeof AppCutiRoute
   '/jurang': typeof AppJurangRoute
+  '/layak': typeof AppLayakRoute
+  '/pemberi': typeof AppPemberiRoute
+  '/pencapaian': typeof AppPencapaianRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -115,7 +155,12 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/bil': typeof AppBilRoute
+  '/_app/cuti': typeof AppCutiRoute
   '/_app/jurang': typeof AppJurangRoute
+  '/_app/layak': typeof AppLayakRoute
+  '/_app/pemberi': typeof AppPemberiRoute
+  '/_app/pencapaian': typeof AppPencapaianRoute
   '/_app/rekod': typeof AppRekodRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/snap': typeof AppSnapRoute
@@ -131,7 +176,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/bil'
+    | '/cuti'
     | '/jurang'
+    | '/layak'
+    | '/pemberi'
+    | '/pencapaian'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -143,7 +193,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/bil'
+    | '/cuti'
     | '/jurang'
+    | '/layak'
+    | '/pemberi'
+    | '/pencapaian'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -157,7 +212,12 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/_app/bil'
+    | '/_app/cuti'
     | '/_app/jurang'
+    | '/_app/layak'
+    | '/_app/pemberi'
+    | '/_app/pencapaian'
     | '/_app/rekod'
     | '/_app/settings'
     | '/_app/snap'
@@ -218,11 +278,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/bil': {
+      id: '/_app/bil'
+      path: '/bil'
+      fullPath: '/bil'
+      preLoaderRoute: typeof AppBilRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/cuti': {
+      id: '/_app/cuti'
+      path: '/cuti'
+      fullPath: '/cuti'
+      preLoaderRoute: typeof AppCutiRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/jurang': {
       id: '/_app/jurang'
       path: '/jurang'
       fullPath: '/jurang'
       preLoaderRoute: typeof AppJurangRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/layak': {
+      id: '/_app/layak'
+      path: '/layak'
+      fullPath: '/layak'
+      preLoaderRoute: typeof AppLayakRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pemberi': {
+      id: '/_app/pemberi'
+      path: '/pemberi'
+      fullPath: '/pemberi'
+      preLoaderRoute: typeof AppPemberiRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/pencapaian': {
+      id: '/_app/pencapaian'
+      path: '/pencapaian'
+      fullPath: '/pencapaian'
+      preLoaderRoute: typeof AppPencapaianRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/rekod': {
@@ -264,7 +359,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppBilRoute: typeof AppBilRoute
+  AppCutiRoute: typeof AppCutiRoute
   AppJurangRoute: typeof AppJurangRoute
+  AppLayakRoute: typeof AppLayakRoute
+  AppPemberiRoute: typeof AppPemberiRoute
+  AppPencapaianRoute: typeof AppPencapaianRoute
   AppRekodRoute: typeof AppRekodRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSnapRoute: typeof AppSnapRoute
@@ -274,7 +374,12 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppBilRoute: AppBilRoute,
+  AppCutiRoute: AppCutiRoute,
   AppJurangRoute: AppJurangRoute,
+  AppLayakRoute: AppLayakRoute,
+  AppPemberiRoute: AppPemberiRoute,
+  AppPencapaianRoute: AppPencapaianRoute,
   AppRekodRoute: AppRekodRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSnapRoute: AppSnapRoute,
