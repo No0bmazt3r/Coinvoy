@@ -85,8 +85,8 @@ class Result:
     weeks_used: int
     own_residuals: bool
     bills_next_week: list[str] = field(default_factory=list)
-    bills_4w_sen: int = 0
-    set_aside_4w_sen: int = 0
+    bills_soon_sen: int = 0
+    set_aside_soon_sen: int = 0
 
     def as_dict(self) -> dict:
         return dict(self.__dict__)
@@ -205,8 +205,8 @@ def solve(inp: Inputs, sc: Scenario = Scenario()) -> Result:
         weeks_used=fc.weeks_used,
         own_residuals=fc.own_residuals,
         bills_next_week=plan.bill_names_next_week,
-        bills_4w_sen=int(plan.bills[:4].sum()),
-        set_aside_4w_sen=int(plan.cuti_in[:4].sum()),
+        bills_soon_sen=int(plan.bills[:4].sum()),
+        set_aside_soon_sen=int(plan.cuti_in[:4].sum()),
     )
 
 

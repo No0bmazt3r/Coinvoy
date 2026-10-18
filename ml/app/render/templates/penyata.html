@@ -42,7 +42,7 @@
 
   <div class="meta">
     <div><b>{{ L.name }}</b>{{ name }}</div>
-    <div><b>{{ L.period }}</b>{{ d["from"].isoformat() }} – {{ d["to"].isoformat() }}</div>
+    <div><b>{{ L.period }}</b>{{ d["from"] }} – {{ d["to"] }}</div>
     <div><b>{{ L.weeks }}</b>{{ d.weeks }} {{ L.weeks_logged }}</div>
     <div><b>{{ L.generated }}</b>{{ generated }}</div>
     {% if expires %}<div><b>{{ L.expires }}</b>{{ expires }}</div>{% endif %}

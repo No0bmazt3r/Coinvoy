@@ -223,7 +223,7 @@ wheels = [
 ]
 
 [[package]]
-name = "coinvoy-backend"
+name = "coinvoy-ml"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
