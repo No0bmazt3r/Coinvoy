@@ -12,6 +12,7 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().default(''),
   GOOGLE_CLIENT_SECRET: z.string().default(''),
   DEMO_ENABLED: bool(true),
+  AUTH_RATE_PER_MIN: z.coerce.number().default(30), // per IP on /api/auth/*
   // The Python ML service (engine, BM classifier, Penyata renderer)
   ML_URL: z.url().default('http://127.0.0.1:8001'),
   ML_TOKEN: z.string().default(''),

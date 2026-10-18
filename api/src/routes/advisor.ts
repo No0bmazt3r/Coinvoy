@@ -1,0 +1,114 @@
+// Penasihat: Jurang, Tanya, Semak Layak, the lender check and Celik (FR-ADV-*).
+import { and, asc, desc, eq, lt } from 'drizzle-orm'
+import { Router } from 'express'
+import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
+import { z } from 'zod'
+import { requireUser, userOf } from '../auth.ts'
+import { db, schema } from '../db/index.ts'
+import { env, llmConfigured } from '../env.ts'
+import { chat } from '../llm/client.ts'
+import { answer } from '../llm/tanya.ts'
+import { checkQuota, logUsage } from '../llm/usage.ts'
+import { ml } from '../ml.ts'
+import { checkOffer, instalment, LlmOffer } from '../services/advisor.ts'
+import { triggered } from '../services/lessons.ts'
+import { buildInputs, currentWeek } from '../services/salary.ts'
+import { readFileSync } from 'node:fs'
+import { ApiError } from '../errors.ts'
+import { MAX_SEN } from './profile.ts'
+
+const LENDER_PROMPT = readFileSync(new URL('../llm/prompts/lender.md', import.meta.url), 'utf8')
+const RETENTION_MS = 90 * 24 * 60 * 60 * 1000 // Tanya messages are kept 90 days (architecture §12)
+const HISTORY_TURNS = 10
+
+export const advisorRouter = Router()
+advisorRouter.use(requireUser)
+
+async function inputsFor(res: Parameters<typeof userOf>[0]) {
+  const user = userOf(res)
+  return { user, inputs: await buildInputs(db, user, await currentWeek(db, user.id)) }
+}
+
+// When the safe salary is below essentials: the gap, and three ways to close it, every number simulated.
+advisorRouter.get('/jurang', async (_req, res) => {
+  const { user, inputs } = await inputsFor(res)
+  if (!inputs) return void res.json({ active: false })
+  const j = await ml.jurang(inputs)
+  if (!j.active) return void res.json(j)
+  await db.insert(schema.events).values({ userId: user.id, name: 'jurang_shown', props: { gap_sen: j.gapSen } })
+  res.json({
+    ...j,
+    entitlements: { isaraanMatchRate: env.ISARAAN_MATCH_RATE, isaraanMatchCapSen: env.ISARAAN_MATCH_CAP_SEN, perkesoDeductedAtSource: env.PERKESO_DEDUCTED_AT_SOURCE },
+  })
+})
+
+advisorRouter.get('/tanya/messages', async (_req, res) => {
+  const rows = await db.select().from(schema.tanyaMessages).where(eq(schema.tanyaMessages.userId, userOf(res).id)).orderBy(asc(schema.tanyaMessages.id)).limit(200)
+  res.json({ messages: rows.map((m) => ({ id: m.id, role: m.role, content: m.content, risk: m.risk, guardTriggered: m.guardTriggered, at: m.createdAt.toISOString() })) })
+})
+
+advisorRouter.post('/tanya/messages', async (req, res) => {
+  const user = userOf(res)
+  const { message } = z.strictObject({ message: z.string().trim().min(1).max(500) }).parse(req.body)
+  await checkQuota(user.id, 'tanya')
+  await db.delete(schema.tanyaMessages).where(and(eq(schema.tanyaMessages.userId, user.id), lt(schema.tanyaMessages.createdAt, new Date(Date.now() - RETENTION_MS))))
+  const recent = await db.select().from(schema.tanyaMessages).where(eq(schema.tanyaMessages.userId, user.id)).orderBy(desc(schema.tanyaMessages.id)).limit(HISTORY_TURNS * 2)
+  const history: ChatCompletionMessageParam[] = recent.reverse().map((m) => (m.role === 'user' ? { role: 'user', content: `<rider_message>${m.content}</rider_message>` } : { role: 'assistant', content: m.content }))
+  const out = await answer(user, history, message, (r) => logUsage(user.id, 'tanya', r))
+  const [saved] = await db
+    .insert(schema.tanyaMessages)
+    .values([
+      { userId: user.id, role: 'user', content: message },
+      { userId: user.id, role: 'assistant', content: out.reply, tools: out.tools, risk: out.risk, guardTriggered: out.guardTriggered },
+    ])
+    .returning()
+  await db.insert(schema.events).values({ userId: user.id, name: 'tanya_turn', props: { tools: out.tools, guard_triggered: out.guardTriggered } })
+  res.json({ reply: out.reply, risk: out.risk, guardTriggered: out.guardTriggered, at: saved!.createdAt.toISOString() })
+})
+
+const LayakIn = z.strictObject({
+  item: z.string().min(1).max(40),
+  priceSen: z.number().int().positive().max(MAX_SEN),
+  depositSen: z.number().int().min(0).max(MAX_SEN).default(0),
+  months: z.number().int().min(1).max(120),
+  flatRatePct: z.number().min(0).max(100),
+})
+
+// Semak Layak: what the instalment does to the rider's own future weeks. A risky result is shown as plainly as a
+// safe one; Coinvoy earns the same whether the rider borrows or not (FR-ADV-5, panel/09 §4.3).
+advisorRouter.post('/layak', async (req, res) => {
+  const body = LayakIn.parse(req.body)
+  const { user, inputs } = await inputsFor(res)
+  if (!inputs) throw new ApiError(422, 'no_salary_yet', 'Snap pendapatan dahulu.', 'Snap your earnings first.')
+  const loan = instalment(body.priceSen, body.depositSen, body.months, body.flatRatePct)
+  const now = await ml.solve(inputs)
+  const scenario = { addMonthlySen: loan.monthlySen, oneOffSen: body.depositSen, oneOffWeek: 1 }
+  const [after, safety] = await Promise.all([ml.solve(inputs, scenario), ml.pSafe(inputs, now.salarySen, scenario)])
+  await db.insert(schema.events).values({ userId: user.id, name: 'layak_checked', props: { risk: safety.risk } })
+  res.json({ ...loan, item: body.item, salarySen: now.salarySen, newSalarySen: after.salarySen, pSafe: safety.pSafe, risk: safety.risk })
+})
+
+// Lender check: red flags plus a match against a dated copy of BNM's alert list (FR-ADV-6). Works without the LLM.
+advisorRouter.post('/lender-check', async (req, res) => {
+  const user = userOf(res)
+  const { text } = z.strictObject({ text: z.string().trim().min(10).max(2000) }).parse(req.body)
+  let offer: LlmOffer | null = null
+  if (llmConfigured()) {
+    try {
+      await checkQuota(user.id, 'lender')
+      const r = await chat('lender', [{ role: 'system', content: LENDER_PROMPT }, { role: 'user', content: `<offer>${text}</offer>` }], { schema: LlmOffer, maxTokens: 400 })
+      await logUsage(user.id, 'lender', r)
+      offer = r.parsed
+    } catch (err) {
+      if (!(err instanceof ApiError)) throw err // the rules and the list still answer
+    }
+  }
+  const result = checkOffer(text, offer)
+  await db.insert(schema.events).values({ userId: user.id, name: 'lender_checked', props: { level: result.level, fca: result.fca.matched } })
+  res.json({ ...result, usedAi: offer !== null })
+})
+
+advisorRouter.get('/celik', async (_req, res) => {
+  const user = userOf(res)
+  res.json({ lessons: await triggered(db, user, user.lang) })
+})

@@ -25,7 +25,7 @@ export function extract(text: string): Found[] {
     const end = m.index + m[0].length
     found.push({ value, decimals, after: text.slice(end, end + 12).toLowerCase() })
   }
-  const words = text.toLowerCase().match(/[a-z]+/g) ?? []
+  const words: string[] = text.toLowerCase().match(/[a-z]+/g) ?? []
   let run: string[] = []
   words.concat(['.']).forEach((w, i) => {
     if (NUMBER_WORDS.has(w)) return void run.push(w)
