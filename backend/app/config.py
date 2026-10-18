@@ -18,9 +18,23 @@ class Settings(BaseSettings):
     google_client_secret: str = ""
     demo_enabled: bool = True
 
+    # Any OpenAI-compatible provider (see .env.example). Per-route models fall back to llm_model.
+    llm_base_url: str = "https://openrouter.ai/api/v1"
+    llm_api_key: str = ""
+    llm_model: str = ""
+    llm_model_snap: str = ""
+    llm_model_tanya: str = ""
+    llm_model_lender: str = ""
+    llm_model_bm: str = ""
+    llm_timeout_s: float = 60
+
     @property
     def google_configured(self) -> bool:
         return bool(self.google_client_id and self.google_client_secret)
+
+    @property
+    def llm_configured(self) -> bool:
+        return bool(self.llm_api_key and self.llm_model)
 
 
 settings = Settings()
