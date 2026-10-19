@@ -2,11 +2,13 @@ import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from
 import { useQuery } from '@tanstack/react-query'
 import { Outlet, createFileRoute, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
 import { BottomNav } from '../components/BottomNav'
+import { SideNav } from '../components/SideNav'
 import { meQuery } from '../lib/api'
 import { applyAppearance } from '../lib/appearance'
 import { swipeTarget, tabDirection } from '../lib/tabs'
 
-// Every signed-in screen lives under this pathless layout: it guards the session (FR-SHELL-4), adds the bottom nav, and swipes between tabs.
+// Every signed-in screen lives under this pathless layout: it guards the session (FR-SHELL-4), adds the bottom nav (sidebar on desktop),
+// and swipes between tabs.
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData(meQuery).catch(() => null)
@@ -16,6 +18,9 @@ export const Route = createFileRoute('/_app')({
   },
   component: AppShell,
 })
+
+// Screens laid out in two columns on desktop get the wider content area; the rest stay a readable 640 px.
+const WIDE = ['/', '/tabung', '/rekod']
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -48,17 +53,22 @@ function AppShell() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       // clip, not hidden: the slide-in from the right must not widen the page (the fixed nav jumped), and sticky headers keep working
-      className="mx-auto min-h-dvh max-w-[480px] overflow-x-clip px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]"
+      className="min-h-dvh overflow-x-clip lg:pl-60"
     >
-      {/* Keyed by path so each screen's sections animate in turn on arrival */}
       <div
-        key={pathname}
-        className="page-in flex flex-col gap-4"
-        style={shown.dir ? ({ '--page-dx': `${shown.dir * 24}px`, '--page-dy': '0px' } as CSSProperties) : undefined}
+        className={`mx-auto max-w-[480px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10 ${WIDE.includes(pathname) ? 'lg:max-w-[1120px]' : 'lg:max-w-[640px]'}`}
       >
-        <Outlet />
+        {/* Keyed by path so each screen's sections animate in turn on arrival */}
+        <div
+          key={pathname}
+          className="page-in flex flex-col gap-4"
+          style={shown.dir ? ({ '--page-dx': `${shown.dir * 24}px`, '--page-dy': '0px' } as CSSProperties) : undefined}
+        >
+          <Outlet />
+        </div>
       </div>
       <BottomNav />
+      <SideNav />
     </div>
   )
 }

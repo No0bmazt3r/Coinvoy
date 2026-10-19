@@ -44,7 +44,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t('nav.label')}
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-20 border-t lg:hidden border-line bg-surface/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
     >
       <ul className="relative mx-auto grid max-w-[480px] grid-cols-5">
         {/* One lime pill that glides between tabs instead of each tab fading its own */}

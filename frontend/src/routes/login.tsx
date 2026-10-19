@@ -43,19 +43,20 @@ function Login() {
   const message = demo.isError ? t('login.error.demo') : error ? t(ERRORS[error] ?? 'login.error.failed') : ''
 
   return (
-    <main className="page-in mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))]">
-      <div className="flex justify-end pt-3">
+    // Desktop: a dark brand panel on the left, sign-in on the right
+    <main className="page-in relative mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] lg:grid lg:max-w-none lg:grid-cols-2 lg:p-0">
+      <div className="flex justify-end pt-3 lg:absolute lg:top-4 lg:right-6 lg:pt-0">
         <LangToggle />
       </div>
 
-      <section className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center">
+      <section className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center lg:bg-ink lg:px-12 lg:text-on-ink">
         <Logo className="h-[120px] w-auto" />
         <h1 className="text-[2rem] leading-[2.375rem] font-extrabold tracking-tight">Coinvoy</h1>
         <p className="max-w-sm text-lg leading-[1.625rem] font-medium">{t('app.tagline')}</p>
-        <p className="max-w-sm text-muted">{t('login.pitch')}</p>
+        <p className="max-w-sm text-muted lg:text-on-ink-muted">{t('login.pitch')}</p>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-sm lg:justify-center lg:px-4">
         {/* A real navigation, not fetch: the API redirects to Google and back. */}
         <a href="/api/auth/google" className="btn btn-secondary">
           <GoogleIcon />

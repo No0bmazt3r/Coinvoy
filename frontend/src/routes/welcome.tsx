@@ -11,7 +11,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react'
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { LangToggle } from '../components/LangToggle'
 import { Logo } from '../components/Logo'
 import { useI18n, type Key } from '../i18n/t'
@@ -101,61 +101,73 @@ function Welcome() {
     markIntroSeen()
     void navigate({ to: '/login', replace: true })
   }
+  // Keyboard users (and desktop, where there's no swipe) step through with the arrow keys
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') track.current?.scrollBy({ left: track.current.clientWidth, behavior: 'smooth' })
+      if (e.key === 'ArrowLeft') track.current?.scrollBy({ left: -track.current.clientWidth, behavior: 'smooth' })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   return (
-    <main
-      aria-label={t('intro.label')}
-      className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-ink pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-on-ink"
-    >
-      <div className="flex items-center justify-between px-4 pt-3">
-        <LangToggle />
-        <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-on-ink-muted ${last ? 'invisible' : ''}`}>
-          {t('intro.skip')}
-        </button>
-      </div>
-
-      <div
-        ref={track}
-        onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-        className="no-scrollbar flex flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
+    // Desktop: the same carousel as a centred card on the dark background
+    <div className="lg:grid lg:min-h-dvh lg:place-items-center lg:bg-ink">
+      <main
+        aria-label={t('intro.label')}
+        className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-ink pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-on-ink lg:h-[min(760px,90dvh)] lg:w-[480px] lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-white/5"
       >
-        {slides.map((s, i) => (
-          <section
-            key={s.title}
-            aria-hidden={i !== index}
-            className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center ${i === index ? 'intro-active' : ''}`}
-          >
-            <div className="intro-art grid min-h-48 w-full place-items-center">{s.art}</div>
-            <div className="flex flex-col gap-3">
-              <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight">{t(s.title)}</h1>
-              <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms]">{t(s.body)}</p>
-            </div>
-          </section>
-        ))}
-      </div>
+        <div className="flex items-center justify-between px-4 pt-3">
+          <LangToggle />
+          <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-on-ink-muted ${last ? 'invisible' : ''}`}>
+            {t('intro.skip')}
+          </button>
+        </div>
 
-      <div className="flex flex-col items-center gap-6 px-4 pt-4">
-        <div className="flex gap-2">
+        <div
+          ref={track}
+          onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
+          className="no-scrollbar flex flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
+        >
           {slides.map((s, i) => (
-            <button
+            <section
               key={s.title}
-              type="button"
-              aria-label={t('intro.goTo', { n: i + 1 })}
-              aria-current={i === index ? 'step' : undefined}
-              onClick={() => goTo(i)}
-              className="grid h-6 place-items-center"
+              aria-hidden={i !== index}
+              className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center ${i === index ? 'intro-active' : ''}`}
             >
-              <span
-                className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-white/25'}`}
-              />
-            </button>
+              <div className="intro-art grid min-h-48 w-full place-items-center">{s.art}</div>
+              <div className="flex flex-col gap-3">
+                <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight">{t(s.title)}</h1>
+                <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms]">{t(s.body)}</p>
+              </div>
+            </section>
           ))}
         </div>
-        <button type="button" onClick={() => (last ? finish() : goTo(index + 1))} className="btn btn-primary">
-          {t(last ? 'intro.start' : 'intro.next')}
-          {last ? <HandCoins size={20} aria-hidden /> : <ArrowRight size={20} aria-hidden />}
-        </button>
-      </div>
-    </main>
+
+        <div className="flex flex-col items-center gap-6 px-4 pt-4">
+          <div className="flex gap-2">
+            {slides.map((s, i) => (
+              <button
+                key={s.title}
+                type="button"
+                aria-label={t('intro.goTo', { n: i + 1 })}
+                aria-current={i === index ? 'step' : undefined}
+                onClick={() => goTo(i)}
+                className="grid h-6 place-items-center"
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-white/25'}`}
+                />
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => (last ? finish() : goTo(index + 1))} className="btn btn-primary">
+            {t(last ? 'intro.start' : 'intro.next')}
+            {last ? <HandCoins size={20} aria-hidden /> : <ArrowRight size={20} aria-hidden />}
+          </button>
+        </div>
+      </main>
+    </div>
   )
 }

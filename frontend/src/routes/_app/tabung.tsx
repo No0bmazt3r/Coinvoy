@@ -16,6 +16,7 @@ export const Route = createFileRoute('/_app/tabung')({ component: Tabung })
 const ICON: Record<string, LucideIcon> = { penampan: Shield, cuti: Palmtree, kecemasan: Siren, motor: Bike, raya: Moon, isaraan: Landmark, perkeso: HeartPulse }
 
 // Pots are earmarks inside the rider's one real savings pocket; balances move only on "Dah pindah" (FR-CAR-*).
+// Desktop: the pots on the left, government contributions and the cross-check on the right.
 function Tabung() {
   const { t } = useI18n()
   const pots = useQuery(potsQuery)
@@ -34,81 +35,85 @@ function Tabung() {
   return (
     <>
       <ScreenHeader title={t('tabung.title')} />
-      <section className="flex flex-col gap-1 rounded-lg border-2 border-outline bg-surface p-5">
-        <p className="text-sm font-semibold text-muted">{t('tabung.total')}</p>
-        <p className="text-[2rem] leading-[2.375rem] font-extrabold tabular-nums">{rm(total)}</p>
-        <p className="text-sm text-muted">{t('tabung.onePocket')}</p>
-      </section>
-
-      <section aria-labelledby="govt" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h2 id="govt" className="font-semibold">{t('caruman.claimed')}</h2>
-            <p className="text-sm text-muted">{t('caruman.claimedBody')}</p>
-          </div>
-          <p className="text-2xl font-extrabold text-brand-text tabular-nums">{rm(c.governmentClaimedSen)}</p>
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+        <div className="col">
+          <section className="flex flex-col gap-1 rounded-lg border-2 border-outline bg-surface p-5">
+            <p className="text-sm font-semibold text-muted">{t('tabung.total')}</p>
+            <p className="text-[2rem] leading-[2.375rem] font-extrabold tabular-nums">{rm(total)}</p>
+            <p className="text-sm text-muted">{t('tabung.onePocket')}</p>
+          </section>
+          <ul className="flex flex-col gap-2 max-lg:order-1">
+            {shown.map((p) => {
+              const Icon = ICON[p.kind] ?? PiggyBank
+              const pct = p.targetSen ? Math.min(100, (p.balanceSen / p.targetSen) * 100) : 0
+              return (
+                <li key={p.kind}>
+                  <button type="button" onClick={() => setEditing(p)} className="pressable flex w-full flex-col gap-2 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
+                    <span className="flex w-full items-center gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2"><Icon size={20} aria-hidden /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold">{t(`pot.${p.kind}` as Key)}</span>
+                        <span className="block text-sm text-muted">{t(`pot.${p.kind}.what` as Key)}</span>
+                      </span>
+                      <span className="text-right tabular-nums">
+                        <b className="block">{rm(p.balanceSen)}</b>
+                        {p.targetSen > 0 && <span className="block text-[0.8125rem] text-muted">/ {rm(p.targetSen)}</span>}
+                      </span>
+                    </span>
+                    {p.targetSen > 0 && (
+                      <span className="block h-2 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
+                        <span className="block h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
+                      </span>
+                    )}
+                    {p.weeklySen > 0 && <span className="text-[0.8125rem] text-muted">{t('pot.weekly', { amount: rm(p.weeklySen) })}</span>}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
         </div>
-        <div className="flex flex-col gap-1.5">
-          <div className="flex justify-between text-sm tabular-nums">
-            <span>{t('caruman.isaraanProgress')}</span>
-            <span>{rm(c.isaraan.paidYearSen)} / {rm(c.isaraan.fullMatchNeedsSen)}</span>
+        <div className="col">
+          <section aria-labelledby="govt" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 id="govt" className="font-semibold">{t('caruman.claimed')}</h2>
+                <p className="text-sm text-muted">{t('caruman.claimedBody')}</p>
+              </div>
+              <p className="text-2xl font-extrabold text-brand-text tabular-nums">{rm(c.governmentClaimedSen)}</p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex justify-between text-sm tabular-nums">
+                <span>{t('caruman.isaraanProgress')}</span>
+                <span>{rm(c.isaraan.paidYearSen)} / {rm(c.isaraan.fullMatchNeedsSen)}</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(isaraanPct)} aria-label={t('caruman.isaraanProgress')}>
+                <div className="h-full rounded-full bg-brand" style={{ width: `${isaraanPct}%` }} />
+              </div>
+              <p className="text-[0.8125rem] text-muted">
+                {t('caruman.isaraanRule', { rate: Math.round(c.isaraan.rate * 100), cap: rm(c.isaraan.capSen), match: rm(c.isaraan.matchYearSen) })}
+              </p>
+            </div>
+            <button type="button" className="btn btn-secondary" onClick={() => setContributing(true)}>
+              {t('caruman.record')}
+            </button>
+            <p className="flex items-center gap-2 text-sm text-muted">
+              <HeartPulse size={16} aria-hidden />
+              {t(c.perkeso.deductedAtSource ? 'caruman.perkesoDeducted' : 'caruman.perkesoReserve', { rate: (c.perkeso.rate * 100).toFixed(2) })}
+            </p>
+          </section>
+          <Link to="/cuti" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand"><Palmtree size={20} aria-hidden /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">{t('cuti.entryTitle')}</span>
+              <span className="block text-sm text-muted">{t('cuti.entryBody')}</span>
+            </span>
+            <ChevronRight size={20} className="text-muted" aria-hidden />
+          </Link>
+          <div className="max-lg:order-2">
+            <StatementCheck />
           </div>
-          <div className="h-2.5 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(isaraanPct)} aria-label={t('caruman.isaraanProgress')}>
-            <div className="h-full rounded-full bg-brand" style={{ width: `${isaraanPct}%` }} />
-          </div>
-          <p className="text-[0.8125rem] text-muted">
-            {t('caruman.isaraanRule', { rate: Math.round(c.isaraan.rate * 100), cap: rm(c.isaraan.capSen), match: rm(c.isaraan.matchYearSen) })}
-          </p>
         </div>
-        <button type="button" className="btn btn-secondary" onClick={() => setContributing(true)}>
-          {t('caruman.record')}
-        </button>
-        <p className="flex items-center gap-2 text-sm text-muted">
-          <HeartPulse size={16} aria-hidden />
-          {t(c.perkeso.deductedAtSource ? 'caruman.perkesoDeducted' : 'caruman.perkesoReserve', { rate: (c.perkeso.rate * 100).toFixed(2) })}
-        </p>
-      </section>
-
-      <Link to="/cuti" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand"><Palmtree size={20} aria-hidden /></span>
-        <span className="min-w-0 flex-1">
-          <span className="block font-semibold">{t('cuti.entryTitle')}</span>
-          <span className="block text-sm text-muted">{t('cuti.entryBody')}</span>
-        </span>
-        <ChevronRight size={20} className="text-muted" aria-hidden />
-      </Link>
-
-      <ul className="flex flex-col gap-2">
-        {shown.map((p) => {
-          const Icon = ICON[p.kind] ?? PiggyBank
-          const pct = p.targetSen ? Math.min(100, (p.balanceSen / p.targetSen) * 100) : 0
-          return (
-            <li key={p.kind}>
-              <button type="button" onClick={() => setEditing(p)} className="pressable flex w-full flex-col gap-2 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
-                <span className="flex w-full items-center gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2"><Icon size={20} aria-hidden /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{t(`pot.${p.kind}` as Key)}</span>
-                    <span className="block text-sm text-muted">{t(`pot.${p.kind}.what` as Key)}</span>
-                  </span>
-                  <span className="text-right tabular-nums">
-                    <b className="block">{rm(p.balanceSen)}</b>
-                    {p.targetSen > 0 && <span className="block text-[0.8125rem] text-muted">/ {rm(p.targetSen)}</span>}
-                  </span>
-                </span>
-                {p.targetSen > 0 && (
-                  <span className="block h-2 w-full overflow-hidden rounded-full bg-surface-2" aria-hidden>
-                    <span className="block h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
-                  </span>
-                )}
-                {p.weeklySen > 0 && <span className="text-[0.8125rem] text-muted">{t('pot.weekly', { amount: rm(p.weeklySen) })}</span>}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-
-      <StatementCheck />
+      </div>
 
       <Sheet open={editing !== null} onClose={() => setEditing(null)} title={editing ? t(`pot.${editing.kind}` as Key) : ''}>
         {editing && <PotForm pot={editing} onDone={() => setEditing(null)} />}

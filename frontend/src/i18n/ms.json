@@ -40,6 +40,8 @@
   "nav.tabung": "Tabung",
   "nav.tanya": "Tanya",
   "nav.profil": "Profil",
+  "nav.main": "Utama",
+  "nav.more": "Lagi",
   "gaji.greeting": "Hai, {name}",
   "gaji.emptyTitle": "Belum ada gaji lagi",
   "gaji.emptyBody": "Snap skrin pendapatan minggu ini. Kami kira gaji tetap anda.",

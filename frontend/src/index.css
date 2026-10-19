@@ -136,6 +136,16 @@ body {
 @keyframes pulse { 50% { opacity: 0.55; } }
 .sheet { max-height: 90dvh; }
 .sheet[open] > div { animation: sheet-up 250ms var(--ease-out); }
+/* Two-column screens (Home, Tabung, Rekod): on phones a .col is display:contents, so its cards join the single
+   column (reordered with max-lg:order-*) and animate in like direct children; from lg it's a real column. */
+.col { display: contents; }
+.page-in .col > * { animation: page-in 240ms var(--ease-out) both; }
+@media (width >= 64rem) {
+  .col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+  /* The sidebar is vertical, so tab changes fade up instead of sliding sideways; the sheet is a centred dialog */
+  .page-in > *, .page-in .col > * { --page-dx: 0px; --page-dy: 8px; }
+  .sheet[open] > div { animation: rise 250ms var(--ease-out); }
+}
 .spin { animation: spin 900ms linear infinite; }
 .skeleton { animation: pulse 1.4s ease-in-out infinite; }
 .pressable { transition: transform 150ms var(--ease-out), background-color 150ms ease-out; }

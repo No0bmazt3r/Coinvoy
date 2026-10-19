@@ -25,7 +25,7 @@ type Payslip = {
 }
 const CATEGORIES = ['minyak', 'servis', 'ansuran', 'makan', 'telefon', 'parking', 'tol', 'sewa', 'keluarga', 'motor_tahunan', 'lain']
 
-// Rekod: weeks, payslips, the Penyata and officer links, and costs (FR-SLIP-1..5, FR-SNAP-6).
+// Rekod: weeks, payslips, the Penyata and officer links, and costs (FR-SLIP-1..5, FR-SNAP-6). Desktop: weeks in their own column.
 function Rekod() {
   const { t, lang } = useI18n()
   const weeks = useQuery(weeksQuery)
@@ -33,30 +33,36 @@ function Rekod() {
   return (
     <>
       <ScreenHeader title={t('rekod.title')} back />
-      <Costs />
-      <PenyataCard />
-      <section aria-labelledby="weeks" className="flex flex-col gap-2">
-        <h2 id="weeks" className="px-1 text-sm font-semibold text-muted">{t('rekod.weeks')}</h2>
-        {weeks.isPending ? <Skeleton className="h-40" /> : weeks.isError ? <ErrorState error={weeks.error} onRetry={() => weeks.refetch()} /> : weeks.data.length === 0 ? (
-          <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('rekod.noWeeks')}</p>
-        ) : (
-          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
-            {weeks.data.map((w) => (
-              <li key={w.weekStart}>
-                <button type="button" onClick={() => setOpen(w)} className="pressable flex w-full items-center gap-3 p-4 text-left hover:bg-surface-2">
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{weekLabel(w.weekStart, lang)}</span>
-                    <span className="block text-[0.8125rem] text-muted">
-                      {w.platforms.map((p) => t(`platform.${p.platform}` as Key)).join(' · ')} · {t(w.verification === 'checked' ? 'source.checked' : 'source.self')}
-                    </span>
-                  </span>
-                  <b className="tabular-nums">{formatRM(w.netSen)}</b>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+        <div className="col">
+          <Costs />
+          <PenyataCard />
+        </div>
+        <div className="col">
+          <section aria-labelledby="weeks" className="flex flex-col gap-2">
+            <h2 id="weeks" className="px-1 text-sm font-semibold text-muted">{t('rekod.weeks')}</h2>
+            {weeks.isPending ? <Skeleton className="h-40" /> : weeks.isError ? <ErrorState error={weeks.error} onRetry={() => weeks.refetch()} /> : weeks.data.length === 0 ? (
+              <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('rekod.noWeeks')}</p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+                {weeks.data.map((w) => (
+                  <li key={w.weekStart}>
+                    <button type="button" onClick={() => setOpen(w)} className="pressable flex w-full items-center gap-3 p-4 text-left hover:bg-surface-2">
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-semibold">{weekLabel(w.weekStart, lang)}</span>
+                        <span className="block text-[0.8125rem] text-muted">
+                          {w.platforms.map((p) => t(`platform.${p.platform}` as Key)).join(' · ')} · {t(w.verification === 'checked' ? 'source.checked' : 'source.self')}
+                        </span>
+                      </span>
+                      <b className="tabular-nums">{formatRM(w.netSen)}</b>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      </div>
       <Sheet open={open !== null} onClose={() => setOpen(null)} title={open ? t('slip.title', { week: weekLabel(open.weekStart, lang) }) : ''}>
         {open && <PayslipView week={open} onDone={() => setOpen(null)} />}
       </Sheet>

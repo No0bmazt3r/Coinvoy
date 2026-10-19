@@ -22,6 +22,7 @@ const STEPS: { icon: LucideIcon; title: Key; body: Key }[] = [
 ]
 
 // Home = the salary (FR-GAJI-1): greeting → SalaryCard → Jurang → Snap prompt → forecast band (design-system §7).
+// Desktop: the salary on the left; the to-dos and the forecast on the right.
 function Gaji() {
   const { t } = useI18n()
   const { user } = Route.useRouteContext()
@@ -40,47 +41,51 @@ function Gaji() {
       ) : home.isError ? (
         <ErrorState onRetry={() => home.refetch()} />
       ) : s ? (
-        <>
-          <SalaryCard salary={s} transfer={home.data.transfer} />
-          {s.jurang && <JurangCard essentialsSen={s.jurang.essentialsSen} salarySen={s.salarySen} gapSen={s.jurang.gapSen} />}
-          {home.data.needsSnap && (
-            <Link to="/snap" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand">
-                <Camera size={20} aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{t('gaji.snapDueTitle')}</span>
-                <span className="block text-sm text-muted">{t('gaji.snapDueBody')}</span>
-              </span>
-            </Link>
-          )}
-          {home.data.checkinDue && <CheckinCard weekStart={home.data.checkinDue} />}
-          {!user.pocketReady && (
-            <Link to="/pocket" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
-                <Landmark size={20} aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{t('pocket.title')}</span>
-                <span className="block text-sm text-muted">{t('pocket.card')}</span>
-              </span>
-            </Link>
-          )}
-          {bills.data?.length === 0 && (
-            <Link to="/bil" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
-                <CalendarPlus size={20} aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold">{t('gaji.billsTitle')}</span>
-                <span className="block text-sm text-muted">{t('gaji.billsBody')}</span>
-              </span>
-            </Link>
-          )}
-          <ForecastBand {...s.band} />
-        </>
+        <div className="contents lg:grid lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-4">
+          <div className="col">
+            <SalaryCard salary={s} transfer={home.data.transfer} />
+            {s.jurang && <JurangCard essentialsSen={s.jurang.essentialsSen} salarySen={s.salarySen} gapSen={s.jurang.gapSen} />}
+          </div>
+          <div className="col">
+            {home.data.needsSnap && (
+              <Link to="/snap" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand">
+                  <Camera size={20} aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{t('gaji.snapDueTitle')}</span>
+                  <span className="block text-sm text-muted">{t('gaji.snapDueBody')}</span>
+                </span>
+              </Link>
+            )}
+            {home.data.checkinDue && <CheckinCard weekStart={home.data.checkinDue} />}
+            {!user.pocketReady && (
+              <Link to="/pocket" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
+                  <Landmark size={20} aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{t('pocket.title')}</span>
+                  <span className="block text-sm text-muted">{t('pocket.card')}</span>
+                </span>
+              </Link>
+            )}
+            {bills.data?.length === 0 && (
+              <Link to="/bil" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
+                  <CalendarPlus size={20} aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold">{t('gaji.billsTitle')}</span>
+                  <span className="block text-sm text-muted">{t('gaji.billsBody')}</span>
+                </span>
+              </Link>
+            )}
+            <ForecastBand {...s.band} />
+          </div>
+        </div>
       ) : (
-        <>
+        <div className="col lg:mx-auto lg:w-full lg:max-w-[640px]">
           <section className="rounded-lg border-2 border-outline bg-surface">
             <EmptyState icon={Wallet} title={t('gaji.emptyTitle')} body={t('gaji.emptyBody')}>
               <Link to="/snap" className="btn btn-primary mt-2">
@@ -110,7 +115,7 @@ function Gaji() {
               ))}
             </ol>
           </section>
-        </>
+        </div>
       )}
     </>
   )

@@ -40,6 +40,8 @@
   "nav.tabung": "Pots",
   "nav.tanya": "Ask",
   "nav.profil": "Profile",
+  "nav.main": "Main",
+  "nav.more": "More",
   "gaji.greeting": "Hi, {name}",
   "gaji.emptyTitle": "No salary yet",
   "gaji.emptyBody": "Snap this week's earnings screen. We'll work out your steady salary.",

@@ -1,14 +1,7 @@
 """ISO weeks in Asia/Kuala_Lumpur (NFR-11) and when bills fall due."""
 
 import calendar as _cal
-from datetime import date, datetime, timedelta
-from zoneinfo import ZoneInfo
-
-KL = ZoneInfo("Asia/Kuala_Lumpur")
-
-
-def today_kl() -> date:
-    return datetime.now(KL).date()
+from datetime import date, timedelta
 
 
 def week_start(d: date) -> date:
