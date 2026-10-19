@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod'
+import { errorFields, log } from './log.ts'
 
 // Errors reach the client as { error: { code, message_ms, message_en } } (architecture §10).
 export class ApiError extends Error {
@@ -16,7 +17,7 @@ export class ApiError extends Error {
 
 export const notFound = () => new ApiError(404, 'not_found', 'Tidak dijumpai.', 'Not found.')
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   if (err instanceof ApiError) {
     res.status(err.status).json({ error: { code: err.code, message_ms: err.messageMs, message_en: err.message } })
     return
@@ -30,6 +31,6 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     res.status(err.status ?? 400).json({ error: { code: 'bad_body', message_ms: 'Permintaan tidak sah.', message_en: 'Bad request.' } })
     return
   }
-  console.error(err)
+  log('error', 'unhandled', { method: req.method, path: req.path, ...errorFields(err) })
   res.status(500).json({ error: { code: 'server', message_ms: 'Ralat pelayan. Cuba lagi.', message_en: 'Server error. Try again.' } })
 }

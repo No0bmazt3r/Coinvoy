@@ -21,6 +21,7 @@ export type User = {
   accent: Accent
   platforms: Platform[]
   onboarded: boolean
+  isAdmin: boolean
   consents: Partial<Record<'privacy' | 'llm_processing' | 'indeks_rider', { granted: boolean; version: string }>>
 }
 

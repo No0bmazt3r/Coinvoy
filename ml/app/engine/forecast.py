@@ -6,10 +6,14 @@ log-rate is shrunk toward the population prior, so 2 weeks of data lean on the p
 
 import json
 from dataclasses import dataclass
+from datetime import date
 from functools import cache
 from pathlib import Path
 
 import numpy as np
+
+from app.engine import rate_model as gbm
+from app.engine.seasons import log_effect
 
 PRIORS_FILE = Path(__file__).parent / "data" / "priors.json"
 SHRINK_K = 4  # weeks of rider data that weigh as much as the prior
@@ -29,6 +33,7 @@ class Prior:
 class WeekObs:
     net_sen: int
     hours: float | None
+    week_start: date | None = None  # for the season adjustment; None = treated as an ordinary week
 
 
 @dataclass(frozen=True)
@@ -79,14 +84,22 @@ def pooled_residuals(log_sd: float, rho: float) -> np.ndarray:
     return r - r.mean()
 
 
-def fit(history: list[WeekObs], prior: Prior, default_hours: float) -> Forecast:
-    """history is oldest first; weeks with no income (leave, sick) are skipped."""
-    obs = [w for w in history if w.net_sen > 0]
-    logs = np.array([np.log(w.net_sen / (w.hours if w.hours and w.hours > 0 else default_hours)) for w in obs])
+def season_free_logs(history: list[WeekObs], default_hours: float) -> np.ndarray:
+    """log(sen per hour) of each week with income, oldest first, with its season effect taken out."""
+    obs = [w for w in history if w.net_sen > 0]  # weeks with no income (leave, sick) are skipped
+    return np.array([np.log(w.net_sen / (w.hours if w.hours and w.hours > 0 else default_hours))
+                     - log_effect(w.week_start) for w in obs])
+
+
+def fit(history: list[WeekObs], prior: Prior, default_hours: float, rate_model: str = "shrink") -> Forecast:
+    """history is oldest first. rate_model "gbm" uses the pooled model for the mean when it's trained (ADR-6)."""
+    logs = season_free_logs(history, default_hours)
     n = len(logs)
     log_prior = np.log(prior.rate_sen_per_hour)
     weight = n / (n + SHRINK_K)
     log_rate = weight * logs.mean() + (1 - weight) * log_prior if n else log_prior
+    if rate_model == "gbm" and (pred := gbm.predict(logs, float(log_prior))) is not None:
+        log_rate = pred
     own = n >= OWN_RESIDUALS_MIN
     residuals = logs - logs.mean() if own else pooled_residuals(prior.log_sd, prior.rho)
     sd = float(logs.std(ddof=1)) if own else prior.log_sd

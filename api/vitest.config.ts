@@ -21,6 +21,8 @@ export default defineConfig({
       GOOGLE_CLIENT_SECRET: 'test-secret',
       DEMO_ENABLED: 'true',
       AUTH_RATE_PER_MIN: '100000',
+      LOG_REQUESTS: 'false',
+      ADMIN_EMAILS: 'admin@example.com',
       LLM_API_KEY: '',
       LLM_MODEL: '',
     },

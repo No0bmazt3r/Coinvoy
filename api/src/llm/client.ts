@@ -5,6 +5,7 @@ import type { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletionT
 import { z } from 'zod'
 import { env, llmConfigured } from '../env.ts'
 import { ApiError } from '../errors.ts'
+import { log } from '../log.ts'
 
 export type Route = 'snap' | 'tanya' | 'lender' | 'bm'
 
@@ -50,7 +51,7 @@ export async function chat<T = undefined>(
     }
   } catch (err) {
     if (err instanceof ApiError) throw err
-    console.error(`llm ${route} failed:`, err instanceof Error ? err.message : err)
+    log('error', 'llm failed', { route, err: err instanceof Error ? err.message : String(err) })
     throw new ApiError(502, 'llm_failed', 'AI tidak dapat dihubungi. Cuba lagi atau isi secara manual.', "The AI couldn't be reached. Try again or enter it manually.")
   }
   const message = res.choices[0]!.message

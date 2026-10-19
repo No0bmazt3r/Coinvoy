@@ -3,13 +3,16 @@ import { fileURLToPath } from 'node:url'
 import express, { type RequestHandler } from 'express'
 import { env, googleConfigured, llmConfigured } from './env.ts'
 import { ApiError, errorHandler } from './errors.ts'
+import { requestLog } from './log.ts'
 import { accountRouter } from './routes/account.ts'
+import { adminRouter } from './routes/admin.ts'
 import { advisorRouter } from './routes/advisor.ts'
 import { authRouter } from './routes/auth.ts'
 import { benefitsRouter } from './routes/benefits.ts'
 import { expensesRouter } from './routes/expenses.ts'
 import { homeRouter } from './routes/home.ts'
 import { profileRouter } from './routes/profile.ts'
+import { pushRouter } from './routes/push.ts'
 import { recordsRouter } from './routes/records.ts'
 import { snapRouter } from './routes/snap.ts'
 import { weeksRouter } from './routes/weeks.ts'
@@ -56,6 +59,7 @@ export function createApp() {
   const app = express()
   app.disable('x-powered-by')
   app.set('trust proxy', 1) // one proxy hop (Vite dev proxy / Render), so req.ip is the real client
+  app.use(requestLog)
   app.use(securityHeaders)
   app.use(express.json({ limit: '100kb' }))
   app.use(sameOrigin)
@@ -66,7 +70,7 @@ export function createApp() {
     void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured() }),
   )
   app.use('/api/auth', rateLimit(env.AUTH_RATE_PER_MIN), authRouter)
-  app.use('/api', profileRouter, weeksRouter, homeRouter, snapRouter, advisorRouter, benefitsRouter, expensesRouter, accountRouter)
+  app.use('/api', profileRouter, weeksRouter, homeRouter, snapRouter, advisorRouter, benefitsRouter, expensesRouter, pushRouter, adminRouter, accountRouter)
   app.use(recordsRouter)
   app.use('/api', (_req, _res, next) => next(new ApiError(404, 'not_found', 'Tidak dijumpai.', 'Not found.')))
 

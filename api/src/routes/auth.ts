@@ -6,7 +6,8 @@ import { cookieOptions, createSession, endSession, logAuthEvent, randomToken, re
 import { db, schema } from '../db/index.ts'
 import { env, googleConfigured } from '../env.ts'
 import { ApiError } from '../errors.ts'
-import { seedDemo } from '../services/demo.ts'
+import { errorFields, log } from '../log.ts'
+import { PERSONAS, type PersonaKey, seedDemo } from '../services/demo.ts'
 import { userJson } from '../services/profile.ts'
 
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
@@ -83,7 +84,7 @@ authRouter.get('/google/callback', async (req, res) => {
   try {
     idToken = await google.exchange(code, verifier)
   } catch (err) {
-    console.error('google token exchange failed:', err)
+    log('error', 'google token exchange failed', errorFields(err))
     return fail(req, res, 'exchange')
   }
 
@@ -118,19 +119,21 @@ authRouter.get('/google/callback', async (req, res) => {
   res.redirect(`${env.APP_URL}/`)
 })
 
-// A fresh temporary demo rider per tap, with the Abang Faiz story, so each judge has their own copy (FR-AUTH-3, FR-DEMO-1).
+// A fresh temporary demo rider per tap, so each judge has their own copy (FR-AUTH-3, FR-DEMO-1).
+// ?persona=lina opens Kak Lina's Jurang story instead of Abang Faiz; ?empty starts at onboarding.
 authRouter.post('/demo', async (req, res) => {
   if (!env.DEMO_ENABLED) throw new ApiError(404, 'demo_disabled', 'Demo tidak tersedia.', "The demo isn't available.")
+  const persona: PersonaKey = req.query.persona === 'lina' ? 'lina' : 'faiz'
   // ponytail: expired demo users are cleaned up here instead of by a scheduler; add a job if demo traffic grows.
   await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.createdAt, new Date(Date.now() - DEMO_TTL_MS))))
   const token = await db.transaction(async (tx) => {
-    const [user] = await tx.insert(schema.users).values({ email: 'demo@coinvoy.invalid', displayName: 'Faiz', isDemo: true, lastLoginAt: new Date() }).returning()
+    const [user] = await tx.insert(schema.users).values({ email: 'demo@coinvoy.invalid', displayName: PERSONAS[persona].name, isDemo: true, lastLoginAt: new Date() }).returning()
     const t = await createSession(tx, req, user!.id)
     await logAuthEvent(tx, req, 'signup', { userId: user!.id, email: user!.email })
     await logAuthEvent(tx, req, 'login', { userId: user!.id, email: user!.email })
     return { t, user: user! }
   })
-  if (req.query.empty === undefined) await seedDemo(token.user)
+  if (req.query.empty === undefined) await seedDemo(token.user, persona)
   setSessionCookie(res, token.t)
   res.status(204).end()
 })

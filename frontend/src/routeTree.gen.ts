@@ -15,12 +15,14 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppAdminRouteImport } from './routes/_app/admin'
 import { Route as AppBilRouteImport } from './routes/_app/bil'
 import { Route as AppCutiRouteImport } from './routes/_app/cuti'
 import { Route as AppJurangRouteImport } from './routes/_app/jurang'
 import { Route as AppLayakRouteImport } from './routes/_app/layak'
 import { Route as AppPemberiRouteImport } from './routes/_app/pemberi'
 import { Route as AppPencapaianRouteImport } from './routes/_app/pencapaian'
+import { Route as AppPocketRouteImport } from './routes/_app/pocket'
 import { Route as AppRekodRouteImport } from './routes/_app/rekod'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSnapRouteImport } from './routes/_app/snap'
@@ -56,6 +58,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAdminRoute = AppAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppBilRoute = AppBilRouteImport.update({
   id: '/bil',
   path: '/bil',
@@ -84,6 +91,11 @@ const AppPemberiRoute = AppPemberiRouteImport.update({
 const AppPencapaianRoute = AppPencapaianRouteImport.update({
   id: '/pencapaian',
   path: '/pencapaian',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppPocketRoute = AppPocketRouteImport.update({
+  id: '/pocket',
+  path: '/pocket',
   getParentRoute: () => AppRoute,
 } as any)
 const AppRekodRoute = AppRekodRouteImport.update({
@@ -118,12 +130,14 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/admin': typeof AppAdminRoute
   '/bil': typeof AppBilRoute
   '/cuti': typeof AppCutiRoute
   '/jurang': typeof AppJurangRoute
   '/layak': typeof AppLayakRoute
   '/pemberi': typeof AppPemberiRoute
   '/pencapaian': typeof AppPencapaianRoute
+  '/pocket': typeof AppPocketRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -135,12 +149,14 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/admin': typeof AppAdminRoute
   '/bil': typeof AppBilRoute
   '/cuti': typeof AppCutiRoute
   '/jurang': typeof AppJurangRoute
   '/layak': typeof AppLayakRoute
   '/pemberi': typeof AppPemberiRoute
   '/pencapaian': typeof AppPencapaianRoute
+  '/pocket': typeof AppPocketRoute
   '/rekod': typeof AppRekodRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
@@ -155,12 +171,14 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/privacy': typeof PrivacyRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/admin': typeof AppAdminRoute
   '/_app/bil': typeof AppBilRoute
   '/_app/cuti': typeof AppCutiRoute
   '/_app/jurang': typeof AppJurangRoute
   '/_app/layak': typeof AppLayakRoute
   '/_app/pemberi': typeof AppPemberiRoute
   '/_app/pencapaian': typeof AppPencapaianRoute
+  '/_app/pocket': typeof AppPocketRoute
   '/_app/rekod': typeof AppRekodRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/snap': typeof AppSnapRoute
@@ -176,12 +194,14 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/admin'
     | '/bil'
     | '/cuti'
     | '/jurang'
     | '/layak'
     | '/pemberi'
     | '/pencapaian'
+    | '/pocket'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -193,12 +213,14 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/admin'
     | '/bil'
     | '/cuti'
     | '/jurang'
     | '/layak'
     | '/pemberi'
     | '/pencapaian'
+    | '/pocket'
     | '/rekod'
     | '/settings'
     | '/snap'
@@ -212,12 +234,14 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/privacy'
     | '/welcome'
+    | '/_app/admin'
     | '/_app/bil'
     | '/_app/cuti'
     | '/_app/jurang'
     | '/_app/layak'
     | '/_app/pemberi'
     | '/_app/pencapaian'
+    | '/_app/pocket'
     | '/_app/rekod'
     | '/_app/settings'
     | '/_app/snap'
@@ -278,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/admin': {
+      id: '/_app/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AppAdminRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/bil': {
       id: '/_app/bil'
       path: '/bil'
@@ -320,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPencapaianRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/pocket': {
+      id: '/_app/pocket'
+      path: '/pocket'
+      fullPath: '/pocket'
+      preLoaderRoute: typeof AppPocketRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/rekod': {
       id: '/_app/rekod'
       path: '/rekod'
@@ -359,12 +397,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAdminRoute: typeof AppAdminRoute
   AppBilRoute: typeof AppBilRoute
   AppCutiRoute: typeof AppCutiRoute
   AppJurangRoute: typeof AppJurangRoute
   AppLayakRoute: typeof AppLayakRoute
   AppPemberiRoute: typeof AppPemberiRoute
   AppPencapaianRoute: typeof AppPencapaianRoute
+  AppPocketRoute: typeof AppPocketRoute
   AppRekodRoute: typeof AppRekodRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSnapRoute: typeof AppSnapRoute
@@ -374,12 +414,14 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAdminRoute: AppAdminRoute,
   AppBilRoute: AppBilRoute,
   AppCutiRoute: AppCutiRoute,
   AppJurangRoute: AppJurangRoute,
   AppLayakRoute: AppLayakRoute,
   AppPemberiRoute: AppPemberiRoute,
   AppPencapaianRoute: AppPencapaianRoute,
+  AppPocketRoute: AppPocketRoute,
   AppRekodRoute: AppRekodRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSnapRoute: AppSnapRoute,

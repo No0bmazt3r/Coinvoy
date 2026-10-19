@@ -25,6 +25,7 @@ from app.nlp.lexicon import CATEGORIES
 from app.render import penyata
 
 ML_TOKEN = os.environ.get("ML_TOKEN", "")
+RATE_MODEL = "gbm" if os.environ.get("RATE_MODEL") == "gbm" else "shrink"
 MAX_HOURS, FATIGUE_HOURS = 84, 60
 
 
@@ -43,6 +44,7 @@ class Camel(BaseModel):
 class WeekIn(Camel):
     net_sen: int
     hours: float | None = None
+    week_start: date | None = None
 
 
 class BillBody(Camel):
@@ -94,11 +96,12 @@ def to_inputs(b: InputsBody) -> Inputs:
     planned = b.default_hours or (sum(recent) / len(recent) if recent else prior.default_hours)
     return Inputs(
         week_start=b.week_start, last_week_net_sen=b.last_week_net_sen,
-        history=tuple(WeekObs(w.net_sen, w.hours) for w in b.history), prior=prior, planned_hours=float(planned),
+        history=tuple(WeekObs(w.net_sen, w.hours, w.week_start) for w in b.history), prior=prior,
+        planned_hours=float(planned),
         buffer_sen=b.buffer_sen, cuti_sen=b.cuti_sen,
         bills=tuple(BillIn(x.name, x.amount_sen, x.frequency, x.due_day, x.due_date) for x in b.bills),
         leaves=tuple(_leave(x) for x in b.leaves), essentials_week_sen=b.essentials_week_sen,
-        reserves_week_sen=b.reserves_week_sen, seed=b.seed)
+        reserves_week_sen=b.reserves_week_sen, seed=b.seed, rate_model=RATE_MODEL)
 
 
 def to_scenario(s: ScenarioBody | None) -> Scenario:

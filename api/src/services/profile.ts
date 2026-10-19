@@ -1,6 +1,7 @@
 import { asc, eq } from 'drizzle-orm'
 import type { User } from '../auth.ts'
 import { db, schema } from '../db/index.ts'
+import { isAdmin } from '../routes/admin.ts'
 import { platformsOf } from './salary.ts'
 
 export type Consents = Partial<Record<'privacy' | 'llm_processing' | 'indeks_rider', { granted: boolean; version: string }>>
@@ -27,6 +28,7 @@ export async function userJson(user: User) {
     accent: user.accent,
     platforms: await platformsOf(db, user.id),
     onboarded: user.onboardedAt !== null,
+    isAdmin: isAdmin(user.email, user.isDemo),
     consents,
   }
 }

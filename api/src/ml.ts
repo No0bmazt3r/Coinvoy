@@ -2,6 +2,7 @@
 import type { EngineResult } from './db/schema.ts'
 import { env } from './env.ts'
 import { ApiError } from './errors.ts'
+import { errorFields, log } from './log.ts'
 
 export type Bill = { name: string; amountSen: number; frequency: string; dueDay: number | null; dueDate: string | null }
 export type Leave = { startWeek: string; weeks: number; setAsideWeekSen: number; fraction?: number }
@@ -9,7 +10,7 @@ export type Leave = { startWeek: string; weeks: number; setAsideWeekSen: number;
 export type Inputs = {
   weekStart: string
   lastWeekNetSen: number
-  history: { netSen: number; hours: number | null }[] // oldest first
+  history: { netSen: number; hours: number | null; weekStart: string }[] // oldest first; the date drives the season adjustment
   platforms: string[]
   city: string | null
   defaultHours: number | null
@@ -49,11 +50,11 @@ async function call(path: string, body: unknown): Promise<Response> {
       signal: AbortSignal.timeout(30_000),
     })
   } catch (err) {
-    console.error('ml service unreachable:', err)
+    log('error', 'ml unreachable', errorFields(err))
     throw new ApiError(503, 'engine_down', 'Enjin sedang berehat. Cuba sebentar lagi.', 'The engine is resting. Try again shortly.')
   }
   if (!res.ok) {
-    console.error(`ml ${path} ${res.status}: ${await res.text()}`)
+    log('error', 'ml failed', { path, status: res.status, body: (await res.text()).slice(0, 500) })
     throw new ApiError(502, 'engine_failed', 'Enjin tak dapat mengira. Cuba lagi.', "The engine couldn't calculate. Try again.")
   }
   return res

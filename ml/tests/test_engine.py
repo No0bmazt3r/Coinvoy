@@ -150,3 +150,27 @@ def test_explain_names_the_bill():
     top = explain.diff(a, b)
     assert top[0]["key"] == "bills" and top[0]["names"] == ["Ansuran motor"] and top[0]["delta_sen"] < 0
     assert explain.diff(None, b) == [{"key": "first"}]
+
+
+def test_calendar_features_and_season_effects():
+    from app.engine.seasons import features, log_effect
+
+    raya_2027 = week_start(date(2027, 3, 10))
+    f = features(raya_2027)
+    assert f["public_holiday"] == 2 / 7 and f["ramadan"] > 0
+    assert features(date(2026, 10, 12)) == {"ramadan": 0, "public_holiday": 0, "school_holiday": 0}
+    assert log_effect(None) == 0.0 and log_effect(date(2026, 10, 12)) == 0.0
+
+
+def test_season_free_history_and_dated_weeks_still_solve():
+    dated = tuple(WeekObs(n, 45, MON - timedelta(weeks=len(NETS) - i)) for i, n in enumerate(NETS))
+    r = solve(faiz(history=dated))
+    assert r.p_safe >= 0.95 and r.model_version == "shrink-bootstrap-v2"
+
+
+def test_gbm_falls_back_to_shrinkage_without_enough_weeks():
+    from app.engine import rate_model
+
+    assert rate_model.predict(np.log(np.array([1200.0, 1300.0])), float(np.log(1200))) is None
+    short = fit([WeekObs(60000, 45), WeekObs(50000, 45)], PRIOR, 45, "gbm")
+    assert short.log_rate == fit([WeekObs(60000, 45), WeekObs(50000, 45)], PRIOR, 45).log_rate

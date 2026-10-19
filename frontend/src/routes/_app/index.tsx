@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { CalendarPlus, Camera, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Camera, Landmark, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
 import { CheckinCard } from '../../components/CheckinCard'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
@@ -55,6 +55,17 @@ function Gaji() {
             </Link>
           )}
           {home.data.checkinDue && <CheckinCard weekStart={home.data.checkinDue} />}
+          {!user.pocketReady && (
+            <Link to="/pocket" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
+                <Landmark size={20} aria-hidden />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{t('pocket.title')}</span>
+                <span className="block text-sm text-muted">{t('pocket.card')}</span>
+              </span>
+            </Link>
+          )}
           {bills.data?.length === 0 && (
             <Link to="/bil" className="pressable flex items-center gap-3 rounded-lg border border-line bg-surface p-4 hover:bg-surface-2">
               <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">

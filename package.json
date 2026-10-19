@@ -16,6 +16,7 @@
     "start": "pnpm --filter coinvoy-api start",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "icons": "uv run scripts/make_icons.py",
+    "train:rate": "uv run --directory ml python -m scripts.train_rate_model",
     "train:bm": "uv run --directory ml python scripts/make_bm_seed.py && uv run --directory ml python scripts/train_bm_classifier.py"
   },
   "devDependencies": {

@@ -13,6 +13,13 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().default(''),
   DEMO_ENABLED: bool(true),
   AUTH_RATE_PER_MIN: z.coerce.number().default(30), // per IP on /api/auth/*
+  LOG_REQUESTS: bool(true), // one JSON line per request (api/src/log.ts)
+  // Comma-separated Google emails that can open the usage view (/admin). Empty = nobody.
+  ADMIN_EMAILS: z.string().default('').transform((s) => s.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)),
+  // Web Push for the payday reminder (FR-GAJI-6). Generate once: pnpm --filter coinvoy-api exec web-push generate-vapid-keys
+  VAPID_PUBLIC_KEY: z.string().default(''),
+  VAPID_PRIVATE_KEY: z.string().default(''),
+  VAPID_SUBJECT: z.string().default('mailto:admin@coinvoy.invalid'),
   // The Python ML service (engine, BM classifier, Penyata renderer)
   // Render's private-service reference gives host:port, so a missing scheme means plain http on the private network.
   ML_URL: z.preprocess((v) => (typeof v === 'string' && v && !/^https?:\/\//.test(v) ? `http://${v}` : v), z.url().default('http://127.0.0.1:8001')),
@@ -50,4 +57,5 @@ if (!parsed.success) {
 
 export const env = parsed.data
 export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
+export const pushConfigured = () => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)
 export const llmConfigured = () => Boolean(env.LLM_API_KEY && env.LLM_MODEL)

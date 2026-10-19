@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Award, Check, Flame, Lock, Snowflake } from 'lucide-react'
+import { Award, Check, Flame, Lock, Share2, Snowflake } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { ErrorState } from '../../components/ErrorState'
 import { ScreenHeader } from '../../components/ScreenHeader'
+import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
 import { type Accent, api, errorText, meQuery, streakQuery, type User } from '../../lib/api'
 import { applyAppearance } from '../../lib/appearance'
 import { thisWeekStart } from '../../lib/dates'
+import { shareImage, streakCard } from '../../lib/shareCard'
 
 export const Route = createFileRoute('/_app/pencapaian')({ component: Achievements })
 
@@ -26,6 +29,7 @@ function Achievements() {
   const { t, lang } = useI18n()
   const q = useQuery(streakQuery)
   const { data: user } = useQuery(meQuery)
+  const [shareOpen, setShareOpen] = useState(false)
   const queryClient = useQueryClient()
   const accent = useMutation({
     mutationFn: (a: Accent) => api<{ user: User }>('/api/me', { method: 'PATCH', body: { accent: a } }),
@@ -54,7 +58,15 @@ function Achievements() {
         {s.nextLevelAt !== null && <p className="text-sm text-muted">{t('ach.next', { n: s.nextLevelAt - s.weeks })}</p>}
         {s.atRisk && <p className="rounded-[var(--radius-sm)] bg-[var(--careful-bg)] p-2 text-sm text-[var(--careful)]">{t('ach.atRisk')}</p>}
         <p className="text-sm text-muted">{t('ach.counts', { transfers: s.transfersConfirmed, kept: s.gajiKept })}</p>
+        {s.weeks > 0 && (
+          <button type="button" className="btn btn-secondary mt-2" onClick={() => setShareOpen(true)}>
+            <Share2 size={18} aria-hidden /> {t('ach.share')}
+          </button>
+        )}
       </section>
+      <Sheet open={shareOpen} onClose={() => setShareOpen(false)} title={t('ach.share')}>
+        {shareOpen && <ShareCard weeks={s.weeks} level={t(`level.${s.level}` as Key)} accent={ACCENTS.find((a) => a.id === user?.accent)?.color ?? ACCENTS[0]!.color} />}
+      </Sheet>
       <section aria-labelledby="accents" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
         <h2 id="accents" className="font-semibold">
           {t('ach.accents')}
@@ -106,5 +118,38 @@ function Achievements() {
       </section>
       <p className="text-[0.8125rem] text-muted">{t('ach.noRanking')}</p>
     </>
+  )
+}
+
+function ShareCard({ weeks, level, accent }: { weeks: number; level: string; accent: string }) {
+  const { t } = useI18n()
+  const [blob, setBlob] = useState<Blob | null>(null)
+  const [url, setUrl] = useState<string | null>(null)
+  const [done, setDone] = useState<'shared' | 'downloaded' | null>(null)
+  const weeksLabel = t('share.weeksInRow')
+  const tagline = t('app.tagline')
+  useEffect(() => {
+    let live = true
+    let made: string | null = null
+    streakCard({ weeks, weeksLabel, level, tagline, accent }).then((b) => {
+      if (!live) return
+      made = URL.createObjectURL(b)
+      setBlob(b)
+      setUrl(made)
+    })
+    return () => {
+      live = false
+      if (made) URL.revokeObjectURL(made)
+    }
+  }, [weeks, weeksLabel, level, tagline, accent])
+  return (
+    <div className="flex flex-col gap-3">
+      {url ? <img src={url} alt={t('share.alt', { n: weeks })} className="aspect-square w-full rounded-lg" /> : <Skeleton className="aspect-square w-full" />}
+      <p className="text-sm text-muted">{t('ach.shareHint')}</p>
+      <button type="button" className="btn btn-primary" disabled={!blob} onClick={async () => blob && setDone(await shareImage(blob, t('share.message')))}>
+        <Share2 size={18} aria-hidden /> {t('ach.share')}
+      </button>
+      {done === 'downloaded' && <p className="text-sm text-muted">{t('share.downloaded')}</p>}
+    </div>
   )
 }

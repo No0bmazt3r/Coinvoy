@@ -13,6 +13,7 @@ import numpy as np
 
 from app.engine.calendar import bill_due_in_week, weeks_between
 from app.engine.forecast import Prior, WeekObs, fit
+from app.engine.seasons import multipliers
 from app.engine.simulate import buffers, income_paths
 
 HORIZON = 12
@@ -21,7 +22,7 @@ BLOCK = 4
 TARGET = 0.95
 BUILD_WEEKS = 8
 TARGET_WEEKS_OF_ESSENTIALS = 2
-MODEL_VERSION = "shrink-bootstrap-v1"
+MODEL_VERSIONS = {"shrink": "shrink-bootstrap-v2", "gbm": "gbm-bootstrap-v1"}  # v2: season-adjusted
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ class Inputs:
     essentials_week_sen: int = 0
     reserves_week_sen: int = 0  # contributions set aside every week (i-Saraan, PERKESO if not deducted)
     seed: int = 0
+    rate_model: str = "shrink"  # "gbm" = the pooled model (ADR-6), only once it wins the real backtest
 
 
 @dataclass
@@ -87,6 +89,7 @@ class Result:
     bills_next_week: list[str] = field(default_factory=list)
     bills_soon_sen: int = 0
     set_aside_soon_sen: int = 0
+    model_version: str = MODEL_VERSIONS["shrink"]
 
     def as_dict(self) -> dict:
         return dict(self.__dict__)
@@ -133,6 +136,7 @@ def _plan(inp: Inputs, sc: Scenario) -> _Plan:
 
     hours = np.full(HORIZON - 1, float(sc.hours if sc.hours is not None else inp.planned_hours))
     hours *= 1 - on_leave[1:HORIZON]  # step t's income was earned in week t-1
+    hours *= multipliers(weeks[:HORIZON - 1])  # Ramadan, holidays, school holidays in the week it was earned
     cuti_pays = on_leave[:HORIZON]  # step 0 pays from Cuti when last week was leave
     next_week = weeks[1]
     names = [b.name for b in bills if b.name != "scenario"
@@ -141,7 +145,7 @@ def _plan(inp: Inputs, sc: Scenario) -> _Plan:
 
 
 def _income(inp: Inputs, plan: _Plan) -> np.ndarray:
-    fc = fit(list(inp.history), inp.prior, inp.planned_hours)
+    fc = fit(list(inp.history), inp.prior, inp.planned_hours, inp.rate_model)
     rng = np.random.default_rng(inp.seed)
     future = income_paths(fc, plan.hours, N_PATHS, BLOCK, rng)
     return np.hstack([np.full((N_PATHS, 1), float(inp.last_week_net_sen)), future]), fc
@@ -210,6 +214,7 @@ def solve(inp: Inputs, sc: Scenario = Scenario()) -> Result:
         bills_next_week=plan.bill_names_next_week,
         bills_soon_sen=int(plan.bills[:4].sum()),
         set_aside_soon_sen=int(plan.cuti_in[:4].sum()),
+        model_version=MODEL_VERSIONS[inp.rate_model],
     )
 
 

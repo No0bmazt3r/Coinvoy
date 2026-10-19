@@ -7,6 +7,7 @@ real week landed inside the slow–busy band (P10–P90, target about 80%).
 
     uv run --directory ml python -m scripts.backtest ../private_data/histories.csv   # real, consented histories
     uv run --directory ml python -m scripts.backtest --synthetic 30                  # dry run, labelled synthetic
+    ... --rate-model gbm   # replay with the pooled model (train it first); keep it only if it beats "shrink"
 
 CSV columns: rider_id, week_start (YYYY-MM-DD Monday), net_sen, hours (optional). Results go to results/ (git-ignored).
 Publish the real number on slide 4 even if it misses 95%.
@@ -51,16 +52,16 @@ def synthetic(n: int) -> dict[str, list]:
     return out
 
 
-def replay(weeks: list, method: str) -> dict:
+def replay(weeks: list, method: str, rate_model: str = "shrink") -> dict:
     buffer, short, covered, salaries = 0, 0, 0, []
     for t in range(START, len(weeks)):
         history = weeks[:t]
         last_net = history[-1][1]
         if method == "coinvoy":
             res = solve(Inputs(week_start=weeks[t][0], last_week_net_sen=last_net,
-                               history=tuple(WeekObs(n, h) for _, n, h in history),
+                               history=tuple(WeekObs(n, h, d) for d, n, h in history),
                                prior=prior_for(["other"], None), planned_hours=history[-1][2] or 45.0,
-                               buffer_sen=buffer, cuti_sen=0, seed=t))
+                               buffer_sen=buffer, cuti_sen=0, seed=t, rate_model=rate_model))
             salary = res.salary_sen
             covered += res.band["low"] <= weeks[t][1] <= res.band["high"]
         else:
@@ -76,15 +77,16 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("csv", nargs="?", type=Path)
     ap.add_argument("--synthetic", type=int, default=0)
+    ap.add_argument("--rate-model", choices=["shrink", "gbm"], default="shrink")
     args = ap.parse_args()
     if not args.csv and not args.synthetic:
         ap.error("give a histories CSV, or --synthetic N for a dry run")
     riders = synthetic(args.synthetic) if args.synthetic else load(args.csv)
     riders = {k: v for k, v in riders.items() if len(v) >= 12}
-    label = "SYNTHETIC" if args.synthetic else "real"
+    label = ("SYNTHETIC" if args.synthetic else "real") + ("" if args.rate_model == "shrink" else "-gbm")
     rows = []
     for rid, weeks in riders.items():
-        c, b = replay(weeks, "coinvoy"), replay(weeks, "baseline")
+        c, b = replay(weeks, "coinvoy", args.rate_model), replay(weeks, "baseline")
         rows.append({"rider": rid, "weeks_replayed": c["steps"], "coinvoy_short_weeks": c["short"],
                      "baseline_short_weeks": b["short"], "band_covered": c["covered"],
                      "coinvoy_median_salary_sen": c["median_salary_sen"],

@@ -33,6 +33,14 @@ services:
         sync: false
       - key: LLM_REGION_NOTE
         sync: false
+      - key: VAPID_PUBLIC_KEY # payday reminder; generate with web-push generate-vapid-keys
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
   - type: pserv
     name: coinvoy-ml
     runtime: docker
@@ -43,6 +51,8 @@ services:
     envVars:
       - key: ML_TOKEN
         fromGroup: coinvoy-secrets
+      - key: RATE_MODEL # "gbm" only after the pooled model wins the real backtest
+        sync: false
 
 envVarGroups:
   - name: coinvoy-secrets

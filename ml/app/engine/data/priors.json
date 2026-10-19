@@ -1,6 +1,12 @@
 {
   "_source": "Team estimate, 19 Oct 2026, NOT measured. Replace with medians from consented rider histories (decisions.md E1). Used only as the cold-start prior, labelled 'anggaran awal' in the app.",
   "rho": 0.5,
+  "season_log_effect": {
+    "_note": "log change in RM per hour for a week fully inside each season; team estimate, NOT measured",
+    "ramadan": -0.05,
+    "public_holiday": 0.10,
+    "school_holiday": -0.04
+  },
   "platforms": {
     "grab":       { "rate_sen_per_hour": 1200, "log_sd": 0.25, "default_hours": 45 },
     "foodpanda":  { "rate_sen_per_hour": 1100, "log_sd": 0.28, "default_hours": 45 },

@@ -9,8 +9,6 @@ import { type Inputs, ml, type Scenario } from '../ml.ts'
 import { ensurePots } from './pots.ts'
 import type { User } from '../auth.ts'
 
-export const MODEL_VERSION = 'shrink-bootstrap-v1'
-
 /** Same rider + same week = the same 1,000 futures, so the salary doesn't jitter on reload (FR-ENG-2). */
 export const seedFor = (userId: number, week: string) => Number(BigInt('0x' + createHash('sha256').update(`${userId}:${week}`).digest('hex').slice(0, 13)))
 
@@ -69,7 +67,7 @@ export async function buildInputs(db: Db, user: User, runWeek: string): Promise<
   return {
     weekStart: runWeek,
     lastWeekNetSen: lastNet,
-    history: history.map((h) => ({ netSen: h.netSen, hours: h.hours })),
+    history: history.map((h) => ({ netSen: h.netSen, hours: h.hours, weekStart: h.weekStart })),
     platforms: await platformsOf(db, user.id),
     city: user.city,
     defaultHours: user.defaultHours,
@@ -101,7 +99,7 @@ export async function recompute(db: Db, user: User) {
     .limit(1)
   const result: EngineResult = await ml.solve(inputs, {}, prev ? { ...prev.result, salarySen: prev.salarySen } : null)
   result.salaryDeltaSen = prev ? result.salarySen - prev.salarySen : null
-  const row = { salarySen: result.salarySen, pSafe: result.pSafe, risk: result.risk, bufferStartSen: inputs.bufferSen, result, modelVersion: MODEL_VERSION, seed: String(inputs.seed) }
+  const row = { salarySen: result.salarySen, pSafe: result.pSafe, risk: result.risk, bufferStartSen: inputs.bufferSen, result, modelVersion: result.modelVersion, seed: String(inputs.seed) }
   await db
     .insert(schema.salaryRuns)
     .values({ userId: user.id, weekStart: runWeek, ...row })

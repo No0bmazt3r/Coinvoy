@@ -41,3 +41,20 @@ self.addEventListener('fetch', (e) => {
 self.addEventListener('message', (e) => {
   if (e.data === 'clear-data') caches.delete(DATA)
 })
+
+// The payday reminder (FR-GAJI-6). Tapping it opens Snap, reusing an open Coinvoy window when there is one.
+self.addEventListener('push', (e) => {
+  const data = e.data?.json() ?? {}
+  e.waitUntil(self.registration.showNotification(data.title ?? 'Coinvoy', { body: data.body, icon: '/logo.png', badge: '/logo.png', tag: 'payday', data: { url: data.url ?? '/' } }))
+})
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close()
+  const url = new URL(e.notification.data?.url ?? '/', location.origin).href
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      const win = wins.find((w) => new URL(w.url).origin === location.origin)
+      return win ? win.focus().then((w) => w.navigate(url)) : self.clients.openWindow(url)
+    }),
+  )
+})

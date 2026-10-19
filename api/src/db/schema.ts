@@ -24,6 +24,7 @@ export const users = pgTable('users', {
   theme: text().notNull().default('system'), // system | light | dark
   city: text(),
   paydayWeekday: integer('payday_weekday'), // 0 = Monday
+  lastReminderWeek: date('last_reminder_week', { mode: 'string' }), // the week the payday reminder last went out
   defaultHours: integer('default_hours'),
   essentialsWeekSen: integer('essentials_week_sen'),
   pocketReady: boolean('pocket_ready').notNull().default(false),
@@ -253,6 +254,20 @@ export const llmUsage = pgTable(
   (t) => [index('llm_usage_user_route').on(t.userId, t.route, t.createdAt)],
 )
 
+// Web Push subscriptions for the payday reminder (FR-GAJI-6), one per device the rider allowed notifications on.
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: id(),
+    userId: owner(),
+    endpoint: text().notNull().unique(),
+    p256dh: text().notNull(),
+    auth: text().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('push_subscriptions_user_id').on(t.userId)],
+)
+
 // Impact analytics in our own DB (PRD §9). No third-party trackers.
 export const events = pgTable('events', {
   id: id(),
@@ -293,5 +308,6 @@ export type EngineResult = {
   setAsideSoonSen: number
   factors: { key: string; deltaSen?: number; names?: string[] }[]
   plannedHours: number
+  modelVersion: string
   salaryDeltaSen?: number | null
 }

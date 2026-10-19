@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Award, Briefcase, CalendarClock, ChevronRight, Download, FileText, Languages, LogOut, Moon, Shield, Trash2 } from 'lucide-react'
+import { Award, BarChart3, Bell, Briefcase, CalendarClock, ChevronRight, Download, FileText, Landmark, Languages, LogOut, Moon, Shield, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Avatar } from '../../components/Avatar'
 import { LangToggle } from '../../components/LangToggle'
@@ -10,6 +10,7 @@ import { Sheet } from '../../components/Sheet'
 import { useI18n, type Key } from '../../i18n/t'
 import { api, clearOfflineData, errorText, meQuery, type Platform, post, type User } from '../../lib/api'
 import { applyAppearance } from '../../lib/appearance'
+import { deviceEndpoint, disablePush, enablePush, pushSupported, type PushState } from '../../lib/push'
 import { CITIES, Chip, PLATFORMS, PRIVACY_VERSION } from '../onboarding'
 
 export const Route = createFileRoute('/_app/settings')({ component: Settings })
@@ -18,7 +19,7 @@ const ROW = 'flex min-h-14 items-center gap-3 px-4 py-3'
 const THEMES: User['theme'][] = ['light', 'dark', 'system']
 const DAYS: Key[] = ['day.0', 'day.1', 'day.2', 'day.3', 'day.4', 'day.5', 'day.6']
 
-function NavRow({ to, icon, label }: { to: '/pencapaian' | '/rekod' | '/bil' | '/privacy'; icon: ReactNode; label: string }) {
+function NavRow({ to, icon, label }: { to: '/pencapaian' | '/rekod' | '/bil' | '/privacy' | '/pocket' | '/admin'; icon: ReactNode; label: string }) {
   return (
     <Link to={to} className={`${ROW} pressable hover:bg-surface-2`}>
       {icon}
@@ -49,7 +50,10 @@ function Settings() {
     onSuccess: ({ user: u }) => queryClient.setQueryData(meQuery.queryKey, u),
   })
   const logout = useMutation({
-    mutationFn: () => post('/api/auth/logout'),
+    mutationFn: async () => {
+      await disablePush().catch(() => {}) // a shared phone shouldn't keep reminding the rider who left
+      await post('/api/auth/logout')
+    },
     onSettled: async () => {
       clearOfflineData()
       queryClient.clear()
@@ -76,6 +80,7 @@ function Settings() {
         <NavRow to="/pencapaian" icon={<Award size={22} aria-hidden />} label={t('ach.title')} />
         <NavRow to="/rekod" icon={<FileText size={22} aria-hidden />} label={t('rekod.title')} />
         <NavRow to="/bil" icon={<CalendarClock size={22} aria-hidden />} label={t('bills.title')} />
+        <NavRow to="/pocket" icon={<Landmark size={22} aria-hidden />} label={t('settings.pocket')} />
         <button type="button" onClick={() => setProfileOpen(true)} className={`${ROW} pressable text-left hover:bg-surface-2`}>
           <Briefcase size={22} aria-hidden />
           <span className="flex-1 font-semibold">{t('settings.work')}</span>
@@ -97,6 +102,7 @@ function Settings() {
             ))}
           </div>
         </div>
+        <PaydayReminder user={user} />
       </div>
 
       <section aria-labelledby="privacy" className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
@@ -112,6 +118,12 @@ function Settings() {
           <Trash2 size={22} aria-hidden /> {t('settings.delete')}
         </button>
       </section>
+
+      {user.isAdmin && (
+        <div className="overflow-hidden rounded-lg border border-line bg-surface">
+          <NavRow to="/admin" icon={<BarChart3 size={22} aria-hidden />} label={t('settings.admin')} />
+        </div>
+      )}
 
       <button type="button" onClick={() => logout.mutate()} disabled={logout.isPending} className={`${ROW} pressable justify-center rounded-lg border border-line bg-surface font-semibold text-[var(--risky)] hover:bg-surface-2 disabled:opacity-50`}>
         <LogOut size={20} aria-hidden />
@@ -129,14 +141,43 @@ function Settings() {
   )
 }
 
-function Toggle({ label, hint, on, onChange }: { label: string; hint: string; on: boolean; onChange: (v: boolean) => void }) {
+// The payday reminder on this device (FR-GAJI-6). On means this browser's subscription is stored for this rider.
+function PaydayReminder({ user }: { user: User }) {
+  const { t, lang } = useI18n()
+  const queryClient = useQueryClient()
+  const server = useQuery({ queryKey: ['push'], queryFn: () => api<PushState>('/api/push') })
+  const device = useQuery({ queryKey: ['push', 'device'], queryFn: deviceEndpoint })
+  const on = Boolean(device.data && server.data?.endpoints.includes(device.data))
+  const toggle = useMutation({
+    mutationFn: (v: boolean) => (v ? enablePush(server.data!.publicKey!) : disablePush()),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['push'] }),
+  })
+  const test = useMutation({ mutationFn: () => api<{ sent: number }>('/api/push/test', { method: 'POST' }) })
+  const day = t(DAYS[user.paydayWeekday ?? 0]!)
+  const hint = !pushSupported() ? t('remind.unsupported') : server.data && !server.data.publicKey ? t('remind.notSetUp') : t('remind.hint', { day })
+  const failed = toggle.error instanceof Error && toggle.error.message === 'denied' ? t('remind.denied') : toggle.isError ? errorText(toggle.error, lang, t('remind.unsupported')) : null
   return (
-    <label className="flex cursor-pointer items-start gap-3 px-4 py-3">
+    <div className="flex flex-col gap-2 py-1">
+      <Toggle icon={<Bell size={22} aria-hidden />} label={t('remind.title')} hint={hint} on={on} disabled={!pushSupported() || !server.data?.publicKey || toggle.isPending} onChange={(v) => toggle.mutate(v)} />
+      {on && (
+        <button type="button" className="mx-4 mb-2 self-start text-sm font-semibold underline" onClick={() => test.mutate()} disabled={test.isPending}>
+          {test.isSuccess ? t('remind.sent') : t('remind.test')}
+        </button>
+      )}
+      {failed && <p role="alert" className="mx-4 mb-2 text-sm text-[var(--risky)]">{failed}</p>}
+    </div>
+  )
+}
+
+function Toggle({ icon, label, hint, on, disabled, onChange }: { icon?: ReactNode; label: string; hint: string; on: boolean; disabled?: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className={`flex items-start gap-3 px-4 py-3 ${disabled ? 'cursor-default' : 'cursor-pointer'}`}>
+      {icon}
       <span className="min-w-0 flex-1">
         <span className="block font-semibold">{label}</span>
         <span className="block text-sm text-muted">{hint}</span>
       </span>
-      <input type="checkbox" role="switch" checked={on} onChange={(e) => onChange(e.target.checked)} className="mt-1 size-6 shrink-0 accent-[var(--brand-text)]" />
+      <input type="checkbox" role="switch" checked={on} disabled={disabled} onChange={(e) => onChange(e.target.checked)} className="mt-1 size-6 shrink-0 accent-[var(--brand-text)]" />
     </label>
   )
 }

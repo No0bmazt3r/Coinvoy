@@ -119,6 +119,17 @@ test('each demo tap gets its own user, and the real demo is the seeded Faiz stor
   const home = (await seeded.get('/api/home')).body
   expect(home.salary.salarySen).toBeGreaterThan(0)
   expect(home.weeksLogged).toBe(12)
+  expect(home.salary.jurang).toBeNull()
+})
+
+test('the Kak Lina demo opens on Jurang', async () => {
+  const a = agent()
+  expect((await a.post('/api/auth/demo?persona=lina')).status).toBe(204)
+  expect((await a.get('/api/auth/me')).body.user.displayName).toBe('Lina')
+  const home = (await a.get('/api/home')).body
+  expect(home.salary.jurang.gapSen).toBeGreaterThan(0)
+  const j = (await a.get('/api/jurang')).body
+  expect(j.active).toBe(true)
 })
 
 test('a foreign Origin is refused on unsafe requests', async () => {
