@@ -1,5 +1,5 @@
 // Slip Gaji and Penyata figures (FR-SLIP-*). Every figure carries the weakest source label among the weeks behind it.
-// The ML service renders them (HTML for the officer view, PDF via WeasyPrint) from one template.
+// The ML service renders them (HTML for the officer view, PDF via fpdf2) from the same labels.
 import { and, eq, gte, lt } from 'drizzle-orm'
 import type { User } from '../auth.ts'
 import { type Db, schema } from '../db/index.ts'

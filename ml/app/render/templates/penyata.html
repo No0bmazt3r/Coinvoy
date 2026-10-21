@@ -6,12 +6,11 @@
 <meta name="robots" content="noindex, nofollow">
 <title>{{ L.title }} · Coinvoy</title>
 <style>
-  /* Light only, for officers and print (design-system §7, officer view). */
+  /* Light only, for officers (design-system §7, officer view). */
   @page { size: A4; margin: 18mm 16mm; }
   * { box-sizing: border-box; }
   body { margin: 0; background: #F6F7F2; color: #1D1E1D; font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif; }
   main { max-width: 720px; margin: 0 auto; padding: 24px 16px; background: #fff; }
-  {% if for_pdf %} body { background: #fff; } main { padding: 0; max-width: none; } {% endif %}
   header { display: flex; align-items: center; gap: 12px; border-bottom: 2px solid #1D1E1D; padding-bottom: 12px; }
   header img { width: 44px; height: 44px; }
   h1 { font-size: 22px; margin: 0; }

@@ -1,5 +1,6 @@
-"""Renders the Penyata (FR-SLIP-2/3): HTML for the officer view, PDF via WeasyPrint. Same template for both, so a
-loans officer sees exactly what the PDF says. The figures arrive already computed by the API."""
+"""Renders the Penyata (FR-SLIP-2/3): HTML for the officer view, PDF via fpdf2 (pure Python, so no system libraries).
+Both are drawn from the same LABELS and figures, so a loans officer sees exactly what the PDF says. The figures arrive
+already computed by the API."""
 
 import base64
 from datetime import date
@@ -47,14 +48,82 @@ def _logo() -> str:
     return "data:image/png;base64," + base64.b64encode(LOGO.read_bytes()).decode() if LOGO.exists() else ""
 
 
-def render_html(name: str, data: dict, lang: str, generated: date, expires: str | None = None,
-                for_pdf: bool = False) -> str:
+def render_html(name: str, data: dict, lang: str, generated: date, expires: str | None = None) -> str:
     return _env.get_template("penyata.html").render(
         L=LABELS[lang], M=MONTHS[lang], d=data, rm=rm, name=name.split(" ")[0], lang=lang,
-        generated=generated.isoformat(), expires=expires, logo=_logo(), for_pdf=for_pdf)
+        generated=generated.isoformat(), expires=expires, logo=_logo())
+
+
+def _latin1(value: object) -> str:
+    # ponytail: fpdf2's built-in Helvetica is Latin-1 only, so other scripts print as "?"; bundle a TTF and
+    # pdf.add_font() if riders' names need Chinese or Tamil.
+    return str(value).replace("\u2013", "-").encode("latin-1", "replace").decode("latin-1")
 
 
 def render_pdf(name: str, data: dict, lang: str, generated: date) -> bytes:
-    from weasyprint import HTML  # heavy import, only when a PDF is asked for
+    from fpdf import FPDF, FontFace
 
-    return HTML(string=render_html(name, data, lang, generated, for_pdf=True)).write_pdf()
+    L, M, d = LABELS[lang], MONTHS[lang], data
+    pdf = FPDF(format="A4")
+    pdf.set_margins(16, 18)
+    pdf.set_auto_page_break(True, margin=18)
+    pdf.add_page()
+    pdf.set_text_color(29, 30, 29)
+    pdf.set_draw_color(217, 220, 211)
+
+    def text(value: object, size: float = 10, style: str = "", h: float = 5) -> None:
+        pdf.set_font("helvetica", style, size)
+        pdf.multi_cell(0, h, _latin1(value), new_x="LMARGIN", new_y="NEXT")
+
+    def table(rows: list[list[str]], widths: tuple[int, ...], head: bool) -> None:
+        pdf.set_font("helvetica", "", 10)
+        align = ("LEFT",) + ("RIGHT",) * (len(widths) - 1)
+        heading = FontFace(emphasis="BOLD", color=(91, 94, 87), size_pt=9)
+        with pdf.table(col_widths=widths, text_align=align, first_row_as_headings=head,
+                       borders_layout="HORIZONTAL_LINES", line_height=7, headings_style=heading) as t:
+            for row in rows:
+                t.row([_latin1(c) for c in row])
+
+    # Header: logo, title, source
+    if LOGO.exists():
+        pdf.image(str(LOGO), x=16, y=18, w=12)
+    pdf.set_x(31)
+    pdf.set_font("helvetica", "B", 18)
+    pdf.cell(0, 8, _latin1(L["title"]), new_x="LEFT", new_y="NEXT")
+    pdf.set_font("helvetica", "", 9)
+    pdf.cell(0, 5, _latin1(f"Coinvoy - {L['source']}: {L[d['source']]}"), new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+    pdf.set_draw_color(29, 30, 29)
+    pdf.line(16, pdf.get_y(), 194, pdf.get_y())
+    pdf.set_draw_color(217, 220, 211)
+    pdf.ln(4)
+
+    meta = [(L["name"], name.split(" ")[0]), (L["period"], f"{d['from']} - {d['to']}"),
+            (L["weeks"], f"{d['weeks']} {L['weeks_logged']}"), (L["generated"], generated.isoformat())]
+    table([[k, v] for k, v in meta], (1, 2), head=False)
+
+    pdf.ln(4)
+    text(L["summary"], 13, "B", 7)
+    src = L[d["source"]]
+    table([[L["avg"], rm(d["avg_sen"]), src], [L["min"], rm(d["min_sen"]), src], [L["max"], rm(d["max_sen"]), src],
+           [L["trend"], L[d["trend"]], ""], [L["platforms"], ", ".join(d["platforms"]), ""]], (3, 2, 2), head=False)
+
+    pdf.ln(4)
+    text(L["month"], 13, "B", 7)
+    table([[L["month"], L["weeks"], L["net"], L["avg"], L["hours"], L["source"]]]
+          + [[f"{M[m['month'] - 1]} {m['year']}", str(m["weeks"]), rm(m["net_sen"]), rm(m["avg_sen"]), str(m["hours"]),
+              L[m["source"]]] for m in d["monthly"]], (3, 2, 3, 3, 2, 3), head=True)
+
+    pdf.ln(4)
+    pdf.set_text_color(91, 94, 87)
+    text(L["legend"], 9)
+    pdf.ln(3)
+    pdf.set_text_color(29, 30, 29)
+    pdf.set_draw_color(29, 30, 29)
+    pdf.set_line_width(0.6)
+    pdf.set_font("helvetica", "B", 10)
+    pdf.multi_cell(0, 6, _latin1(L["not_credit"]), border=1, padding=3, new_x="LMARGIN", new_y="NEXT")
+    pdf.ln(3)
+    pdf.set_text_color(91, 94, 87)
+    text(L["disclaimer"], 9)
+    return bytes(pdf.output())

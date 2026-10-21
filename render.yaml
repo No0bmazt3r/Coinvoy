@@ -1,4 +1,4 @@
-# Render blueprint (decisions.md T2): the API + PWA as a web service, the ML service private, Postgres, all in Singapore.
+# Render blueprint (decisions.md T2): the API + PWA as a web service, the ML service private (both native runtimes, no Docker), Postgres, all in Singapore.
 services:
   - type: web
     name: coinvoy
@@ -43,12 +43,14 @@ services:
         sync: false
   - type: pserv
     name: coinvoy-ml
-    runtime: docker
-    dockerfilePath: ./Dockerfile.ml
-    dockerContext: .
+    runtime: python # pure-Python deps only (fpdf2 for the PDF), so no Docker
+    buildCommand: pip install uv==0.13.1 && uv sync --directory ml --frozen --no-dev
+    startCommand: uv run --directory ml --no-dev --frozen uvicorn app.service:app --host 0.0.0.0 --port $PORT
     region: singapore
     plan: starter
     envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.11"
       - key: ML_TOKEN
         fromGroup: coinvoy-secrets
       - key: RATE_MODEL # "gbm" only after the pooled model wins the real backtest
