@@ -6,8 +6,9 @@ import { requireUser, userOf } from '../auth.ts'
 import { type Db, db, schema } from '../db/index.ts'
 import { ApiError, notFound } from '../errors.ts'
 import { addWeeks, isMonday, thisWeek } from '../lib/weeks.ts'
+import { contributeToIndex } from '../services/indeks.ts'
 import { recompute } from '../services/salary.ts'
-import { MAX_SEN, PLATFORMS } from './profile.ts'
+import { MAX_SEN, PLATFORMS } from '../lib/limits.ts'
 
 const sen = z.number().int().min(0).max(MAX_SEN)
 export const EarningIn = z.strictObject({
@@ -72,22 +73,10 @@ weeksRouter.post('/weeks/confirm', async (req, res) => {
       await tx.insert(schema.events).values({ userId: user.id, name: 'week_logged', props: { week: wk.weekStart, source: wk.platforms[0]!.source } })
     }
   })
-  await contributeToIndex(user, weeks)
+  await contributeToIndex(db, user, weeks)
   await recompute(db, user)
   res.json({ ok: true })
 })
-
-/** Indeks Rider (FR-IDX-1): only with the separate consent, and the rows carry no user id. */
-async function contributeToIndex(user: ReturnType<typeof userOf>, weeks: z.infer<typeof WeeksIn>['weeks']) {
-  const [consent] = await db.select().from(schema.consents).where(and(eq(schema.consents.userId, user.id), eq(schema.consents.kind, 'indeks_rider'))).orderBy(desc(schema.consents.id)).limit(1)
-  if (!consent?.granted || !user.city) return
-  const rows = weeks.flatMap((w) =>
-    w.platforms
-      .filter((p) => p.hoursOnline && p.hoursOnline > 0)
-      .map((p) => ({ city: user.city!.toLowerCase(), platform: p.platform, month: w.weekStart.slice(0, 7), rateSenPerHour: Math.round((p.grossSen - p.commissionSen + p.incentivesSen) / p.hoursOnline!) })),
-  )
-  if (rows.length) await db.insert(schema.indexContributions).values(rows)
-}
 
 weeksRouter.get('/weeks', async (_req, res) => {
   const rows = await db.select().from(schema.earnings).where(eq(schema.earnings.userId, userOf(res).id)).orderBy(desc(schema.earnings.weekStart), schema.earnings.platform)

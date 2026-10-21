@@ -15,7 +15,7 @@ import { triggered } from '../services/lessons.ts'
 import { buildInputs, currentWeek } from '../services/salary.ts'
 import { readFileSync } from 'node:fs'
 import { ApiError } from '../errors.ts'
-import { MAX_SEN } from './profile.ts'
+import { MAX_SEN } from '../lib/limits.ts'
 
 const LENDER_PROMPT = readFileSync(new URL('../llm/prompts/lender.md', import.meta.url), 'utf8')
 const RETENTION_MS = 90 * 24 * 60 * 60 * 1000 // Tanya messages are kept 90 days (architecture §12)

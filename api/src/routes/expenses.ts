@@ -12,7 +12,7 @@ import { thisWeek, todayKL, weekStart } from '../lib/weeks.ts'
 import { chat } from '../llm/client.ts'
 import { checkQuota, logUsage } from '../llm/usage.ts'
 import { ml } from '../ml.ts'
-import { MAX_SEN } from './profile.ts'
+import { MAX_SEN } from '../lib/limits.ts'
 
 export const CATEGORIES = ['minyak', 'servis', 'ansuran', 'makan', 'telefon', 'parking', 'tol', 'sewa', 'keluarga', 'motor_tahunan', 'lain'] as const
 const PROMPT = readFileSync(new URL('../llm/prompts/bm.md', import.meta.url), 'utf8')

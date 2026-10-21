@@ -9,7 +9,7 @@ import { addWeeks, thisWeek } from '../lib/weeks.ts'
 import { checkinDue, streak } from '../services/benefits.ts'
 import { confirmTransfer, ensurePots, POT_KINDS, type Pot, type PotKind } from '../services/pots.ts'
 import { currentWeek, recompute, weeklyHistory } from '../services/salary.ts'
-import { MAX_SEN } from './profile.ts'
+import { MAX_SEN } from '../lib/limits.ts'
 
 type Transfer = typeof schema.transfers.$inferSelect
 export const transferJson = (t: Transfer | undefined) =>

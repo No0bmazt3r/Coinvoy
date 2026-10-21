@@ -5,12 +5,11 @@ import { z } from 'zod'
 import { requireUser, userOf } from '../auth.ts'
 import { db, schema } from '../db/index.ts'
 import { ApiError } from '../errors.ts'
+import { MAX_SEN, PLATFORMS } from '../lib/limits.ts'
 import { streak } from '../services/benefits.ts'
 import { userJson } from '../services/profile.ts'
 import { recompute } from '../services/salary.ts'
 
-export const PLATFORMS = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other'] as const
-export const MAX_SEN = 10_000_000 // RM100,000 (architecture §8.2)
 
 const ProfileIn = z.strictObject({
   lang: z.enum(['ms', 'en']).optional(),

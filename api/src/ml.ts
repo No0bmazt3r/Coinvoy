@@ -41,12 +41,13 @@ export type LeavePreview = { weeksUntil: number; setAsideWeekSen: number; salary
 export type CostParse = { amountSen: number | null; category: string | null; tier: string; confidence: number; needsLlm: boolean }
 
 async function call(path: string, body: unknown): Promise<Response> {
+  const pdf = body instanceof Uint8Array
   let res: Response
   try {
     res = await fetch(`${env.ML_URL}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-ML-Token': env.ML_TOKEN },
-      body: JSON.stringify(body),
+      headers: { 'Content-Type': pdf ? 'application/pdf' : 'application/json', 'X-ML-Token': env.ML_TOKEN },
+      body: pdf ? body : JSON.stringify(body),
       signal: AbortSignal.timeout(30_000),
     })
   } catch (err) {
@@ -69,6 +70,14 @@ export const ml = {
   leavePreview: (inputs: Inputs, startWeek: string, weeks: number) => json<LeavePreview>('/leave-preview', { inputs, startWeek, weeks }),
   parseCost: (text: string) => json<CostParse>('/bm/parse', { text, threshold: env.BM_CLASSIFIER_THRESHOLD }),
   penyataHtml: async (body: PenyataBody) => (await call('/penyata', { ...body, format: 'html' })).text(),
+  statementLines: async (pdf: Uint8Array) => {
+    try {
+      return (await json<{ lines: string[] }>('/statement/text', pdf)).lines
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'engine_failed') throw new ApiError(422, 'statement_unreadable', 'Penyata ini tak dapat dibaca. Cuba PDF lain (bukan gambar, tanpa kata laluan).', "This statement can't be read. Try another PDF (not a scan, no password).")
+      throw err
+    }
+  },
   penyataPdf: async (body: PenyataBody) => Buffer.from(await (await call('/penyata', { ...body, format: 'pdf' })).arrayBuffer()),
 }
 

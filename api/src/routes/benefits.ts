@@ -9,7 +9,7 @@ import { addWeeks, isMonday, thisWeek, weeksBetween } from '../lib/weeks.ts'
 import { ml } from '../ml.ts'
 import { caruman, contributeIsaraan, refreshBadges, sickStatus, streak } from '../services/benefits.ts'
 import { buildInputs, currentWeek, recompute } from '../services/salary.ts'
-import { MAX_SEN } from './profile.ts'
+import { MAX_SEN } from '../lib/limits.ts'
 
 const LeaveIn = z.strictObject({ label: z.string().max(40).nullable().optional(), startWeek: z.iso.date(), weeks: z.number().int().min(1).max(4) })
 const leaveJson = (l: typeof schema.leavePlans.$inferSelect) => ({ id: l.id, kind: l.kind, label: l.label, startWeek: l.startWeek, weeks: l.weeks, days: l.days, setAsideWeekSen: l.setAsideWeekSen, status: l.status })

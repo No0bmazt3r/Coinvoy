@@ -8,6 +8,7 @@ import sharp from 'sharp'
 import { z } from 'zod'
 import { env } from '../env.ts'
 import { ApiError } from '../errors.ts'
+import { PLATFORMS } from '../lib/limits.ts'
 import { addWeeks, thisWeek, todayKL, weekStart } from '../lib/weeks.ts'
 import { type ChatResult, chat, imagePart } from './client.ts'
 
@@ -17,7 +18,6 @@ const CACHE_DIR = fileURLToPath(new URL('../../.llm-cache', import.meta.url))
 export const MAX_BYTES = 5 * 1024 * 1024
 const MAX_EDGE = 1568
 const WEEKLY_GROSS_SANE_RM = 10_000 // above this a weekly figure is a misread, not a rider's week
-const PLATFORMS = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other'] as const
 
 const rm = z.number().min(0).nullable().default(null)
 export const SnapWeek = z.object({

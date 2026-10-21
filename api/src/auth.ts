@@ -9,6 +9,8 @@ import { ApiError } from './errors.ts'
 export const SESSION_COOKIE = 'sid'
 export type User = typeof schema.users.$inferSelect
 
+export const isAdmin = (email: string, isDemo: boolean) => !isDemo && env.ADMIN_EMAILS.includes(email.toLowerCase())
+
 export const randomToken = () => randomBytes(32).toString('base64url')
 export const sha256 = (value: string) => createHash('sha256').update(value).digest('base64url')
 

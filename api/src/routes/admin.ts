@@ -1,12 +1,9 @@
 // The team's usage view (/admin): rider counts, retention and AI cost. Only for ADMIN_EMAILS; never shows a rider's data.
 import { Router } from 'express'
-import { requireUser, userOf } from '../auth.ts'
+import { isAdmin, requireUser, userOf } from '../auth.ts'
 import { db } from '../db/index.ts'
-import { env } from '../env.ts'
 import { notFound } from '../errors.ts'
 import { llmUsage, loadPrices, retention, riderCounts } from '../services/usage.ts'
-
-export const isAdmin = (email: string, isDemo: boolean) => !isDemo && env.ADMIN_EMAILS.includes(email.toLowerCase())
 
 export const adminRouter = Router()
 
