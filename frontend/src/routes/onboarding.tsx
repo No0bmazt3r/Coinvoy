@@ -172,7 +172,7 @@ function Onboarding() {
         </ol>
         <p className="mt-auto max-w-xs text-lg font-medium text-on-ink-muted">{t('app.tagline')}</p>
       </aside>
-      <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-5 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:w-full lg:max-w-lg lg:justify-center lg:py-16">
+      <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-5 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:w-full lg:max-w-[clamp(32rem,42vw,52rem)] lg:justify-center lg:px-8 lg:py-16">
         <div className="flex min-h-11 items-center gap-2">
           {step > 0 && !last && (
             <button type="button" onClick={() => setStep(step - 1)} aria-label={t('common.back')} className="pressable -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
@@ -187,7 +187,7 @@ function Onboarding() {
           <LangToggle />
         </div>
         <div key={step} className="page-in flex flex-1 flex-col gap-4 lg:flex-none">
-          <h1 className="text-2xl font-bold tracking-tight lg:text-4xl">{t(screen.title)}</h1>
+          <h1 className="text-2xl font-bold tracking-tight lg:text-[clamp(2.25rem,3vw,3.5rem)] lg:leading-tight">{t(screen.title)}</h1>
           {screen.body && <p className="text-muted">{t(screen.body)}</p>}
           {screen.content}
         </div>

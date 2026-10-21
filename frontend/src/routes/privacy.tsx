@@ -24,7 +24,7 @@ function Privacy() {
   const router = useRouter()
   const meta = useQuery({ queryKey: ['meta'], queryFn: () => api<Meta>('/api/meta') })
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-4 px-4 pt-[env(safe-area-inset-top)] pb-10 lg:max-w-2xl lg:pt-6">
+    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-4 px-4 pt-[env(safe-area-inset-top)] pb-10 lg:grid lg:max-w-none lg:grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] lg:content-start lg:gap-6 lg:px-[clamp(1.5rem,6vw,8rem)] lg:pt-6 lg:[&>header]:col-span-full lg:[&>p]:col-span-full">
       <header className="flex min-h-16 items-center gap-2">
         <button type="button" onClick={() => router.history.back()} aria-label={t('common.back')} className="pressable -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
           <ArrowLeft size={24} aria-hidden />

@@ -35,7 +35,9 @@ function Tanya() {
       setPending(null)
     },
   })
-  useEffect(() => end.current?.scrollIntoView({ block: 'end' }), [history.data?.length, pending])
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: 'end' }) // braces: newer browsers return a Promise, which React would call as cleanup
+  }, [history.data?.length, pending])
   const send = (m: string) => {
     if (m.trim() && !ask.isPending) {
       ask.mutate(m.trim())

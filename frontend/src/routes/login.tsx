@@ -50,13 +50,13 @@ function Login() {
       </div>
 
       <section className="flex flex-1 flex-col items-center justify-center gap-4 py-8 text-center lg:bg-ink lg:px-12 lg:text-on-ink">
-        <Logo className="h-[120px] w-auto" />
-        <h1 className="text-[2rem] leading-[2.375rem] font-extrabold tracking-tight">Coinvoy</h1>
-        <p className="max-w-sm text-lg leading-[1.625rem] font-medium">{t('app.tagline')}</p>
-        <p className="max-w-sm text-muted lg:text-on-ink-muted">{t('login.pitch')}</p>
+        <Logo className="h-[120px] w-auto lg:h-[clamp(120px,13vw,220px)]" />
+        <h1 className="text-[2rem] leading-[2.375rem] font-extrabold tracking-tight lg:text-[clamp(2rem,3.5vw,4rem)] lg:leading-tight">Coinvoy</h1>
+        <p className="max-w-sm text-lg leading-[1.625rem] font-medium lg:max-w-[min(36rem,90%)] lg:text-[clamp(1.125rem,1.5vw,1.75rem)] lg:leading-snug">{t('app.tagline')}</p>
+        <p className="max-w-sm text-muted lg:max-w-[min(34rem,90%)] lg:text-[clamp(1rem,1.1vw,1.25rem)] lg:text-on-ink-muted">{t('login.pitch')}</p>
       </section>
 
-      <section className="flex flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-sm lg:justify-center lg:px-4">
+      <section className="flex flex-col gap-3 lg:mx-auto lg:w-full lg:max-w-[clamp(24rem,26vw,32rem)] lg:justify-center lg:px-4">
         {/* A real navigation, not fetch: the API redirects to Google and back. */}
         <a href="/api/auth/google" className="btn btn-secondary">
           <GoogleIcon />

@@ -19,8 +19,10 @@ export const Route = createFileRoute('/_app')({
   component: AppShell,
 })
 
-// Screens laid out in two columns on desktop get the wider content area; the rest stay a readable 640 px.
-const WIDE = ['/', '/tabung', '/rekod']
+// Desktop uses the full window. Screens with their own two-column layout keep it; Tanya stays one chat column;
+// every other screen flows its cards into as many columns as fit, with the header and intro text across the top.
+const OWN_LAYOUT = ['/', '/tabung', '/rekod', '/tanya']
+const TILES = 'lg:grid lg:grid-cols-[repeat(auto-fill,minmax(min(100%,26rem),1fr))] lg:items-start lg:[&>header]:col-span-full lg:[&>p]:col-span-full'
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -56,12 +58,12 @@ function AppShell() {
       className="min-h-dvh overflow-x-clip lg:pl-60"
     >
       <div
-        className={`mx-auto max-w-[480px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-10 ${WIDE.includes(pathname) ? 'lg:max-w-[1120px]' : 'lg:max-w-[640px]'}`}
+        className="mx-auto max-w-[480px] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:max-w-none lg:px-[clamp(1.5rem,3vw,4rem)] lg:pb-10"
       >
         {/* Keyed by path so each screen's sections animate in turn on arrival */}
         <div
           key={pathname}
-          className="page-in flex flex-col gap-4"
+          className={`page-in flex flex-col gap-4 ${OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
           style={shown.dir ? ({ '--page-dx': `${shown.dir * 24}px`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />
