@@ -1,4 +1,4 @@
-// RM per active rider per month from measured llm_usage rows and a dated price table (decisions.md A5).
+// RM per active rider per month from measured llm_usage rows and a dated price table.
 // Prices never live in the app: fill api/data/llm_prices.json from your provider's pricing page and date it.
 // The admin view (/admin) shows the same numbers for the last 30 days.
 //

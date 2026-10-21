@@ -9,7 +9,7 @@ export type PotKind = (typeof POT_KINDS)[number]
 export type Pot = typeof schema.pots.$inferSelect
 type Transfer = typeof schema.transfers.$inferSelect
 
-/** Built-ins the rider can add from the "+" sheet. The buffer is always on; PERKESO is the engine's own reserve. */
+/** Pots the rider can add from the "+" sheet. Penampan and PERKESO are always there. */
 export const ADDABLE = ['kecemasan', 'motor', 'raya', 'cuti', 'isaraan'] as const
 export const CUSTOM_ICONS = ['briefcase', 'users', 'bike', 'gift', 'home', 'phone', 'graduation', 'heart', 'plane', 'piggy'] as const
 export const MAX_POTS = 10 // open pots besides the buffer, like GXBank's cap
@@ -94,7 +94,7 @@ export async function addPot(db: Db, userId: number, p: { kind?: string; name?: 
   return created!
 }
 
-/** Close a pot: its money is re-earmarked to the buffer (it never left the real pocket) and the row stays as history. */
+/** Close a pot: its money moves to Penampan, and the pot is kept as history. */
 export async function closePot(db: Db, userId: number, kind: string): Promise<{ movedSen: number }> {
   const pots = await ensurePots(db, userId)
   const pot = pots[kind]

@@ -1,4 +1,4 @@
-// Device subscriptions for the payday reminder (FR-GAJI-6). The browser asks the rider first; nothing is sent without it.
+// Device subscriptions for the payday reminder. The browser asks the rider first; nothing is sent without it.
 import { and, eq } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'

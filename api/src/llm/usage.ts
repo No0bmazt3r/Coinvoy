@@ -1,4 +1,4 @@
-// Every LLM call is logged (llm_usage) and capped per rider per day and for everyone per month (NFR-8).
+// Every LLM call is logged (llm_usage) and capped per rider per day and for everyone per month.
 import { and, count, eq, gte } from 'drizzle-orm'
 import { db, schema } from '../db/index.ts'
 import { env } from '../env.ts'

@@ -30,7 +30,7 @@ type Row = Draft & { key: number }
 let nextKey = 0
 const keyed = (d: Draft): Row => ({ ...d, key: nextKey++ })
 
-// Snap → reading → editable drafts → confirm (FR-SNAP-1/2/3/5, FR-ONB-5). Nothing is saved before "Sahkan".
+// Snap → reading → editable drafts → confirm. Nothing is saved before "Sahkan".
 function Snap() {
   const { t, lang } = useI18n()
   const { user } = Route.useRouteContext()
@@ -45,8 +45,7 @@ function Snap() {
   const [drafts, setDrafts] = useState<Row[]>(() => (mode === 'manual' ? [blank()] : []))
   const [notice, setNotice] = useState<string | null>(null)
   const aiAllowed = user.consents.llm_processing?.granted !== false
-  // One hidden file input, set up for whichever button was tapped: the camera straight away, the photo gallery, or PDFs
-  // (earnings statements the apps email). "Add more" takes any of them.
+  // One hidden file input, set up for the button that was tapped: camera, gallery or PDF.
   const pick = (source: Source) => {
     const input = fileRef.current
     if (!input) return

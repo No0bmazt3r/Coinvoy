@@ -1,4 +1,4 @@
-// The payday reminder on this device (FR-GAJI-6): the browser asks for permission, the API stores the subscription.
+// The payday reminder on this device: the browser asks for permission, the API stores the subscription.
 import { api } from './api'
 
 export type PushState = { publicKey: string | null; endpoints: string[] }
@@ -26,7 +26,7 @@ export async function enablePush(publicKey: string): Promise<void> {
   await api('/api/push', { body: sub.toJSON() })
 }
 
-/** Stops reminders on this device; also called on sign-out so a shared phone doesn't remind the next rider's predecessor. */
+/** Stops reminders on this device. Also runs on sign-out, so a shared phone stops reminding. */
 export async function disablePush(): Promise<void> {
   const sub = pushSupported() ? await (await registration())?.pushManager.getSubscription() : null
   if (!sub) return

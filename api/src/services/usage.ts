@@ -1,5 +1,5 @@
 // What the AI costs and whether riders come back: shared by the admin view and scripts/llm-cost-report.ts.
-// Prices never live in the app: fill api/data/llm_prices.json from the provider's pricing page and date it (decisions.md A5).
+// Prices never live in the app: fill api/data/llm_prices.json from the provider's pricing page and date it.
 import { readFileSync } from 'node:fs'
 import { and, eq, gte, isNotNull, sql } from 'drizzle-orm'
 import { type Db, schema } from '../db/index.ts'
@@ -37,7 +37,7 @@ export async function llmUsage(db: Db, since: Date, prices = loadPrices()) {
   return { rows: priced, riders: all?.n ?? 0 }
 }
 
-/** Weekly retention (FR-STRK-8): of riders whose first logged week is 4+ weeks old, the share who logged again in week 2, 3 and 4. */
+/** Weekly retention: of riders whose first logged week is 4+ weeks old, the share who logged again in week 2, 3 and 4. */
 export async function retention(db: Db) {
   const rows = await db
     .select({ userId: schema.earnings.userId, at: schema.earnings.createdAt })

@@ -4,9 +4,8 @@ import { Sheet } from './Sheet'
 
 export type Option<T> = { value: T; label: string; hint?: string }
 
-// A dropdown that opens the app's bottom sheet (a centred dialog on desktop): big rows a thumb can hit, the current
-// choice ticked and focused, Esc or a tap outside to close. Replaces <select>, whose native list looks different on
-// every phone and can't be styled.
+// Our own dropdown. It opens a bottom sheet with big, easy-to-tap rows and a tick on the current choice.
+// We don't use <select> because it looks different on every phone and can't be styled.
 export function Select<T extends string | number>({
   label,
   value,

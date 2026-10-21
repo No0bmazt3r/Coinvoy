@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_app/pocket')({ component: PocketGuide })
 
 const STEPS = [1, 2, 3, 4, 5] as const
 
-// The pocket setup guide (FR-ONB-6): Coinvoy never holds money, so the rider keeps the Penampan in their own bank.
+// The pocket setup guide: Coinvoy never holds money, so the rider keeps the Penampan in their own bank.
 function PocketGuide() {
   const { t, lang } = useI18n()
   const { user } = Route.useRouteContext()

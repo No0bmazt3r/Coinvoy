@@ -7,8 +7,7 @@ import { meQuery } from '../lib/api'
 import { applyAppearance } from '../lib/appearance'
 import { TABS, dragOffset, swipeTarget, tabDirection } from '../lib/tabs'
 
-// Every signed-in screen lives under this pathless layout: it guards the session (FR-SHELL-4), adds the bottom nav (sidebar on desktop),
-// and swipes between tabs.
+// The layout for every signed-in screen: checks you're signed in, adds the navigation, and handles swiping between tabs.
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
     const user = await context.queryClient.ensureQueryData(meQuery).catch(() => null)
@@ -19,8 +18,7 @@ export const Route = createFileRoute('/_app')({
   component: AppShell,
 })
 
-// Desktop: every screen sits in one centred container, wide (1400 px), using a side column of related content
-// (components/Columns) so big screens aren't left empty. A few short single-purpose screens stay narrow (720 px).
+// On desktop most screens use the full width with a side column. These short ones stay narrow.
 const NARROW = ['/pocket', '/jurang', '/admin']
 
 function AppShell() {
@@ -88,7 +86,7 @@ function AppShell() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={() => { start.current = null; setDrag(0, false) }}
-      // clip, not hidden: the slide-in from the right must not widen the page (the fixed nav jumped), and sticky headers keep working
+      // clip (not hidden) so the slide-in can't widen the page, and sticky headers still work
       className="min-h-dvh overflow-x-clip lg:pl-60"
     >
       <div

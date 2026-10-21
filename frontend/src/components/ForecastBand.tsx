@@ -1,7 +1,7 @@
 import { useI18n } from '../i18n/t'
 import { formatRM } from '../lib/money'
 
-// A range bar, not a fan chart: slow week · usual · busy week (design-system §6.6, §10). No axis jargon.
+// A range bar, not a fan chart: slow week · usual · busy week. No axis jargon.
 // With `last`, last week's real earnings sit on the same bar so the rider sees where it landed.
 export function ForecastBand({ low, mid, high, last }: { low: number; mid: number; high: number; last?: number }) {
   const { t } = useI18n()

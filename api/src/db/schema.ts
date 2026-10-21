@@ -1,5 +1,5 @@
-// Every table (architecture §9). Money is integer sen; weeks are Monday dates ('YYYY-MM-DD', Asia/Kuala_Lumpur);
-// every rider-owned table cascades from users, so deleting an account deletes everything (FR-AUTH-5).
+// All the tables. Money is stored in sen (whole numbers). Weeks are their Monday date in Malaysian time.
+// Deleting a user deletes everything they own.
 import { sql } from 'drizzle-orm'
 import { boolean, check, date, doublePrecision, index, integer, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core'
 
@@ -19,7 +19,7 @@ export const users = pgTable('users', {
   isDemo: boolean('is_demo').notNull().default(false),
   createdAt: createdAt(),
   lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
-  // Profile (FR-ONB-1..4). Null until onboarding asks.
+  // Profile. Null until onboarding asks.
   lang: text().notNull().default('ms'),
   theme: text().notNull().default('system'), // system | light | dark
   city: text(),
@@ -186,7 +186,7 @@ export const leavePlans = pgTable('leave_plans', {
   createdAt: createdAt(),
 })
 
-// Money paid into a scheme (i-Saraan Plus) and the government match it earned (FR-CAR-2/3).
+// Money paid into a scheme (i-Saraan Plus) and the government match it earned.
 export const contributions = pgTable('contributions', {
   id: id(),
   userId: owner(),
@@ -258,7 +258,7 @@ export const llmUsage = pgTable(
   (t) => [index('llm_usage_user_route').on(t.userId, t.route, t.createdAt)],
 )
 
-// Web Push subscriptions for the payday reminder (FR-GAJI-6), one per device the rider allowed notifications on.
+// Web Push subscriptions for the payday reminder, one per device the rider allowed notifications on.
 export const pushSubscriptions = pgTable(
   'push_subscriptions',
   {
@@ -272,7 +272,7 @@ export const pushSubscriptions = pgTable(
   (t) => [index('push_subscriptions_user_id').on(t.userId)],
 )
 
-// Impact analytics in our own DB (PRD §9). No third-party trackers.
+// Impact analytics in our own DB. No third-party trackers.
 export const events = pgTable('events', {
   id: id(),
   userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
@@ -281,7 +281,7 @@ export const events = pgTable('events', {
   createdAt: createdAt(),
 })
 
-// Indeks Rider (FR-IDX-1): written only with consent, and deliberately without a user_id.
+// Indeks Rider: written only with consent, and deliberately without a user_id.
 export const indexContributions = pgTable('index_contributions', {
   id: id(),
   city: text().notNull(),

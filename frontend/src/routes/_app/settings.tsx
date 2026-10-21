@@ -34,7 +34,7 @@ function NavRow({ to, icon, label, tour }: { to: '/pencapaian' | '/rekod' | '/bi
   )
 }
 
-// Profil (design-system §7 Settings, J8 privacy controls): language, theme, work profile, bills, privacy, export, delete.
+// Profil: language, theme, work profile, bills, privacy, export, delete.
 function Settings() {
   const { t, lang } = useI18n()
   const { data: user } = useQuery(meQuery)
@@ -166,7 +166,7 @@ function Settings() {
   )
 }
 
-// The payday reminder on this device (FR-GAJI-6). On means this browser's subscription is stored for this rider.
+// The payday reminder on this device. On means this browser's subscription is stored for this rider.
 function PaydayReminder({ user }: { user: User }) {
   const { t, lang } = useI18n()
   const queryClient = useQueryClient()

@@ -1,6 +1,6 @@
-// Screen guides (Oct 2026 grilling): help the rider pulls up, not a tour pushed at sign-in (NN/g: upfront tutorials
-// don't improve success). Each main screen has a ? button for a short tour, and a one-time hint card on the first
-// visit. Tours only point at things, 2–4 steps, and skip any step whose target isn't on screen. Built on driver.js.
+// Screen guides. Each main screen has a ? button that runs a short tour, and a hint card the first time you visit.
+// We don't force a tour at sign-in because research shows people skip them.
+// A tour has 2–4 steps, only points at things, and skips anything that isn't on screen.
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { driver, type DriveStep } from 'driver.js'
 import 'driver.js/dist/driver.css'
@@ -90,7 +90,7 @@ export function GuideButton({ screen }: { screen: GuideScreen }) {
   )
 }
 
-/** The one-time card on a screen's first visit: in the page, covering nothing. ✕ or the tour retires it for good. */
+/** The hint card on a screen's first visit. Closing it or taking the tour hides it for good. */
 export function GuideHint({ screen }: { screen: GuideScreen }) {
   const { t } = useI18n()
   const { data: user } = useQuery(meQuery)

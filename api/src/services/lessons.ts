@@ -1,4 +1,4 @@
-// Celik: 30-second lessons triggered by the rider's own data (FR-ADV-8), also Tanya's explain tool.
+// Celik: 30-second lessons triggered by the rider's own data, also Tanya's explain tool.
 // Every number in a lesson is computed here, so Tanya can quote it through the number guard.
 import { and, eq, gte, ne } from 'drizzle-orm'
 import type { User } from '../auth.ts'

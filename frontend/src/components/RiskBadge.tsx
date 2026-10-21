@@ -8,7 +8,7 @@ const LOOK = {
   berisiko: { Icon: OctagonAlert, cls: 'bg-[var(--risky-bg)] text-[var(--risky)]' },
 } as const
 
-// Word and icon, never colour alone (design-system §6.2); the % is secondary.
+// Word and icon, never colour alone; the % is secondary.
 export function RiskBadge({ risk, pSafe, size = 'md' }: { risk: Risk; pSafe?: number; size?: 'sm' | 'md' }) {
   const { t } = useI18n()
   const { Icon, cls } = LOOK[risk]

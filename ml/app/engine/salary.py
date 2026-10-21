@@ -60,7 +60,7 @@ class Inputs:
     history: tuple[WeekObs, ...]  # oldest first, including last week
     prior: Prior
     planned_hours: float
-    buffer_sen: int  # confirmed Penampan only (FR-GAJI-3)
+    buffer_sen: int  # confirmed Penampan only
     cuti_sen: int
     bills: tuple[BillIn, ...] = ()
     leaves: tuple[LeaveIn, ...] = ()

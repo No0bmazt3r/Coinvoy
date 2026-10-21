@@ -18,7 +18,7 @@ const SECTIONS: [Key, Key][] = [
   ['privacy.neverTitle', 'privacy.never'],
 ]
 
-// PDPA notice (NFR-7), public so it can be read before signing in. Names the AI provider and region (decisions A4).
+// PDPA notice, public so it can be read before signing in. Names the AI provider and region.
 function Privacy() {
   const { t } = useI18n()
   const router = useRouter()

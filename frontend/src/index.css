@@ -43,7 +43,7 @@
   --outline: transparent;
 }
 
-/* Accents unlocked by streak level (FR-STRK-4). Cosmetic only; all keep ink text above 4.5:1. */
+/* Accents unlocked by streak level. Cosmetic only; all keep ink text above 4.5:1. */
 :root[data-accent="aqua"] { --brand: #5EEAD4; }
 :root[data-accent="amber"] { --brand: #FCD34D; }
 :root[data-accent="pink"] { --brand: #F9A8D4; }
@@ -87,7 +87,7 @@ body {
   :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 }
 
-/* Splash (FR-SHELL-1): the logo springs in over a lime glow, a light sweeps across it, then the words rise. */
+/* Splash: the logo springs in over a lime glow, a light sweeps across it, then the words rise. */
 @keyframes splash-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
 @keyframes splash-logo {
   0% { opacity: 0; transform: translateY(16px) scale(0.5) rotate(-10deg); }
@@ -124,10 +124,10 @@ body {
   .intro-active .intro-line { transform-origin: left; animation: line-draw 600ms 450ms var(--ease-out) both; }
 }
 
-/* Motion: design-system §8, 150–250 ms ease-out. All of it is switched off under reduced motion below. */
+/* Animations. All of them switch off when the phone asks for reduced motion (see below). */
 :root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-in-out: cubic-bezier(0.45, 0, 0.2, 1); }
-/* Fades up by default; tab changes set --page-dx/--page-dy so it slides in from the side instead. Never on a <dialog>:
-   a sheet sitting directly in the page would replay the page's slide-in each time it opens (it restarts on display). */
+/* Screens fade up when they open, or slide in from the side on a tab change. Sheets are left out on purpose,
+   otherwise they would replay the page animation every time they open. */
 @keyframes page-in { from { opacity: 0; transform: translate(var(--page-dx, 0px), var(--page-dy, 8px)); } to { opacity: 1; transform: none; } }
 @keyframes nav-pop { 0% { transform: scale(0.8) translateY(2px); } 60% { transform: scale(1.12) translateY(-1px); } 100% { transform: none; } }
 .page-in > :not(dialog) { animation: page-in 240ms var(--ease-out) both; }
@@ -135,9 +135,9 @@ body {
 .page-in > :nth-child(3) { animation-delay: 80ms; }
 .page-in > :nth-child(n + 4) { animation-delay: 120ms; }
 .nav-pop { animation: nav-pop 320ms var(--ease-out); }
-/* Tab changes: the whole screen glides in as one piece (no stagger): a short 12vw, 280 ms move, so a hitch on a slow phone barely shows */
+/* Tab changes: the whole screen moves in together, with a short, gentle slide */
 .tab-in > :not(dialog), .tab-in .col > :not(dialog) { animation-duration: 280ms !important; animation-delay: 0ms !important; animation-timing-function: var(--ease-in-out) !important; }
-/* Swipe: each piece follows --drag-x (on the children, so fixed bars like Tanya's composer stay fixed), springing back when let go */
+/* Swiping: the screen follows your finger, then springs back if you don't swipe far enough */
 .page-in > :not(dialog), .page-in .col > :not(dialog) { translate: var(--drag-x, 0px) 0; transition: translate 320ms var(--ease-out); }
 .page-in.dragging > :not(dialog), .page-in.dragging .col > :not(dialog) { transition: none; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
@@ -146,8 +146,7 @@ body {
 @keyframes fade-out { to { opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: 0.55; } }
-/* The dialog itself can't scroll (overflow: clip): opening focuses the close button while the panel is still below the
-   screen, and a scrollable dialog jumped to reach it mid-slide. The panel inside scrolls instead. */
+/* Only the panel inside a sheet scrolls. If the sheet itself could scroll, it jumped while opening. */
 .sheet { max-height: 90dvh; overflow: clip; }
 .sheet > div { max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
 /* The iOS sheet curve: quick to start, long gentle settle. Exit is shorter and accelerates away. */
@@ -155,8 +154,7 @@ body {
 .sheet[open]::backdrop { animation: fade-in 300ms ease-out; }
 .sheet.closing > div { animation: sheet-down 220ms cubic-bezier(0.4, 0, 1, 1) forwards; }
 .sheet.closing::backdrop { animation: fade-out 220ms ease-in forwards; }
-/* Two-column screens (Home, Tabung, Rekod): on phones a .col is display:contents, so its cards join the single
-   column (reordered with max-lg:order-*) and animate in like direct children; from lg it's a real column. */
+/* .col is a real column on desktop. On phones it disappears and its cards join the single column. */
 .col { display: contents; }
 .page-in .col > :not(dialog) { animation: page-in 240ms var(--ease-out) both; }
 @media (width >= 64rem) {
@@ -176,7 +174,7 @@ body {
   .btn:active, .pressable:active { transform: none; }
 }
 
-/* Buttons: design-system §6.4. Min 48px tall; pressed scale is dropped under reduced motion above. */
+/* Buttons: at least 48px tall so they're easy to tap. */
 @layer components {
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -199,13 +197,12 @@ body {
   .btn-ghost { background: transparent; color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
 }
 
-/* Desktop page width (routes/_app.tsx): one wide container; screens fill it with a main and a side column */
+/* Desktop page width */
 @media (width >= 64rem) {
   .page-wide { max-width: 87.5rem; }
 }
 
-/* Screen guides (components/Guide.tsx): driver.js's card in Coinvoy's tokens. On phones it docks to the top or bottom
-   edge, whichever is away from the highlighted item, at full width, so it never covers what it points at. */
+/* Screen guide cards in our colours. On phones the card sits at the top or bottom, away from what it points at. */
 .driver-popover.coinvoy-guide {
   background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: 1rem 1rem 0.875rem; min-width: 0; max-width: min(22rem, calc(100vw - 2rem)); box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);

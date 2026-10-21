@@ -1,4 +1,4 @@
-// BM cost entry (FR-SNAP-6): type "minyak 40", see the parsed chip, save. Tiers 1–2 run in the ML service
+// BM cost entry: type "minyak 40", see the parsed chip, save. Tiers 1–2 run in the ML service
 // (rules + our classifier); the LLM only fills what they couldn't, and a number the rules found always wins.
 import { readFileSync } from 'node:fs'
 import { and, desc, eq } from 'drizzle-orm'

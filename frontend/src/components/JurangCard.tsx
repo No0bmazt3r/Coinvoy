@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react'
 import { useI18n } from '../i18n/t'
 import { formatRM } from '../lib/money'
 
-// Honest, not alarming: a neutral surface, never red (design-system §6.6, FR-ADV-7).
+// Honest, not alarming: a neutral surface, never red.
 export function JurangCard({ essentialsSen, salarySen, gapSen }: { essentialsSen: number; salarySen: number; gapSen: number }) {
   const { t } = useI18n()
   const rm = (sen: number) => formatRM(sen, { whole: true })

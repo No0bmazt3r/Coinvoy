@@ -3,11 +3,11 @@ import { createPortal } from 'react-dom'
 
 const DELAY_MS = 400 // sweeping the mouse across a list doesn't flash every tip
 
-// A small ink tooltip for mouse and keyboard users (never touch: there's nothing to hover). Shows after a short hover,
-// or at once on keyboard focus; Esc hides it. Drawn in a fixed layer on <body>, so a scrolling sidebar can't clip it.
-// The wrapper is display: contents, so the trigger keeps its own layout, ref and handlers; events bubble up to it.
-// `describes`: the tip adds information (linked with aria-describedby); otherwise it repeats the button's own
-// accessible name (icon buttons), so screen readers aren't told it twice.
+// A small tooltip for mouse and keyboard users. Touch screens never see it, since there's no hover.
+// It shows after a short hover, or straight away on keyboard focus, and Esc hides it.
+// It's drawn on <body> so the scrolling sidebar can't cut it off.
+// Use `describes` when the tip adds new information. Leave it off when the tip just repeats an icon button's label,
+// so screen readers don't read the same thing twice.
 export function Tooltip({ text, side = 'right', describes = false, children }: { text: string; side?: 'right' | 'bottom'; describes?: boolean; children: ReactNode }) {
   const id = useId()
   const wrap = useRef<HTMLSpanElement>(null)

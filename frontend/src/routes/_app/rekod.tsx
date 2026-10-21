@@ -28,7 +28,7 @@ type Payslip = {
 }
 const CATEGORIES = ['minyak', 'servis', 'ansuran', 'makan', 'telefon', 'parking', 'tol', 'sewa', 'keluarga', 'motor_tahunan', 'lain']
 
-// Rekod: weeks, payslips, the Penyata and officer links, and costs (FR-SLIP-1..5, FR-SNAP-6). Desktop: weeks in their own column.
+// Rekod: weeks, payslips, the Penyata and officer links, and costs. Desktop: weeks in their own column.
 function Rekod() {
   const { t, lang } = useI18n()
   const weeks = useQuery(weeksQuery)
@@ -167,7 +167,7 @@ function PenyataCard() {
   )
 }
 
-// BM cost quick entry (FR-SNAP-6, FR-SNAP-9): "minyak 40" → a parsed chip → save. Voice where the browser supports it.
+// BM cost quick entry: "minyak 40" → a parsed chip → save. Voice where the browser supports it.
 function Costs() {
   const { t, lang } = useI18n()
   const week = thisWeekStart()

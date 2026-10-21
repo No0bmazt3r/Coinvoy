@@ -1,4 +1,4 @@
-// Shrink screenshots on the phone before upload: long edge ≤ 1568 px, JPEG 0.8 (architecture §11).
+// Shrink screenshots on the phone before upload: long edge ≤ 1568 px, JPEG 0.8.
 // Saves the rider's data and the LLM's tokens; the server re-encodes again anyway.
 const MAX_EDGE = 1568
 

@@ -17,7 +17,7 @@ from app.engine.seasons import log_effect
 
 PRIORS_FILE = Path(__file__).parent / "data" / "priors.json"
 SHRINK_K = 4  # weeks of rider data that weigh as much as the prior
-OWN_RESIDUALS_MIN = 8  # below this, residuals come from the pooled series (ADR-6)
+OWN_RESIDUALS_MIN = 8  # below this, residuals come from the pooled series
 COLD_START_WEEKS = 4
 
 

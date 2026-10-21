@@ -1,4 +1,4 @@
-// The home screen in one call (FR-GAJI-1), the weekly transfer (FR-GAJI-2/3) and pots.
+// The home screen in one call, the weekly transfer and pots.
 import { and, desc, eq } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'

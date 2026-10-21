@@ -10,7 +10,7 @@ import { errorText, meQuery, metaQuery, post } from '../lib/api'
 import { useGoogleOneTap } from '../lib/oneTap'
 import { introSeen } from '../lib/intro'
 
-// The API sends failed Google sign-ins back here as ?error=<reason> (docs/GOOGLE_AUTH_PORTABLE.md §2 rule 10).
+// The API sends failed Google sign-ins back here as ?error=<reason>.
 const ERRORS: Record<string, Key> = {
   cancelled: 'login.error.cancelled',
   state: 'login.error.state',
@@ -42,7 +42,7 @@ function Login() {
     },
   })
 
-  // Google One Tap, when Google sign-in is set up: the account picker slides in; the button below stays as the fallback
+  // Google One Tap. If it doesn't show, the Google button below still works.
   const meta = useQuery(metaQuery)
   const [oneTapError, setOneTapError] = useState<unknown>(null)
   useGoogleOneTap(

@@ -1,4 +1,4 @@
-// Snap extraction accuracy per platform and field (architecture §6.3, panel/09 §2.4). Needs a configured LLM.
+// Snap extraction accuracy per platform and field. Needs a configured LLM.
 //
 //   node --env-file=../.env scripts/eval-snap.ts ../private_data/snap
 //

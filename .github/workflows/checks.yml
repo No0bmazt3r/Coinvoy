@@ -1,11 +1,12 @@
-# Every push and PR: lint, types, tests, the bundle budget, and a secret scan (architecture §14).
-name: ci
+# Runs on every push and pull request: lint, types, tests, bundle size and a secret scan.
+name: Coinvoy checks
 on:
   push:
   pull_request:
 
 jobs:
   ml:
+    name: ML engine
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,6 +17,7 @@ jobs:
       - run: uv run --directory ml pytest -q
 
   api:
+    name: API (${{ matrix.db == 'postgres' && 'Postgres' || 'PGlite' }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -34,7 +36,7 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with: { version: "0.13.1" }
       - run: pnpm install --frozen-lockfile
-      - run: uv sync --directory ml # the API tests start the real ML service
+      - run: uv sync --directory ml # the API tests talk to the real ML service
       - run: pnpm --filter coinvoy-api typecheck
       - run: pnpm --filter coinvoy-api lint
       - run: pnpm --filter coinvoy-api test
@@ -42,6 +44,7 @@ jobs:
           TEST_DATABASE_URL: ${{ matrix.db == 'postgres' && 'postgres://coinvoy:coinvoy@localhost:5432/coinvoy_test' || '' }}
 
   web:
+    name: Web app
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,13 +56,14 @@ jobs:
       - run: pnpm --filter coinvoy-frontend lint
       - run: pnpm --filter coinvoy-frontend test
       - run: pnpm --filter coinvoy-frontend build
-      - name: Initial JS + CSS ≤ 300 KB gzipped (NFR-1)
+      - name: First load stays under 300 KB gzipped
         run: |
           size=$(cat frontend/dist/assets/index-*.js frontend/dist/assets/index-*.css | gzip -c | wc -c)
           echo "initial bundle: $size bytes gzipped"
           test "$size" -le 307200
 
   secrets:
+    name: Secret scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,4 +1,4 @@
-// Cross-checking against a bank or e-wallet statement (FR-SNAP-10, decisions.md P1). A logged week becomes
+// Cross-checking against a bank or e-wallet statement. A logged week becomes
 // "Disemak silang" when a platform payout on the statement matches it, and a transfer when a move into a savings
 // pocket matches what the rider confirmed. The PDF is never stored: only the labels change.
 import { and, eq, inArray } from 'drizzle-orm'

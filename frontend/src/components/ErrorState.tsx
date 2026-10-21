@@ -3,7 +3,7 @@ import { EmptyState } from './EmptyState'
 import { useI18n } from '../i18n/t'
 import { ApiError } from '../lib/api'
 
-// What happened, in the rider's language, and what to do next. Never a stack trace (design-system §6.6).
+// What happened, in the rider's language, and what to do next. Never a stack trace.
 export function ErrorState({ error, onRetry }: { error?: unknown; onRetry?: () => void }) {
   const { t, lang } = useI18n()
   const message = error instanceof ApiError ? (lang === 'ms' ? error.messageMs : error.messageEn) : t('common.loadFailed')

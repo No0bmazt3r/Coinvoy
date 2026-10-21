@@ -20,7 +20,7 @@ function withBoldNumbers(text: string): ReactNode {
   return text.split(/(RM\s?[\d,]+(?:\.\d+)?|\d+(?:\.\d+)?\s?%)/g).map((part, i) => (i % 2 ? <b key={i} className="tabular-nums">{part}</b> : <Fragment key={i}>{part}</Fragment>))
 }
 
-// Tanya (FR-ADV-1..4, 9): chat over the engine. Semak Layak and the lender check work without the AI.
+// Tanya: chat over the engine. Semak Layak and the lender check work without the AI.
 function Tanya() {
   const { t, lang } = useI18n()
   const meta = useQuery(metaQuery)
@@ -75,7 +75,7 @@ function Tanya() {
       />
       <GuideHint screen="tanya" />
 
-      {/* Desktop: tools and Celik are a side panel, always there; phones: above the chat, until it starts */}
+      {/* Desktop: tools and lessons on the side. Phones: above the chat until it starts. */}
       <Columns>
       <div className="col lg:col-start-2 lg:row-start-1">
         <section aria-labelledby="tools" data-tour="tools" className={`flex flex-col gap-2 ${started && !aiOff ? 'max-lg:hidden' : ''}`}>

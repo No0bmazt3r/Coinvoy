@@ -1,8 +1,8 @@
-// The judges' demo riders (FR-DEMO-1). SYNTHETIC data, labelled as such: replace with consented, anonymised real
-// histories once the interviews are done (decisions.md D2).
+// The judges' demo riders. SYNTHETIC data, labelled as such: replace with consented, anonymised real
+// histories once the interviews are done.
 // - Abang Faiz: 12 weeks on Grab + foodpanda in Ipoh, a motorbike instalment, a buffer he's been building, leave planned.
 // - Kak Lina: a single mother on ShopeeFood in Kuala Lumpur, 30 hours around school runs. Her safe salary is below
-//   her essentials, so the demo opens on Jurang (FR-ADV-7).
+//   her essentials, so the demo opens on Jurang.
 import { eq } from 'drizzle-orm'
 import type { User } from '../auth.ts'
 import { db, schema } from '../db/index.ts'

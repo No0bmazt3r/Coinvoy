@@ -1,4 +1,4 @@
-// Slip Gaji and Penyata figures (FR-SLIP-*). Every figure carries the weakest source label among the weeks behind it.
+// Slip Gaji and Penyata figures. Every figure carries the weakest source label among the weeks behind it.
 // The ML service renders them (HTML for the officer view, PDF via fpdf2) from the same labels.
 import { and, eq, gte, lt } from 'drizzle-orm'
 import type { User } from '../auth.ts'
@@ -63,7 +63,7 @@ export async function statement(db: Db, user: User, months: 3 | 6) {
   }
 }
 
-/** A weekly payslip (FR-SLIP-1): what came in for the week, and what happened on the payday after it. */
+/** A weekly payslip: what came in for the week, and what happened on the payday after it. */
 export async function payslip(db: Db, user: User, week: string) {
   const payday = addWeeks(week, 1)
   const earnings = await db.select().from(schema.earnings).where(and(eq(schema.earnings.userId, user.id), eq(schema.earnings.weekStart, week)))

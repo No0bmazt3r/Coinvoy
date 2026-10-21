@@ -1,4 +1,4 @@
-// Earnings weeks (FR-SNAP-2/3/5, FR-ONB-5) and the bills calendar (FR-ONB-4).
+// Earnings weeks and the bills calendar.
 import { and, desc, eq } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -59,7 +59,7 @@ async function upsertEarning(tx: Db, userId: number, weekStart: string, row: z.i
     .onConflictDoUpdate({ target: [schema.earnings.userId, schema.earnings.weekStart, schema.earnings.platform], set: values })
 }
 
-// Nothing from Snap is saved until the rider confirms it here (FR-SNAP-2).
+// Nothing from Snap is saved until the rider confirms it here.
 weeksRouter.post('/weeks/confirm', async (req, res) => {
   const { weeks } = WeeksIn.parse(req.body)
   const user = userOf(res)

@@ -1,8 +1,8 @@
-// Money is integer sen everywhere (NFR-10). Floats only ever appear in parseRM's input.
+// Money is integer sen everywhere. Floats only ever appear in parseRM's input.
 
 const grouped = (n: number) => n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
-/** RM620 (whole, for the salary) or RM1,234.50. Same separators in BM and EN (design-system §3). */
+/** RM620 (whole, for the salary) or RM1,234.50. Same separators in BM and EN. */
 export function formatRM(sen: number, { whole = false, sign = false }: { whole?: boolean; sign?: boolean } = {}): string {
   const neg = sen < 0
   const abs = Math.abs(sen)

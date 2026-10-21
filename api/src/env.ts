@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
-// Fails fast on a bad environment (GOOGLE_AUTH_PORTABLE.md §4). One .env at the repo root; real env vars win.
+// Fails fast on a bad environment. One .env at the repo root; real env vars win.
 const bool = (fallback: boolean) => z.stringbool().default(fallback)
 const schema = z.object({
   PORT: z.coerce.number().default(8000),
-  // Empty = embedded Postgres (PGlite) in api/.pglite, zero setup. 'memory://' for tests. postgres://… in production.
+  // Empty: the built-in local database. memory:// for tests. postgres://… on a server.
   DATABASE_URL: z.string().default(''),
   // Local PGlite only: also accept Postgres connections (DBeaver, psql) on this port while the API runs. 0 = off.
   PGLITE_PORT: z.coerce.number().int().min(0).max(65535).default(5433),
@@ -18,12 +18,12 @@ const schema = z.object({
   LOG_REQUESTS: bool(true), // one JSON line per request (api/src/log.ts)
   // Comma-separated Google emails that can open the usage view (/admin). Empty = nobody.
   ADMIN_EMAILS: z.string().default('').transform((s) => s.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)),
-  // Web Push for the payday reminder (FR-GAJI-6). Generate once: pnpm --filter coinvoy-api exec web-push generate-vapid-keys
+  // Web Push for the payday reminder. Generate once: pnpm --filter coinvoy-api exec web-push generate-vapid-keys
   VAPID_PUBLIC_KEY: z.string().default(''),
   VAPID_PRIVATE_KEY: z.string().default(''),
   VAPID_SUBJECT: z.string().default('mailto:admin@coinvoy.invalid'),
   // The Python ML service (engine, BM classifier, Penyata renderer)
-  // Render's private-service reference gives host:port, so a missing scheme means plain http on the private network.
+  // Render gives host:port without http://, so we add it.
   ML_URL: z.preprocess((v) => (typeof v === 'string' && v && !/^https?:\/\//.test(v) ? `http://${v}` : v), z.url().default('http://127.0.0.1:8001')),
   ML_TOKEN: z.string().default(''),
   // Any OpenAI-compatible LLM provider (see .env.example). Empty key = AI off, manual entry still works.
@@ -35,8 +35,7 @@ const schema = z.object({
   LLM_MODEL_LENDER: z.string().default(''),
   LLM_MODEL_BM: z.string().default(''),
   LLM_MODEL_RECO: z.string().default(''),
-  // false (merge): every AI job uses LLM_API_KEY / LLM_BASE_URL. true (split): each job uses its own key below (OCR = snap,
-  // chatbot = tanya + lender, recommendations = reco + bm), and a job without a key is off.
+  // false: one AI key for every job. true: each job has its own key, and a job without one is off.
   LLM_SPLIT_KEYS: bool(false),
   LLM_API_KEY_SNAP: z.string().default(''),
   LLM_API_KEY_TANYA: z.string().default(''),
@@ -55,7 +54,7 @@ const schema = z.object({
   LLM_REGION_NOTE: z.string().default(''),
   DEMO_LLM_CACHE: bool(false),
   BM_CLASSIFIER_THRESHOLD: z.coerce.number().default(0.7),
-  // Contributions (FR-CAR-*). VERIFY each against the official source before the pitch.
+  // Contributions. VERIFY each against the official source before the pitch.
   ISARAAN_MATCH_RATE: z.coerce.number().default(0.2),
   ISARAAN_MATCH_CAP_SEN: z.coerce.number().default(50_000),
   PERKESO_RATE: z.coerce.number().default(0.0125),
@@ -71,7 +70,7 @@ if (!parsed.success) {
 export const env = parsed.data
 export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 export const pushConfigured = () => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)
-// AI is on if any job can run: merge mode needs the shared key, split mode any job's own key; plus a model
+// AI is on if at least one job has a key and a model
 export const llmConfigured = () => {
   const jobs: [string, string][] = [
     [env.LLM_API_KEY_SNAP, env.LLM_MODEL_SNAP],

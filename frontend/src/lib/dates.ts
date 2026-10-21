@@ -1,4 +1,4 @@
-// Weeks are ISO weeks (Mon–Sun) in Asia/Kuala_Lumpur (NFR-11), passed around as 'YYYY-MM-DD' Mondays.
+// Weeks are ISO weeks (Mon–Sun) in Asia/Kuala_Lumpur, passed around as 'YYYY-MM-DD' Mondays.
 
 const KL = 'Asia/Kuala_Lumpur'
 

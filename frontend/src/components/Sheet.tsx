@@ -6,8 +6,8 @@ const EXIT_MS = 220 // matches .sheet.closing in index.css
 const DISMISS_PX = 120 // drag the sheet down this far, or flick it, and it closes
 const FLICK = 0.6 // px/ms
 
-// Bottom sheet (a centred dialog on desktop) on the native <dialog>: showModal() traps focus, Esc closes it, and the page behind goes inert.
-// It slides up on open and back down on close; the content stays mounted until the exit has played.
+// A bottom sheet on phones and a centred dialog on desktop, built on the browser's <dialog>.
+// It slides up to open and down to close, and keeps its content on screen until the close animation ends.
 export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
   const { t } = useI18n()
   const ref = useRef<HTMLDialogElement>(null)
@@ -40,8 +40,8 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
       return () => clearTimeout(id)
     }
   }, [open])
-  // Drag the handle or title down (phones only; on desktop it's a centred dialog). The panel follows the finger, then
-  // closes past DISMISS_PX or on a flick, or springs back. The exit animation starts from where the finger left it.
+  // On phones you can drag the sheet down by its handle or title. Let go far enough (or flick it) and it closes,
+  // otherwise it springs back.
   const onDown = (e: PointerEvent<HTMLDivElement>) => {
     if ((e.target as Element).closest('button') || matchMedia('(min-width: 64rem)').matches) return
     drag.current = { y: e.clientY, t: e.timeStamp, dy: 0 }

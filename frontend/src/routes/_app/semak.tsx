@@ -25,8 +25,8 @@ const LOOK = {
 }
 const SEMAK_MULE = 'https://semakmule.rmp.gov.my'
 
-// Semak Mesej: the warning signs in a pasted message or link, and what to do next. Signs, never "this is a scam":
-// a clean result says no common signs were found, not that it's safe.
+// Semak Mesej: shows the warning signs in a pasted message and what to do next.
+// We never say "this is a scam", and a clean result never says "safe".
 function MessageCheck() {
   const { t, lang } = useI18n()
   const [text, setText] = useState('')

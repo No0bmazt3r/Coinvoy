@@ -5,8 +5,8 @@ import { Tooltip } from './Tooltip'
 const PRESETS = [20, 30, 40, 50, 60]
 const MAX = 84
 
-// Hours per week as big − / + buttons and one-tap presets instead of a slider: a slider needs a precise drag, which
-// is hard with less steady hands or bigger fingertips. Each button is 60 px; the number is large and read out on change.
+// Hours per week with big − / + buttons and quick presets. We dropped the slider because it's hard to drag
+// precisely, especially for older riders.
 export function HoursField({ label, value, onChange }: { label: string; value: number; onChange: (h: number) => void }) {
   const { t } = useI18n()
   const set = (h: number) => onChange(Math.min(MAX, Math.max(0, h)))

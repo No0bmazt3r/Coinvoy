@@ -25,7 +25,7 @@ export const Route = createFileRoute('/onboarding')({
   component: Onboarding,
 })
 
-// One question per screen, first salary within 2 minutes (J1). Bills come after the first salary, from home.
+// One question per screen, first salary within 2 minutes. Bills come after the first salary, from home.
 function Onboarding() {
   const { t, lang, setLang } = useI18n()
   const { user } = Route.useRouteContext()
@@ -43,8 +43,7 @@ function Onboarding() {
   const [failed, setFailed] = useState<unknown>(null)
   const saving = useIsMutating({ mutationKey: ['onboarding'] }) > 0
 
-  // Optimistic: the next question shows at once and each answer saves in the background. A failed save brings the
-  // rider back to that question with the error; the last screen waits only for "onboarded" to land.
+  // Move to the next question straight away and save in the background. If a save fails, go back to that question.
   const save = useMutation({
     mutationKey: ['onboarding'],
     mutationFn: async (s: number) => {

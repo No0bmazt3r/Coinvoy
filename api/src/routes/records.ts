@@ -1,4 +1,4 @@
-// Rekod: payslips, the Penyata PDF and officer links (FR-SLIP-1..5).
+// Rekod: payslips, the Penyata PDF and officer links.
 import { randomBytes } from 'node:crypto'
 import { and, desc, eq } from 'drizzle-orm'
 import { Router, type Response } from 'express'
@@ -75,7 +75,7 @@ const GONE = `<!doctype html><meta charset="utf-8"><meta name="robots" content="
 
 const privateHeaders = (res: Response) => res.set({ 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' })
 
-// Public, read-only, no login. Shows only the Penyata (FR-SLIP-4).
+// Public, read-only, no login. Shows only the Penyata.
 recordsRouter.get('/o/:token', async (req, res) => {
   const lang = req.query.lang === 'en' ? 'en' : 'ms'
   const [link] = await db.select().from(schema.officerLinks).where(eq(schema.officerLinks.tokenHash, sha256(String(req.params.token))))

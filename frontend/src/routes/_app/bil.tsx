@@ -20,7 +20,7 @@ export const Route = createFileRoute('/_app/bil')({ loader: prefetch(billsQuery)
 const FREQS: Bill['frequency'][] = ['monthly', 'weekly', 'yearly', 'once']
 const DAYS: Key[] = ['day.0', 'day.1', 'day.2', 'day.3', 'day.4', 'day.5', 'day.6']
 
-// The bills calendar (FR-ONB-4): bills are inside the simulation, so adding one changes the salary straight away.
+// The bills calendar: bills are inside the simulation, so adding one changes the salary straight away.
 function Bills() {
   const { t } = useI18n()
   const q = useQuery(billsQuery)
@@ -76,7 +76,7 @@ function Bills() {
   )
 }
 
-// A month of bills at a glance: weekly ones ×52÷12, yearly ones ÷12; one-off bills aren't a monthly cost.
+// Roughly how much the bills cost per month. One-off bills aren't counted.
 function BillsTotal({ bills }: { bills: Bill[] }) {
   const { t } = useI18n()
   const monthly = (b: Bill) => (b.frequency === 'monthly' ? b.amountSen : b.frequency === 'weekly' ? (b.amountSen * 52) / 12 : b.frequency === 'yearly' ? b.amountSen / 12 : 0)

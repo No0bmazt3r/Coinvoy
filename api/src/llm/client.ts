@@ -1,4 +1,4 @@
-// One LLM client for every provider that speaks the OpenAI chat API (ADR-9). OpenRouter, Gemini, OpenAI, Anthropic,
+// One LLM client for every provider that speaks the OpenAI chat API. OpenRouter, Gemini, OpenAI, Anthropic,
 // Groq and Ollama all do, so switching provider is LLM_BASE_URL / LLM_API_KEY / LLM_MODEL in .env, never code.
 import OpenAI from 'openai'
 import type { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources/chat/completions'
@@ -14,9 +14,9 @@ export const provider: { client: OpenAI | null } = { client: null }
 const clients = new Map<string, OpenAI>()
 
 /**
- * Which key and provider a job uses. Merge (LLM_SPLIT_KEYS=false): the shared key for every job, per-job keys ignored.
- * Split: the job's own key (OCR, chatbot = Tanya + lender, recommendations = reco + BM); empty means that job is off,
- * never a silent switch to the shared key. A job's URL may be left empty to use the shared one.
+ * Which key and address each AI job uses.
+ * LLM_SPLIT_KEYS=false: every job uses the shared key.
+ * LLM_SPLIT_KEYS=true: each job uses its own key, and a job without one is switched off.
  */
 export function keyFor(route: Route): { apiKey: string; baseURL: string } {
   const [key, url] = {

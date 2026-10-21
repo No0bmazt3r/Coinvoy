@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { useI18n } from '../i18n/t'
 import { api, errorText } from '../lib/api'
 
-// Decisions P1: the buffer and weeks earn "Disemak silang" when a statement backs them. The PDF is never kept.
+// Upload a bank statement to mark matching weeks as "Disemak silang". The PDF is never kept.
 export function StatementCheck() {
   const { t, lang } = useI18n()
   const queryClient = useQueryClient()

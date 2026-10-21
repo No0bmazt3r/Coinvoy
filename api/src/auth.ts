@@ -1,4 +1,4 @@
-// Sessions, cookies, audit log and requireUser (docs/GOOGLE_AUTH_PORTABLE.md §6, ported to Drizzle).
+// Sessions, cookies, audit log and requireUser.
 import { createHash, randomBytes } from 'node:crypto'
 import { and, eq, gt, lt } from 'drizzle-orm'
 import type { NextFunction, Request, Response } from 'express'

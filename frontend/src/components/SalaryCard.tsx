@@ -8,7 +8,7 @@ import { formatRM } from '../lib/money'
 
 const LAST_SEEN = 'coinvoy.lastSalary'
 
-// The number counts up once when it changes, never on every load (design-system §8).
+// The number counts up once when it changes, never on every load.
 function useCountUp(target: number): number {
   const [shown, setShown] = useState(() => {
     try {

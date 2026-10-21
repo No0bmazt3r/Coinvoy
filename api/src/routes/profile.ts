@@ -1,4 +1,4 @@
-// Profile, onboarding answers and consent records (FR-ONB-1..4, FR-ONB-6).
+// Profile, onboarding answers and consent records.
 import { eq } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -51,8 +51,8 @@ profileRouter.patch('/me', async (req, res) => {
   res.json({ user: await userJson(user) })
 })
 
-// Screen guides: a first-visit hint per screen, and on-demand tours (docs/todo.md, Oct 2026 grilling). "seen" and a
-// finished or skipped tour retire the hint for this account; started/completed/skipped are logged for the usage view.
+// Screen guides. Once a hint is closed or its tour is finished or skipped, it stays hidden for this account.
+// Tour starts, finishes and skips are counted for the admin page.
 export const GUIDE_SCREENS = ['gaji', 'tabung', 'snap', 'tanya', 'profil'] as const
 const TipIn = z.strictObject({ screen: z.enum(GUIDE_SCREENS), action: z.enum(['seen', 'started', 'completed', 'skipped']) })
 

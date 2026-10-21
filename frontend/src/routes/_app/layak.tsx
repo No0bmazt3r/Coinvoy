@@ -14,7 +14,7 @@ type Layak = { item: string; loanSen: number; interestSen: number; monthlySen: n
 
 export const Route = createFileRoute('/_app/layak')({ loader: prefetch(penyataQuery), component: SemakLayak })
 
-// Semak Layak (FR-ADV-5): what an instalment does to the rider's own future weeks. A risky answer is shown as
+// Semak Layak: what an instalment does to the rider's own future weeks. A risky answer is shown as
 // plainly as a safe one, and Coinvoy earns the same either way.
 function SemakLayak() {
   const { t, lang } = useI18n()

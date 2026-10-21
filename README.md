@@ -159,7 +159,7 @@ Screenshots and statement PDFs are read in memory and **never stored**; EXIF is 
 | `api/` | Express 5 + zod + Drizzle API; `src/routes`, `src/services`, `src/llm` (client, Snap, Tanya, guard), `drizzle/` SQL migrations, `test/` |
 | `ml/` | Python ML service: `app/engine` (forecast, simulation, salary search), `app/nlp` (BM parser + classifier), `app/render` (Penyata), `scripts/` (training, backtest, evaluation) |
 | `render.yaml` | Deployment (no Docker): the API + PWA as a native Node web service, the ML service private, Postgres, Singapore |
-| `.github/workflows/ci.yml` | Lint, types, tests (also on real Postgres), bundle budget, gitleaks |
+| `.github/workflows/checks.yml` | Lint, types, tests (also on real Postgres), bundle budget, gitleaks |
 
 ## Google sign-in setup
 

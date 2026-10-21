@@ -1,10 +1,10 @@
-// Semak Mesej: a pasted SMS / WhatsApp message or link → the warning signs riders actually meet (fake "akaun Grab
-// disekat" links, TAC requests, fake parcels and jobs, "sewa akaun" mule recruitment, fake police calls). Plain rules
-// in BM, English and Manglish decide the level; the AI may only add signs it noticed. Facts, never "this is a scam".
+// Semak Mesej: looks for the warning signs riders actually get in SMS and WhatsApp, like fake "akaun disekat" links,
+// TAC requests, fake parcels or jobs, people renting bank accounts, and fake police calls.
+// Our rules (BM, English and Manglish) decide the risk level. The AI can only add extra signs.
 
 type Flag = { key: string; high: boolean; re: RegExp }
 
-// One sign each. `high`: any one of these alone makes it high risk (it asks for what a real company never asks for).
+// One warning sign each. `high` means this sign alone is enough for high risk.
 const FLAGS: Flag[] = [
   { key: 'asks_code', high: true, re: /\b(tac|otp|pin|kata ?laluan|password|kod (pengesahan|keselamatan|rahsia|6 digit|enam digit)|verification code|security code)\b/i },
   { key: 'apk', high: true, re: /\.apk\b|\b(muat ?turun|download|install|pasang) (aplikasi|app|apps|fail)\b/i },

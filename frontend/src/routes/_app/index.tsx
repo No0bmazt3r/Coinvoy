@@ -24,7 +24,7 @@ const STEPS: { icon: LucideIcon; title: Key; body: Key }[] = [
   { icon: PiggyBank, title: 'gaji.step3Title', body: 'gaji.step3Body' },
 ]
 
-// Home = the salary (FR-GAJI-1): greeting → SalaryCard → Jurang → Snap prompt → forecast band (design-system §7).
+// Home = the salary: greeting → SalaryCard → Jurang → Snap prompt → forecast band.
 // Desktop: the salary on the left; the to-dos and the forecast on the right.
 function Gaji() {
   const { t } = useI18n()
@@ -137,7 +137,7 @@ function Gaji() {
   )
 }
 
-// Before the first salary, the side column is a short setup checklist: what's done, and one tap to each next step
+// Before the first salary: a short checklist of what's done and what's next
 function SetupChecklist({ pocketReady, billsAdded }: { pocketReady: boolean; billsAdded: boolean }) {
   const { t } = useI18n()
   const items: { done: boolean; label: Key; to?: '/pocket' | '/bil' | '/snap' }[] = [

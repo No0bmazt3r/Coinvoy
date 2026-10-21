@@ -25,7 +25,7 @@ const LOOK = {
   rendah: { Icon: ShieldCheck, cls: 'bg-[var(--safe-bg)] text-[var(--safe)]' },
 }
 
-// Lender check (FR-ADV-6): facts, never accusations. "Appears on BNM's alert list (list dated …)", not "scammer".
+// Lender check: facts, never accusations. "Appears on BNM's alert list (list dated …)", not "scammer".
 function LenderCheck() {
   const { t, lang } = useI18n()
   const [text, setText] = useState('')

@@ -1,4 +1,4 @@
-// Privacy controls (J8, FR-AUTH-5/6), the statement cross-check (FR-SNAP-10) and Indeks Rider (FR-IDX-*).
+// Privacy controls, the statement cross-check and Indeks Rider.
 import { eq } from 'drizzle-orm'
 import { Router } from 'express'
 import multer from 'multer'
@@ -16,7 +16,7 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 export const accountRouter = Router()
 accountRouter.use(requireUser)
 
-// Everything stored about the rider, as one JSON file (FR-AUTH-6).
+// Everything stored about the rider, as one JSON file.
 accountRouter.get('/me/export', async (_req, res) => {
   const user = userOf(res)
   const id = user.id
@@ -46,7 +46,7 @@ accountRouter.get('/me/export', async (_req, res) => {
   res.set({ 'Content-Disposition': `attachment; filename="coinvoy-data-${todayKL()}.json"`, 'Cache-Control': 'no-store' }).json(data)
 })
 
-// Delete the account and every row that belongs to it (FR-AUTH-5). Irreversible, so the app asks for "PADAM".
+// Delete the account and every row that belongs to it. Irreversible, so the app asks for "PADAM".
 accountRouter.delete('/me', async (req, res) => {
   z.strictObject({ confirm: z.literal('PADAM') }).parse(req.body)
   await db.delete(schema.users).where(eq(schema.users.id, userOf(res).id)) // every table cascades from users
@@ -62,7 +62,7 @@ accountRouter.post('/statement', upload.single('file'), async (req, res) => {
   res.json(result)
 })
 
-// Indeks Rider: anonymised RM per hour, shown only for groups of 20+ (FR-IDX-2/3).
+// Indeks Rider: anonymised RM per hour, shown only for groups of 20+.
 accountRouter.get('/index', async (_req, res) => {
   res.json(await riderIndex(db, userOf(res)))
 })

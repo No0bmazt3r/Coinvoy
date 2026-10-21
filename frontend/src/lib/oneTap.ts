@@ -1,6 +1,5 @@
-// Google One Tap on the login page (docs/GOOGLE_AUTH_PORTABLE.md §2 rule 6): Google's account picker slides in, and
-// the ID token it gives goes to our API, which checks its signature and our nonce before signing in. Google's script
-// loads only here, only when Google sign-in is set up; if anything fails, the normal Google button still works.
+// Google One Tap on the login page. Google shows its account picker, and our API checks the token it returns
+// before signing the rider in. If anything goes wrong, the normal Google button still works.
 import { useEffect, useRef } from 'react'
 import { api } from './api'
 

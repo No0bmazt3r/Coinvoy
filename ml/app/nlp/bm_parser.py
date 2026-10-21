@@ -104,7 +104,7 @@ def rules(text: str) -> Parse:
 
 
 
-# Below this the classifier's guess goes to the LLM (architecture §6.6; config BM_CLASSIFIER_THRESHOLD).
+# Below this the classifier's guess goes to the LLM.
 def parse(text: str, threshold: float, llm=None) -> Parse:
     """The full pipeline. llm(text) -> (amount_sen | None, category) is only called when tiers 1–2 can't decide."""
     from app.nlp import classifier

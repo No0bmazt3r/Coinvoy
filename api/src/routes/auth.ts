@@ -1,6 +1,6 @@
-// Google sign-in on OpenID Connect (authorization code + PKCE), no auth vendor (GOOGLE_AUTH_PORTABLE.md),
+// Google sign-in on OpenID Connect (authorization code + PKCE), no auth vendor,
 // Google One Tap on the login page (an ID token from the browser, so its signature is verified: rule 6),
-// plus the judges' demo login (FR-AUTH-3).
+// plus the judges' demo login.
 import { createPublicKey, verify, type JsonWebKey } from 'node:crypto'
 import { and, eq, lt, sql } from 'drizzle-orm'
 import { Router, type Request, type Response } from 'express'
@@ -184,12 +184,12 @@ authRouter.post('/google/one-tap', async (req, res) => {
   res.status(204).end()
 })
 
-// A fresh temporary demo rider per tap, so each judge has their own copy (FR-AUTH-3, FR-DEMO-1).
+// A fresh temporary demo rider per tap, so each judge has their own copy.
 // ?persona=lina opens Kak Lina's Jurang story instead of Abang Faiz; ?empty starts at onboarding.
 authRouter.post('/demo', async (req, res) => {
   if (!env.DEMO_ENABLED) throw new ApiError(404, 'demo_disabled', 'Demo tidak tersedia.', "The demo isn't available.")
   const persona: PersonaKey = req.query.persona === 'lina' ? 'lina' : 'faiz'
-  // ponytail: expired demo users are cleaned up here instead of by a scheduler; add a job if demo traffic grows.
+  // Simple for now: old demo users are cleaned up here. Use a scheduled job if demo traffic grows.
   await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.createdAt, new Date(Date.now() - DEMO_TTL_MS))))
   const token = await db.transaction(async (tx) => {
     const [user] = await tx.insert(schema.users).values({ email: 'demo@coinvoy.invalid', displayName: PERSONAS[persona].name, isDemo: true, lastLoginAt: new Date() }).returning()

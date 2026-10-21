@@ -1,4 +1,4 @@
-// Cuti, Caruman, check-ins and streaks (FR-CUTI-*, FR-CAR-*, FR-GAJI-5, FR-STRK-*).
+// Cuti, Caruman, check-ins and streaks.
 import { and, desc, eq, ne } from 'drizzle-orm'
 import { Router } from 'express'
 import { z } from 'zod'
@@ -40,7 +40,7 @@ benefitsRouter.post('/leave', async (req, res) => {
   res.status(201).json({ leave: leaveJson(leave!) })
 })
 
-// "Saya sakit minggu ini": the Cuti pot pays for the days off, and the streak freezes (FR-CUTI-3/4).
+// "Saya sakit minggu ini": the Cuti pot pays for the days off, and the streak freezes.
 benefitsRouter.post('/leave/sick', async (req, res) => {
   const { days } = z.strictObject({ days: z.number().int().min(1).max(6) }).parse(req.body)
   const user = userOf(res)

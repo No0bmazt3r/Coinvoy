@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 
 const ANSWERS = ['ya', 'hampir', 'tak_cukup'] as const
 
-// One tap a week: "Did you have enough money last week?" The answers are Coinvoy's measured impact (FR-GAJI-5, G1).
+// One tap a week: "Did you have enough money last week?" The answers are Coinvoy's measured impact.
 export function CheckinCard({ weekStart }: { weekStart: string }) {
   const { t } = useI18n()
   const queryClient = useQueryClient()

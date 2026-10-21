@@ -3,7 +3,7 @@ import { Flame, Snowflake } from 'lucide-react'
 import { useI18n } from '../i18n/t'
 import type { Streak } from '../lib/api'
 
-// Weeks logged in a row; a snowflake while leave or sick days freeze it (design-system §6.6, FR-STRK-6).
+// Weeks logged in a row; a snowflake while leave or sick days freeze it.
 export function StreakChip({ streak }: { streak: Streak }) {
   const { t } = useI18n()
   const frozen = streak.frozenThisWeek

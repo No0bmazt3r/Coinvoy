@@ -20,8 +20,7 @@ import { weeksRouter } from './routes/weeks.ts'
 const DIST = fileURLToPath(new URL('../../frontend/dist', import.meta.url))
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
-// Architecture §8.2. Google avatars load from googleusercontent; styles allow inline (React style props, officer view).
-// One Tap: only Google's sign-in script, its stylesheet and its account-picker frame (Google's documented CSP for GIS).
+// Security headers. Allows Google profile pictures, inline styles, and Google's sign-in script for One Tap.
 const GSI = 'https://accounts.google.com/gsi/'
 const securityHeaders: RequestHandler = (_req, res, next) => {
   res.set({
@@ -41,7 +40,7 @@ const sameOrigin: RequestHandler = (req, _res, next) => {
   next()
 }
 
-// ponytail: in-memory token bucket per IP, fine for one instance; move to Postgres or Redis if we scale out.
+// Simple for now: counted in memory per IP. Move it to the database if we run more than one API server.
 export function rateLimit(perMinute: number): RequestHandler {
   const buckets = new Map<string, { tokens: number; at: number }>()
   return (req, _res, next) => {
@@ -67,7 +66,7 @@ export function createApp() {
   app.use(sameOrigin)
 
   app.get('/api/health', (_req, res) => void res.json({ ok: true }))
-  // Public facts the privacy page shows: who processes screenshots and chat, and where (PDPA, decisions.md A4).
+  // Public facts the privacy page shows: who processes screenshots and chat, and where.
   app.get('/api/meta', (_req, res) =>
     void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured() }),
   )
@@ -76,7 +75,7 @@ export function createApp() {
   app.use(recordsRouter)
   app.use('/api', (_req, _res, next) => next(new ApiError(404, 'not_found', 'Tidak dijumpai.', 'Not found.')))
 
-  // One service serves the API and the PWA (ADR-1): same origin, first-party cookies, no CORS.
+  // One service serves the API and the PWA: same origin, first-party cookies, no CORS.
   if (existsSync(DIST)) {
     app.use(express.static(DIST, { index: false, maxAge: '1h' }))
     app.get(/^\/(?!api\/|o\/).*/, (_req, res) => res.sendFile(`${DIST}/index.html`))

@@ -1,4 +1,4 @@
-// Cuti Berbayar, Caruman, check-ins and streaks (FR-CUTI-*, FR-CAR-*, FR-GAJI-5, FR-STRK-*).
+// Cuti Berbayar, Caruman, check-ins and streaks.
 import { and, count, eq, gte, inArray, lt, ne, sql, sum } from 'drizzle-orm'
 import type { User } from '../auth.ts'
 import { type Db, schema } from '../db/index.ts'
@@ -6,7 +6,7 @@ import { env } from '../env.ts'
 import { addWeeks, thisWeek, todayKL, weekStart } from '../lib/weeks.ts'
 import { ensurePots } from './pots.ts'
 
-// Streak length → level (FR-STRK-4). Cosmetic only: a title and an accent colour, never a feature.
+// Streak length → level. Cosmetic only: a title and an accent colour, never a feature.
 export const LEVELS = [0, 4, 8, 16, 26] as const
 export const ACCENTS = ['lime', 'aqua', 'amber', 'pink', 'sky'] as const
 const MANUAL_FREEZES_PER_QUARTER = 2
@@ -20,7 +20,7 @@ export async function sickStatus(db: Db, user: User) {
   return { daysCovered: user.sickDaysCovered, daysUsed: Number(row?.used ?? 0) }
 }
 
-/** The rider paid into i-Saraan from their pocket; the government match is capped per year (FR-CAR-2/3). */
+/** The rider paid into i-Saraan from their pocket; the government match is capped per year. */
 export async function contributeIsaraan(db: Db, user: User, amountSen: number) {
   const year = Number(todayKL().slice(0, 4))
   const [row] = await db
@@ -59,7 +59,7 @@ export async function caruman(db: Db, user: User) {
   }
 }
 
-/** Ask about last week once the rider had a salary for it (FR-GAJI-5). */
+/** Ask about last week once the rider had a salary for it. */
 export async function checkinDue(db: Db, userId: number): Promise<string | null> {
   const last = addWeeks(thisWeek(), -1)
   const [had] = await db.select({ id: schema.transfers.id }).from(schema.transfers).where(and(eq(schema.transfers.userId, userId), eq(schema.transfers.weekStart, last)))
@@ -76,7 +76,7 @@ async function frozenWeeks(db: Db, userId: number): Promise<Set<string>> {
 
 /**
  * Consecutive logged weeks back from last week. Leave, sick and manual-freeze weeks neither add nor break it
- * (FR-STRK-1/6). Only weeks logged, transfers confirmed and Gaji kept count: never hours or trips.
+ *. Only weeks logged, transfers confirmed and Gaji kept count: never hours or trips.
  */
 export async function streak(db: Db, user: User) {
   const logged = new Set((await db.selectDistinct({ w: schema.earnings.weekStart }).from(schema.earnings).where(eq(schema.earnings.userId, user.id))).map((r) => r.w))
@@ -115,7 +115,7 @@ export async function streak(db: Db, user: User) {
   }
 }
 
-/** Milestones for real progress, awarded from data, never from app opens (FR-STRK-5). */
+/** Milestones for real progress, awarded from data, never from app opens. */
 export async function refreshBadges(db: Db, user: User, streakWeeks: number) {
   const exists = async (q: Promise<unknown[]>) => (await q).length > 0
   const pots = await ensurePots(db, user.id)

@@ -1,4 +1,4 @@
-// Tanya: a small tool loop over the engine, with the number guard on every reply (FR-ADV-1..4, architecture §6.4).
+// Tanya: a small tool loop over the engine, with the number guard on every reply.
 // Tools are read-only and scoped to the signed-in rider. The model talks; the engine computes.
 import { readFileSync } from 'node:fs'
 import { and, eq } from 'drizzle-orm'
@@ -84,7 +84,7 @@ export async function runTool(user: User, name: string, args: Record<string, unk
   return { error: 'unknown_tool' }
 }
 
-/** Built only from tool results, so it can't contain a made-up number (FR-ADV-2, last resort). */
+/** Built only from tool results, so it can't contain a made-up number. */
 export function fallback(results: Record<string, unknown>[], lang: 'ms' | 'en'): string {
   const sim = results.find((r) => 'new_safe_salary_rm' in r) as Record<string, number> & { risk: Risk } | undefined
   const sal = results.find((r) => 'salary_rm' in r) as Record<string, number> & { risk: Risk } | undefined

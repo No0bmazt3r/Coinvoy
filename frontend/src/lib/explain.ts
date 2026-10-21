@@ -2,7 +2,7 @@ import type { Key } from '../i18n/t'
 import type { Salary } from './api'
 import { formatRM } from './money'
 
-/** "Turun RM30: ansuran motor minggu depan." from the engine's top factor (FR-ENG-6). */
+/** "Turun RM30: ansuran motor minggu depan." from the engine's top factor. */
 export function explanation(s: Salary, t: (k: Key, v?: Record<string, string | number>) => string): string {
   const f = s.factors[0]
   if (!f || f.key === 'first') return s.coldStart ? t('gaji.why.coldStart') : t('gaji.why.first', { n: s.weeksUsed })

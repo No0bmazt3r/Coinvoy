@@ -45,11 +45,11 @@ function Welcome() {
       title: 'intro.s2Title',
       body: 'intro.s2Body',
       art: (
-        <div className="relative flex h-40 w-64 items-end justify-between gap-2 rounded-lg bg-white/5 px-5 pt-4 pb-5" aria-hidden>
+        <div className="relative flex h-40 w-64 items-end justify-between gap-2 rounded-lg bg-surface-2 px-5 pt-4 pb-5" aria-hidden>
           {WEEKS.map((h, i) => (
             <span
               key={i}
-              className="intro-bar w-6 rounded-t-md bg-on-ink-muted/40"
+              className="intro-bar w-6 rounded-t-md bg-muted/40"
               style={{ height: `${h * 100}%`, animationDelay: `${i * 60}ms` }}
             />
           ))}
@@ -66,7 +66,7 @@ function Welcome() {
       art: (
         <ul className="flex w-full max-w-xs flex-col gap-2 text-left">
           {PERKS.map(({ icon: Icon, label }, i) => (
-            <li key={label} className="intro-rise flex items-center gap-3 rounded-md bg-white/5 px-3 py-2.5" style={{ animationDelay: `${i * 70}ms` }}>
+            <li key={label} className="intro-rise flex items-center gap-3 rounded-md bg-surface-2 px-3 py-2.5" style={{ animationDelay: `${i * 70}ms` }}>
               <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-on-brand">
                 <Icon size={17} aria-hidden />
               </span>
@@ -87,7 +87,7 @@ function Welcome() {
           <ul className="flex flex-col gap-2 text-left">
             {TRUST.map((label, i) => (
               <li key={label} className="intro-rise flex items-center gap-2 text-sm font-semibold" style={{ animationDelay: `${120 + i * 70}ms` }}>
-                <BadgeCheck size={18} className="text-brand" aria-hidden />
+                <BadgeCheck size={18} className="text-brand-text" aria-hidden />
                 {t(label)}
               </li>
             ))}
@@ -114,10 +114,10 @@ function Welcome() {
   }, [])
 
   return (
-    // Desktop: the whole page, with the words on the left, the art large on the right, and every slide's title in the step bar
+    // Desktop: words on the left, a big picture on the right, and all the slide titles along the bottom
     <main
       aria-label={t('intro.label')}
-      className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-ink pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-on-ink lg:max-w-none lg:pb-10"
+      className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-bg pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-text lg:max-w-none lg:pb-10"
     >
       <div className={`flex items-center justify-between gap-3 px-4 pt-3 lg:justify-end lg:pt-6 ${GUTTER}`}>
         <span className="mr-auto hidden items-center gap-2 lg:flex">
@@ -125,7 +125,7 @@ function Welcome() {
           <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
         </span>
         <LangToggle />
-        <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-on-ink-muted ${last ? 'invisible' : ''}`}>
+        <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-muted ${last ? 'invisible' : ''}`}>
           {t('intro.skip')}
         </button>
       </div>
@@ -142,15 +142,15 @@ function Welcome() {
             className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center lg:grid lg:grid-cols-2 lg:gap-[clamp(3rem,6vw,8rem)] lg:text-left ${GUTTER} ${i === index ? 'intro-active' : ''}`}
           >
             <div className="intro-art grid min-h-48 w-full place-items-center lg:order-2 lg:h-full lg:max-h-[75dvh] lg:rounded-[40px] lg:bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--brand)_16%,transparent),transparent)]">
-              {/* scale (not transform) so it stacks with the float/pop animations; on the children so the track never widens */}
+              {/* uses scale so it works alongside the other animations */}
               <div className="flex w-full justify-center lg:*:scale-150 xl:*:scale-[1.75] 2xl:*:scale-200">{s.art}</div>
             </div>
             <div className="flex flex-col gap-3 lg:gap-5">
-              <p className="intro-rise hidden text-sm font-bold tracking-widest text-brand lg:block">
+              <p className="intro-rise hidden text-sm font-bold tracking-widest text-brand-text lg:block">
                 {String(i + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
               </p>
               <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight lg:text-[clamp(3rem,4.2vw,5.5rem)] lg:leading-[1.05]">{t(s.title)}</h1>
-              <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms] lg:mx-0 lg:max-w-[min(40rem,100%)] lg:text-[clamp(1.125rem,1.25vw,1.5rem)]">{t(s.body)}</p>
+              <p className="intro-rise mx-auto max-w-sm text-muted [animation-delay:80ms] lg:mx-0 lg:max-w-[min(40rem,100%)] lg:text-[clamp(1.125rem,1.25vw,1.5rem)]">{t(s.body)}</p>
             </div>
           </section>
         ))}
@@ -168,7 +168,7 @@ function Welcome() {
               className="grid h-6 place-items-center"
             >
               <span
-                className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-white/25'}`}
+                className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-line-strong'}`}
               />
             </button>
           ))}
@@ -180,9 +180,9 @@ function Welcome() {
                 type="button"
                 aria-current={i === index ? 'step' : undefined}
                 onClick={() => goTo(i)}
-                className={`flex w-full flex-col gap-2 text-left text-sm transition-colors duration-200 hover:text-on-ink ${i === index ? 'text-on-ink' : 'text-on-ink-muted'}`}
+                className={`flex w-full flex-col gap-2 text-left text-sm transition-colors duration-200 hover:text-text ${i === index ? 'text-text' : 'text-muted'}`}
               >
-                <span className={`block h-1 rounded-full transition-colors duration-300 ${i <= index ? 'bg-brand' : 'bg-white/15'}`} />
+                <span className={`block h-1 rounded-full transition-colors duration-300 ${i <= index ? 'bg-brand' : 'bg-line'}`} />
                 <span className="font-bold tabular-nums">{String(i + 1).padStart(2, '0')}</span>
                 <span className="line-clamp-2 font-semibold">{t(s.title)}</span>
               </button>

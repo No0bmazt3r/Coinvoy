@@ -55,8 +55,8 @@ def render_html(name: str, data: dict, lang: str, generated: date, expires: str 
 
 
 def _latin1(value: object) -> str:
-    # ponytail: fpdf2's built-in Helvetica is Latin-1 only, so other scripts print as "?"; bundle a TTF and
-    # pdf.add_font() if riders' names need Chinese or Tamil.
+    # Simple for now: the built-in PDF font only covers Latin letters, so Chinese or Tamil names print as "?".
+    # Add a font file with pdf.add_font() when we need them.
     return str(value).replace("\u2013", "-").encode("latin-1", "replace").decode("latin-1")
 
 

@@ -23,7 +23,7 @@ type Usage = {
 
 const pct = (x: number | null) => (x === null ? '–' : `${Math.round(x * 100)}%`)
 
-// The team's usage view (ADMIN_EMAILS only): counts, pilot retention (FR-STRK-8) and AI cost. No rider's data.
+// The team's usage view (ADMIN_EMAILS only): counts, pilot retention and AI cost. No rider's data.
 function Admin() {
   const { t } = useI18n()
   const q = useQuery({ queryKey: ['admin'], queryFn: () => api<Usage>('/api/admin/usage') })

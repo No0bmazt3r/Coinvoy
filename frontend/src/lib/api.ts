@@ -128,7 +128,7 @@ export type Bill = {
   active: boolean
 }
 
-/** Errors arrive as { error: { code, message_ms, message_en } } (architecture §10). */
+/** Errors arrive as { error: { code, message_ms, message_en } }. */
 export class ApiError extends Error {
   status: number
   code: string
@@ -198,11 +198,7 @@ export async function post(path: string): Promise<void> {
   await api(path, { method: 'POST' })
 }
 
-/**
- * A route loader that starts its screen's queries without waiting for them (TanStack Router + Query): the screen still
- * renders at once with its skeletons, but the data is already on the way. Preloading a route (on touch, or the tabs
- * when the app is idle) runs it too, so the next screen usually opens with its data cached.
- */
+/** Starts loading a screen's data before it opens, without making the screen wait for it. */
 export const prefetch =
   (...queries: { queryKey: readonly unknown[] }[]) =>
   ({ context }: { context: { queryClient: QueryClient } }) => {

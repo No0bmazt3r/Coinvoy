@@ -1,4 +1,4 @@
-// Theme override (FR-SHELL-6) and the cosmetic accent riders unlock with streaks (FR-STRK-4). Saved locally too,
+// Theme override and the cosmetic accent riders unlock with streaks. Saved locally too,
 // so the login screen and splash follow the choice before anyone is signed in.
 import type { Accent, User } from './api'
 

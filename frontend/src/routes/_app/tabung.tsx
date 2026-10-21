@@ -24,15 +24,15 @@ const iconOf = (p: Pick<Pot, 'kind' | 'icon'>) => KIND_ICON[p.kind] ?? CUSTOM_IC
 const rm = (sen: number) => formatRM(sen, { whole: true })
 const pct = (p: Pot) => (p.targetSen ? Math.min(100, (p.balanceSen / p.targetSen) * 100) : 0)
 
-// Pots are earmarks inside the rider's one real savings pocket; balances move only on "Dah pindah" (FR-CAR-*).
-// The buffer is always there; every other pot is the rider's choice, added from suggestions or named themselves.
+// Pots split the rider's one real savings pocket into goals. Balances only change after "Dah pindah".
+// Penampan is always there; the rider adds any other pot they want.
 function Tabung() {
   const { t } = useI18n()
   const pots = useQuery(potsQuery)
   const caruman = useQuery(carumanQuery)
   const home = useQuery(homeQuery)
   const [open, setOpen] = useState<Pot | null>(null)
-  // false = closed; true = the + sheet from its list; a suggestion = straight to planning that pot
+  // false: closed. true: the + sheet. A suggestion: open straight on that pot's plan.
   const [adding, setAdding] = useState<boolean | PotSuggestion>(false)
   const name = (p: Pot) => p.name ?? t(`pot.${p.kind}` as Key)
 
@@ -72,6 +72,8 @@ function Tabung() {
           {penampan.targetSen > 0 && <Bar value={pct(penampan)} />}
         </button>
 
+      </div>
+      <div className="col">
         <section aria-labelledby="mine" className="flex flex-col gap-2">
           <h2 id="mine" className="px-1 text-sm font-semibold text-muted">{t('tabung.yourPots')}</h2>
           <div className="overflow-hidden rounded-lg border border-line bg-surface">
@@ -111,13 +113,11 @@ function Tabung() {
           )}
         </section>
       </div>
-      <div className="col">
-        {/* desktop only (phones use the + sheet); hidden here because .col's display rule outranks a class on it */}
-        <div className="max-lg:hidden">
-          <SuggestionsPanel onPick={setAdding} />
-        </div>
-      </div>
       </Columns>
+      {/* Desktop only. Phones use the + sheet instead. */}
+      <div className="max-lg:hidden">
+        <SuggestionsPanel onPick={setAdding} />
+      </div>
 
       <Sheet open={open !== null} onClose={() => setOpen(null)} title={open ? name(open) : ''}>
         {open && <PotDetail pot={open} onDone={() => setOpen(null)} />}
@@ -228,7 +228,7 @@ type Draft = { kind?: string; name: string; icon: string; reason?: string; targe
 // The "+" sheet: suggestions with reasons → a plan with the live salary preview → add.
 const suggestionsQuery = { queryKey: ['pot-suggestions'], queryFn: () => api<{ suggestions: PotSuggestion[]; source: 'ai' | 'rules' }>('/api/pots/suggestions') }
 
-// Desktop side panel: the suggested pots, always in view; one tap opens its plan with the live salary preview
+// The suggested pots shown on desktop. Tapping one opens its plan.
 function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => void }) {
   const { t } = useI18n()
   const s = useQuery(suggestionsQuery)
@@ -238,11 +238,11 @@ function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => voi
       {s.isPending ? (
         <Skeleton className="h-48" />
       ) : s.isError ? null : (
-        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
-          {s.data.suggestions.length === 0 && <li className="p-4 text-sm text-muted">{t('tabung.noSuggestions')}</li>}
+        <ul className="grid grid-cols-3 gap-3">
+          {s.data.suggestions.length === 0 && <li className="col-span-full rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('tabung.noSuggestions')}</li>}
           {s.data.suggestions.map((x) => (
             <li key={x.kind}>
-              <button type="button" onClick={() => onPick(x)} className="pressable flex w-full items-start gap-3 p-4 text-left hover:bg-surface-2">
+              <button type="button" onClick={() => onPick(x)} className="pressable flex h-full w-full items-start gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
                 <PotIcon kind={x.kind} className="mt-0.5 shrink-0 text-muted" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
@@ -255,7 +255,7 @@ function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => voi
             </li>
           ))}
           <li>
-            <button type="button" onClick={() => onPick(true)} className="pressable flex w-full items-center gap-3 p-4 text-left font-semibold hover:bg-surface-2">
+            <button type="button" onClick={() => onPick(true)} className="pressable flex h-full min-h-20 w-full items-center gap-3 rounded-lg border border-dashed border-line-strong p-4 text-left font-semibold hover:bg-surface-2">
               <Plus size={20} aria-hidden className="shrink-0" />
               {t('tabung.custom')}
             </button>

@@ -3,7 +3,7 @@ import { ChevronRight, Flame, Snowflake } from 'lucide-react'
 import { useI18n, type Key } from '../i18n/t'
 import type { Streak } from '../lib/api'
 
-// The streak as progress toward the next level (FR-STRK-*): one tap to Pencapaian, amber only when it's at risk.
+// The streak as progress toward the next level: one tap to Pencapaian, amber only when it's at risk.
 export function StreakRow({ streak }: { streak: Streak }) {
   const { t } = useI18n()
   const next = streak.nextLevelAt

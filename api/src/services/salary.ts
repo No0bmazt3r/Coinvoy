@@ -1,4 +1,4 @@
-// Loads a rider's data, asks the engine, and saves the result (architecture §5.3).
+// Loads a rider's data, asks the engine, and saves the result.
 import { createHash } from 'node:crypto'
 import { and, asc, desc, eq, gte, lt, ne } from 'drizzle-orm'
 import { type Db, schema } from '../db/index.ts'
@@ -9,12 +9,12 @@ import { type Inputs, ml, type Scenario } from '../ml.ts'
 import { ensurePots } from './pots.ts'
 import type { User } from '../auth.ts'
 
-/** Same rider + same week = the same 1,000 futures, so the salary doesn't jitter on reload (FR-ENG-2). */
+/** Same rider + same week = the same 1,000 futures, so the salary doesn't jitter on reload. */
 export const seedFor = (userId: number, week: string) => Number(BigInt('0x' + createHash('sha256').update(`${userId}:${week}`).digest('hex').slice(0, 13)))
 
 export type WeekTotal = { weekStart: string; netSen: number; hours: number | null }
 
-/** Net and hours per logged week, oldest first, platforms combined (FR-SNAP-3). */
+/** Net and hours per logged week, oldest first, platforms combined. */
 export async function weeklyHistory(db: Db, userId: number): Promise<WeekTotal[]> {
   const rows = await db.select().from(schema.earnings).where(eq(schema.earnings.userId, userId)).orderBy(asc(schema.earnings.weekStart))
   const weeks = new Map<string, WeekTotal>()
@@ -32,10 +32,10 @@ export async function platformsOf(db: Db, userId: number): Promise<string[]> {
   return rows.map((r) => r.p)
 }
 
-/** A weekly set-aside into Cuti that pays for the sick days covered (FR-CUTI-3). A day is a sixth of a week's essentials. */
+/** A weekly set-aside into Cuti that pays for the sick days covered. A day is a sixth of a week's essentials. */
 export const sickReserve = (user: User) => Math.round(((user.essentialsWeekSen ?? 0) / 6) * (user.sickDaysCovered / 52))
 
-/** Only reserved when platforms don't already deduct it at source (FR-CAR-1). */
+/** Only reserved when platforms don't already deduct it at source. */
 export const perkesoReserve = (netSen: number) => (env.PERKESO_DEDUCTED_AT_SOURCE ? 0 : Math.round(env.PERKESO_RATE * netSen))
 
 /** The week whose salary the rider is on: the week after the latest logged week, but never in the past. */

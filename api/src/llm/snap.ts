@@ -1,4 +1,4 @@
-// Snap: an earnings screenshot → draft weeks for the rider to confirm (FR-SNAP-1, -4, -7, -11).
+// Snap: an earnings screenshot → draft weeks for the rider to confirm.
 // The image is re-encoded in memory (which also strips EXIF), sent once, and dropped. Nothing is written anywhere.
 // The model has no tools and must answer in a schema, so text inside an image can't make it do anything.
 import { createHash } from 'node:crypto'
@@ -54,9 +54,8 @@ const MAX_PDF_CHARS = 12_000 // a few weekly statements; more is a whole bank st
 export const isPdf = (raw: Buffer) => raw.subarray(0, 5).toString('latin1') === '%PDF-'
 
 /**
- * The model's answer, and the call (null when replayed from the demo cache, FR-DEMO-2). Input is a cleaned image, or the
- * text of an earnings PDF (statement emailed by the platform). Text gets the same schema and checks: it's data, and
- * the model has no tools, so instructions inside a PDF can't make it do anything either.
+ * Reads a cleaned screenshot, or the text of an earnings PDF. Both get the same checks.
+ * The AI has no tools, so text hidden in a screenshot or PDF can't make it do anything.
  */
 export async function extract(input: Buffer | { pdfText: string }, platforms: string[]): Promise<{ out: SnapOut; call: ChatResult<SnapOut> | null }> {
   const pdfText = Buffer.isBuffer(input) ? null : input.pdfText.slice(0, MAX_PDF_CHARS)
@@ -83,7 +82,7 @@ export async function extract(input: Buffer | { pdfText: string }, platforms: st
 
 const sen = (v: number | null) => Math.round((v ?? 0) * 100)
 
-/** Model answer → draft rows in sen, snapped to the week's Monday, with consistency warnings (FR-SNAP-7). */
+/** Model answer → draft rows in sen, snapped to the week's Monday, with consistency warnings. */
 export function drafts(out: SnapOut, defaultPlatform: string) {
   const lastWeek = addWeeks(thisWeek(), -1)
   return out.weeks.flatMap((w) => {

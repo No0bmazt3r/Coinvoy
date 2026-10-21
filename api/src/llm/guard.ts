@@ -1,4 +1,4 @@
-// The number guard (FR-ADV-2, ADR-7): every number in a Tanya reply must come from a tool result or the rider's
+// The number guard: every number in a Tanya reply must come from a tool result or the rider's
 // own message. Coinvoy's main AI-safety claim, so it is plain code, not a prompt.
 //
 // Numbers compare as values: "RM1,234.50", "1.2k", "52 peratus" and BM number words ("empat puluh") all normalise.

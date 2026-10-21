@@ -1,4 +1,4 @@
-// The streak share card (FR-STRK-3): the week count, the level and the logo. Never an RM amount.
+// The streak share card: the week count, the level and the logo. Never an RM amount.
 type Card = { weeks: number; weeksLabel: string; level: string; tagline: string; accent: string }
 
 const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif'

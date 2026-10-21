@@ -1,4 +1,4 @@
-// POST /api/snap/extract: screenshots in, drafts out. Nothing is saved until /api/weeks/confirm (FR-SNAP-2).
+// POST /api/snap/extract: screenshots in, drafts out. Nothing is saved until /api/weeks/confirm.
 import { Router } from 'express'
 import multer from 'multer'
 import { requireUser, userOf } from '../auth.ts'
@@ -10,7 +10,7 @@ import { ml } from '../ml.ts'
 import { platformsOf } from '../services/salary.ts'
 
 const MAX_FILES = 5
-// Memory only: screenshots never touch the disk or the database (FR-SNAP-4).
+// Memory only: screenshots never touch the disk or the database.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_BYTES + 1, files: MAX_FILES + 1 } })
 
 const scannedPdf = () =>
@@ -43,8 +43,7 @@ snapRouter.post('/snap/extract', requireUser, (req, res, next) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? []
   if (files.length < 1 || files.length > MAX_FILES) throw new ApiError(422, 'too_many_images', 'Pilih 1 hingga 5 fail.', 'Choose 1 to 5 files.')
   const user = userOf(res)
-  // Screenshots and photos are re-encoded (refusing anything that isn't a real image); PDFs become their text via the
-  // ML service, in memory. Both happen before any AI call, so a bad file costs no tokens.
+  // Check every file before calling the AI, so a bad file costs nothing. Images are cleaned, PDFs turned into text.
   const images = await Promise.all(files.map(async (f) => (isPdf(f.buffer) ? { pdfText: await pdfText(f.buffer) } : cleanImage(f.buffer))))
   await checkQuota(user.id, 'snap', images.length)
   const platforms = await platformsOf(db, user.id)

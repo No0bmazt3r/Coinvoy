@@ -24,7 +24,7 @@ const ACCENTS: { id: Accent; color: string }[] = [
 ]
 const BADGES = ['minggu_pertama', 'pindah_pertama', 'konsisten_4', 'konsisten_12', 'penampan_penuh', 'cuti_pertama', 'isaraan_dituntut']
 
-// Streaks are rewards, never gates (FR-STRK-1..7): a level title, accent colours and badges for real progress.
+// Streaks are rewards, never gates: a level title, accent colours and badges for real progress.
 // Never hours or trips, and never a leaderboard.
 function Achievements() {
   const { t, lang } = useI18n()

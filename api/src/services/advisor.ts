@@ -1,4 +1,4 @@
-// Semak Layak (FR-ADV-5) and the lender check (FR-ADV-6). The LLM only reads the pasted offer; matching the
+// Semak Layak and the lender check. The LLM only reads the pasted offer; matching the
 // BNM alert list, checking the rate cap and wording the result are plain code.
 import { readdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -8,7 +8,7 @@ const DATA = fileURLToPath(new URL('../../data', import.meta.url))
 const latest = readdirSync(DATA).filter((f) => /^fca_list_\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort().at(-1)!
 const FCA = JSON.parse(readFileSync(`${DATA}/${latest}`, 'utf8')) as { downloaded: string; source: string; entries: { name: string; website: string | null; added: string }[] }
 
-// Moneylenders Act 1951 (as amended): 12% a year with security, 18% without. VERIFY before the pitch (PRD §10).
+// Moneylenders Act 1951 (as amended): 12% a year with security, 18% without. VERIFY before the pitch.
 export const RATE_CAP = { securedPctYear: 12, unsecuredPctYear: 18 }
 
 const STOP = /\b(sdn|bhd|berhad|plt|enterprise|ent|resources|potential|clone|entity|the|and|dan|\d{5,}[a-z]?)\b/g

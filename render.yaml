@@ -1,8 +1,8 @@
-# Render blueprint (decisions.md T2): the API + PWA as a web service, the ML service private (both native runtimes, no Docker), Postgres, all in Singapore.
+# Render setup: the app and API as one web service, the ML service as a private service, and Postgres. All in Singapore.
 services:
   - type: web
     name: coinvoy
-    runtime: node # Node 24 from root package.json "engines"; the API runs its .ts directly
+    runtime: node # Node 24, runs the TypeScript directly
     buildCommand: pnpm install --frozen-lockfile && pnpm build
     startCommand: pnpm start
     region: singapore
@@ -18,7 +18,7 @@ services:
       - key: COOKIE_SECURE
         value: "true"
       - key: APP_URL
-        sync: false # https://<your-app>.onrender.com, exactly as the browser sees it
+        sync: false # your site address, e.g. https://coinvoy.onrender.com
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
@@ -29,9 +29,9 @@ services:
         sync: false
       - key: LLM_MODEL
         sync: false
-      - key: LLM_SPLIT_KEYS # false = every AI job uses LLM_API_KEY; true = each job uses its own key below
+      - key: LLM_SPLIT_KEYS # false: one AI key for everything. true: a key for each job below
         value: "false"
-      - key: LLM_API_KEY_SNAP # split mode: one key per AI job (OCR / chatbot / recommendations); a job without one is off
+      - key: LLM_API_KEY_SNAP # only used when LLM_SPLIT_KEYS is true
         sync: false
       - key: LLM_API_KEY_TANYA
         sync: false
@@ -41,7 +41,7 @@ services:
         sync: false
       - key: LLM_REGION_NOTE
         sync: false
-      - key: VAPID_PUBLIC_KEY # payday reminder; generate with web-push generate-vapid-keys
+      - key: VAPID_PUBLIC_KEY # for the payday reminder
         sync: false
       - key: VAPID_PRIVATE_KEY
         sync: false
@@ -51,7 +51,7 @@ services:
         sync: false
   - type: pserv
     name: coinvoy-ml
-    runtime: python # pure-Python deps only (fpdf2 for the PDF), so no Docker
+    runtime: python
     buildCommand: pip install uv==0.13.1 && uv sync --directory ml --frozen --no-dev
     startCommand: uv run --directory ml --no-dev --frozen uvicorn app.service:app --host 0.0.0.0 --port $PORT
     region: singapore
@@ -61,7 +61,7 @@ services:
         value: "3.12.11"
       - key: ML_TOKEN
         fromGroup: coinvoy-secrets
-      - key: RATE_MODEL # "gbm" only after the pooled model wins the real backtest
+      - key: RATE_MODEL # leave empty unless the newer model wins the backtest
         sync: false
 
 envVarGroups:

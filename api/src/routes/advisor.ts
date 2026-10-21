@@ -1,4 +1,4 @@
-// Penasihat: Jurang, Tanya, Semak Layak, the lender check and Celik (FR-ADV-*).
+// Penasihat: Jurang, Tanya, Semak Layak, the lender check and Celik.
 import { and, asc, desc, eq, lt } from 'drizzle-orm'
 import { Router } from 'express'
 import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions'
@@ -21,7 +21,7 @@ import { MAX_SEN } from '../lib/limits.ts'
 
 const LENDER_PROMPT = readFileSync(new URL('../llm/prompts/lender.md', import.meta.url), 'utf8')
 const SCAM_PROMPT = readFileSync(new URL('../llm/prompts/scam.md', import.meta.url), 'utf8')
-const RETENTION_MS = 90 * 24 * 60 * 60 * 1000 // Tanya messages are kept 90 days (architecture §12)
+const RETENTION_MS = 90 * 24 * 60 * 60 * 1000 // Tanya messages are kept 90 days
 const HISTORY_TURNS = 10
 
 export const advisorRouter = Router()
@@ -78,7 +78,7 @@ const LayakIn = z.strictObject({
 })
 
 // Semak Layak: what the instalment does to the rider's own future weeks. A risky result is shown as plainly as a
-// safe one; Coinvoy earns the same whether the rider borrows or not (FR-ADV-5, panel/09 §4.3).
+// safe one; Coinvoy earns the same whether the rider borrows or not.
 advisorRouter.post('/layak', async (req, res) => {
   const body = LayakIn.parse(req.body)
   const { user, inputs } = await inputsFor(res)
@@ -91,7 +91,7 @@ advisorRouter.post('/layak', async (req, res) => {
   res.json({ ...loan, item: body.item, salarySen: now.salarySen, newSalarySen: after.salarySen, pSafe: safety.pSafe, risk: safety.risk })
 })
 
-// Lender check: red flags plus a match against a dated copy of BNM's alert list (FR-ADV-6). Works without the LLM.
+// Lender check: red flags plus a match against a dated copy of BNM's alert list. Works without the LLM.
 advisorRouter.post('/lender-check', async (req, res) => {
   const user = userOf(res)
   const { text } = z.strictObject({ text: z.string().trim().min(10).max(2000) }).parse(req.body)
@@ -111,9 +111,8 @@ advisorRouter.post('/lender-check', async (req, res) => {
   res.json({ ...result, usedAi: offer !== null })
 })
 
-// Semak Mesej: warning signs in a pasted message or link (the brief's "identify financial risks online"). The rules
-// decide the level and work without AI; with the rider's AI consent, the chatbot key may add signs it noticed (it shares
-// the lender check's daily limit). Nothing pasted is stored, only the level.
+// Semak Mesej. Works without AI. With the rider's permission, the AI can add extra signs it noticed
+// (it shares the lender check's daily limit). We only store the result level, never the message.
 advisorRouter.post('/scam-check', async (req, res) => {
   const user = userOf(res)
   const { text } = z.strictObject({ text: z.string().trim().min(5).max(2000) }).parse(req.body)

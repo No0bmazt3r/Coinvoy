@@ -2,7 +2,7 @@ import type { ErrorRequestHandler } from 'express'
 import { ZodError } from 'zod'
 import { errorFields, log } from './log.ts'
 
-// Errors reach the client as { error: { code, message_ms, message_en } } (architecture §10).
+// Errors reach the client as { error: { code, message_ms, message_en } }.
 export class ApiError extends Error {
   status: number
   code: string

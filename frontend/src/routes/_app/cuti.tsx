@@ -17,7 +17,7 @@ import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/cuti')({ loader: prefetch(leaveQuery), component: Cuti })
 
-// Cuti Berbayar (FR-CUTI-1..4): set a little aside every week, and the week off still pays, paid for by the
+// Cuti Berbayar: set a little aside every week, and the week off still pays, paid for by the
 // rider's own good weeks.
 function Cuti() {
   const { t, lang } = useI18n()

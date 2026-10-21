@@ -1,4 +1,4 @@
-// The payday reminder (FR-GAJI-6): a Web Push on the rider's payday, morning in Malaysia; tapping it opens Snap.
+// The payday reminder: a Web Push on the rider's payday, morning in Malaysia; tapping it opens Snap.
 import { and, eq, inArray, isNull, ne, or } from 'drizzle-orm'
 import webpush from 'web-push'
 import { db, schema } from '../db/index.ts'
@@ -64,7 +64,7 @@ export async function sendDueReminders(): Promise<number> {
   return sent
 }
 
-// ponytail: an in-process timer, right for one API instance; move to a cron job if the API ever runs on several.
+// Simple for now: a timer inside the API. Use a scheduled job if we run more than one API server.
 export function startReminders(everyMs = 15 * 60_000) {
   if (!pushConfigured()) return
   const tick = () => void sendDueReminders().catch((err) => log('error', 'reminders failed', errorFields(err)))

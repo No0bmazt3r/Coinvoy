@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 import { formatRM, parseRM } from '../lib/money'
 import { useI18n } from '../i18n/t'
 
-// RM prefix, decimal keypad, tabular figures, error as text under the field (design-system §6.5).
+// RM prefix, decimal keypad, tabular figures, error as text under the field.
 export function MoneyField({
   label,
   valueSen,
