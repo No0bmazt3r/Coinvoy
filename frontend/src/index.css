@@ -13,6 +13,10 @@
   --risky: #B91C1C; --risky-bg: #FBE4E2;
   --info: #1D4ED8;
   --outline: var(--text); /* the 2px ink outline on primary elements (light only) */
+  /* Charts (checked for colour blindness with the dataviz validator). Platforms keep their brand hue. */
+  --chart-bar: #D3CDC2;
+  --c-grab: #00733A; --c-shopeefood: #F2683D; --c-foodpanda: #D70F64; --c-lalamove: #C99A00; --c-other: #8C867C;
+  --c-snap: #2A78D6; --c-tanya: #EB6834; --c-lender: #1BAF7A; --c-bm: #EDA100; --c-reco: #E87BA4;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +31,9 @@
     --risky: #F87171; --risky-bg: #3A1A19;
     --info: #93C5FD;
     --outline: transparent;
+    --chart-bar: #4A443D;
+    --c-grab: #00994D; --c-shopeefood: #E5602F; --c-foodpanda: #C81A5E; --c-lalamove: #B08A00; --c-other: #6E675E;
+    --c-snap: #3987E5; --c-tanya: #D95926; --c-lender: #199E70; --c-bm: #C98500; --c-reco: #D55181;
   }
 }
 
@@ -41,6 +48,9 @@
   --risky: #F87171; --risky-bg: #3A1A19;
   --info: #93C5FD;
   --outline: transparent;
+  --chart-bar: #4A443D;
+  --c-grab: #00994D; --c-shopeefood: #E5602F; --c-foodpanda: #C81A5E; --c-lalamove: #B08A00; --c-other: #6E675E;
+  --c-snap: #3987E5; --c-tanya: #D95926; --c-lender: #199E70; --c-bm: #C98500; --c-reco: #D55181;
 }
 
 /* Accents unlocked by streak level. Cosmetic only; all keep ink text above 4.5:1. */

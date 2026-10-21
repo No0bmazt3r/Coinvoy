@@ -1,6 +1,6 @@
 // Pots are virtual: the rider has one real savings pocket, and Coinvoy tracks how its money is earmarked.
 // Balances move only when the rider confirms a transfer ("Dah pindah"), so they reflect money that really moved.
-import { and, eq } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { type Db, schema } from '../db/index.ts'
 import { ApiError } from '../errors.ts'
 
@@ -52,6 +52,26 @@ export function allocate(allocation: Record<string, number>, fullSen: number, co
 }
 
 const signed = (t: Pick<Transfer, 'direction'>, amount: number) => (t.direction === 'in' ? amount : -amount)
+
+/**
+ * The Penampan balance after each confirmed transfer, oldest first (the last 12).
+ * Nothing stores past balances, so this counts back from today's balance through each transfer's Penampan share.
+ */
+export async function penampanHistory(db: Db, userId: number): Promise<{ weekStart: string; balanceSen: number }[]> {
+  const pots = await ensurePots(db, userId)
+  const ts = await db
+    .select()
+    .from(schema.transfers)
+    .where(and(eq(schema.transfers.userId, userId), inArray(schema.transfers.status, ['confirmed', 'partial'])))
+    .orderBy(asc(schema.transfers.weekStart))
+  let balance = pots.penampan.balanceSen
+  const out: { weekStart: string; balanceSen: number }[] = []
+  for (const t of ts.reverse()) {
+    out.push({ weekStart: t.weekStart, balanceSen: balance })
+    balance -= allocate(t.allocation, signed(t, t.amountSen), signed(t, t.confirmedAmountSen ?? 0)).penampan ?? 0
+  }
+  return out.slice(0, 12).reverse()
+}
 
 /** confirmedAbsSen null = the full amount ("Dah pindah"); a number = "Bahagian sahaja" (partial). */
 export async function confirmTransfer(db: Db, t: Transfer, confirmedAbsSen: number | null): Promise<Transfer> {

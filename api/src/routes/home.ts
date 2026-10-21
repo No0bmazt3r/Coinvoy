@@ -7,7 +7,7 @@ import { db, schema } from '../db/index.ts'
 import { notFound } from '../errors.ts'
 import { addWeeks, thisWeek } from '../lib/weeks.ts'
 import { checkinDue, streak } from '../services/benefits.ts'
-import { addPot, closePot, confirmTransfer, CUSTOM_ICONS, ensurePots, POT_KINDS, type Pot } from '../services/pots.ts'
+import { addPot, closePot, confirmTransfer, penampanHistory, CUSTOM_ICONS, ensurePots, POT_KINDS, type Pot } from '../services/pots.ts'
 import { classify, preview, suggestions } from '../services/reco.ts'
 import { currentWeek, recompute, weeklyHistory } from '../services/salary.ts'
 import { MAX_SEN } from '../lib/limits.ts'
@@ -67,6 +67,11 @@ homeRouter.get('/pots', async (_req, res) => {
   const pots = await ensurePots(db, userOf(res).id)
   const order = (k: string) => { const i = (POT_KINDS as readonly string[]).indexOf(k); return i < 0 ? POT_KINDS.length : i }
   res.json({ pots: Object.values(pots).sort((a, b) => order(a.kind) - order(b.kind) || a.id - b.id).map(potJson) })
+})
+
+// The Tabung chart: the buffer's balance after each confirmed transfer
+homeRouter.get('/pots/penampan/history', async (_req, res) => {
+  res.json({ points: await penampanHistory(db, userOf(res).id) })
 })
 
 const Money = z.number().int().min(0).max(MAX_SEN)

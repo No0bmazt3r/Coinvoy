@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { CalendarPlus, Camera, Check, ChevronRight, Landmark, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
+import { BarChart, Legend } from '../../components/Chart'
 import { CheckinCard } from '../../components/CheckinCard'
 import { Columns } from '../../components/Columns'
 import { EmptyState } from '../../components/EmptyState'
@@ -14,7 +15,9 @@ import { Skeleton } from '../../components/Skeleton'
 import { StreakChip } from '../../components/StreakChip'
 import { StreakRow } from '../../components/StreakRow'
 import { useI18n, type Key } from '../../i18n/t'
-import { billsQuery, homeQuery, prefetch, weeksQuery } from '../../lib/api'
+import { billsQuery, homeQuery, prefetch, type Week, weeksQuery } from '../../lib/api'
+import { shortDate, weekLabel } from '../../lib/dates'
+import { axisRM, formatRM } from '../../lib/money'
 
 export const Route = createFileRoute('/_app/')({ loader: prefetch(homeQuery, billsQuery, weeksQuery), component: Gaji })
 
@@ -54,6 +57,7 @@ function Gaji() {
         <div className="contents lg:grid lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-4">
           <div className="col">
             <SalaryCard salary={s} transfer={home.data.transfer} />
+            {weeks.data && <EarningsChart weeks={weeks.data} salarySen={s.salarySen} className="lg:hidden" />}
             {home.data.weeksLogged > 0 && <StreakRow streak={home.data.streak} />}
             {s.jurang && <JurangCard essentialsSen={s.jurang.essentialsSen} salarySen={s.salarySen} gapSen={s.jurang.gapSen} />}
           </div>
@@ -92,6 +96,7 @@ function Gaji() {
                 </span>
               </Link>
             )}
+            {weeks.data && <EarningsChart weeks={weeks.data} salarySen={s.salarySen} className="max-lg:hidden" />}
             <ForecastBand {...s.band} last={weeks.data?.[0]?.netSen} />
           </div>
         </div>
@@ -134,6 +139,35 @@ function Gaji() {
         </Columns>
       )}
     </>
+  )
+}
+
+// The last 12 weeks' earnings against today's salary: the bars jump around, the line stays put. Only with 2+ weeks.
+function EarningsChart({ weeks, salarySen, className }: { weeks: Week[]; salarySen: number; className: string }) {
+  const { t, lang } = useI18n()
+  const last = weeks.slice(0, 12).reverse()
+  if (last.length < 2) return null
+  const rm = (v: number) => formatRM(v, { whole: true })
+  const nets = last.map((w) => w.netSen)
+  const salary = { color: 'var(--brand-text)', value: salarySen }
+  return (
+    <section className={`flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 ${className}`}>
+      <div>
+        <h2 className="font-semibold">{t('chart.earnedTitle')}</h2>
+        <p className="text-sm text-muted">{t('chart.weeks', { n: last.length })}</p>
+      </div>
+      <Legend items={[{ color: 'var(--chart-bar)', label: t('chart.earned') }, { color: salary.color, label: `${t('chart.salary')} ${rm(salarySen)}`, line: true }]} />
+      <BarChart
+        cols={last.map((w) => ({ label: shortDate(w.weekStart, lang), parts: [{ color: 'var(--chart-bar)', value: w.netSen }] }))}
+        line={salary}
+        format={axisRM}
+        summary={t('chart.earnedSummary', { n: last.length, min: rm(Math.min(...nets)), max: rm(Math.max(...nets)), salary: rm(salarySen) })}
+        tips={last.map((w) => ({
+          title: weekLabel(w.weekStart, lang),
+          rows: [{ color: 'var(--chart-bar)', label: t('chart.earned'), value: formatRM(w.netSen) }, { color: salary.color, line: true, label: t('chart.salary'), value: rm(salarySen) }],
+        }))}
+      />
+    </section>
   )
 }
 

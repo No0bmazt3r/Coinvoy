@@ -5,6 +5,7 @@ import {
   Siren, Smartphone, Sparkles, Users, type LucideIcon,
 } from 'lucide-react'
 import { createElement, useEffect, useState } from 'react'
+import { Legend, LineChart } from '../../components/Chart'
 import { Columns } from '../../components/Columns'
 import { ErrorState } from '../../components/ErrorState'
 import { GuideButton, GuideHint } from '../../components/Guide'
@@ -13,10 +14,11 @@ import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, carumanQuery, errorText, homeQuery, type Pot, type PotSuggestion, potsQuery, prefetch } from '../../lib/api'
-import { formatRM } from '../../lib/money'
+import { api, carumanQuery, errorText, homeQuery, penampanHistoryQuery, type Pot, type PotSuggestion, potsQuery, prefetch } from '../../lib/api'
+import { shortDate, weekLabel } from '../../lib/dates'
+import { axisRM, formatRM } from '../../lib/money'
 
-export const Route = createFileRoute('/_app/tabung')({ loader: prefetch(potsQuery, carumanQuery, homeQuery), component: Tabung })
+export const Route = createFileRoute('/_app/tabung')({ loader: prefetch(potsQuery, carumanQuery, homeQuery, penampanHistoryQuery), component: Tabung })
 
 const KIND_ICON: Record<string, LucideIcon> = { penampan: Shield, cuti: Palmtree, kecemasan: Siren, motor: Bike, raya: Moon, isaraan: Landmark, perkeso: HeartPulse }
 const CUSTOM_ICON: Record<string, LucideIcon> = { briefcase: Briefcase, users: Users, bike: Bike, gift: Gift, home: House, phone: Smartphone, graduation: GraduationCap, heart: Heart, plane: Plane, piggy: PiggyBank }
@@ -57,7 +59,8 @@ function Tabung() {
           <p className="text-sm text-muted">{t('tabung.onePocket')}</p>
         </section>
 
-        <button type="button" data-tour="penampan" onClick={() => setOpen(pen)} className="pressable flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
+        <div data-tour="penampan" className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface">
+        <button type="button" onClick={() => setOpen(pen)} className="pressable flex flex-col gap-3 p-4 text-left hover:bg-surface-2">
           <span className="flex items-center gap-3">
             <Shield size={22} aria-hidden className="shrink-0" />
             <span className="min-w-0 flex-1">
@@ -71,6 +74,8 @@ function Tabung() {
           </span>
           {penampan.targetSen > 0 && <Bar value={pct(penampan)} />}
         </button>
+        <BufferChart targetSen={penampan.targetSen} />
+        </div>
 
       </div>
       <div className="col">
@@ -131,6 +136,32 @@ function Tabung() {
 
 function PotIcon({ kind, icon = null, className }: { kind: string; icon?: string | null; className?: string }) {
   return createElement(iconOf({ kind, icon }), { size: 20, 'aria-hidden': true, className })
+}
+
+// The Penampan balance after each confirmed transfer, with the target as a dashed line. Only with 2+ transfers.
+function BufferChart({ targetSen }: { targetSen: number }) {
+  const { t, lang } = useI18n()
+  const q = useQuery(penampanHistoryQuery)
+  const pts = q.data ?? []
+  if (pts.length < 2) return null
+  const color = 'var(--brand-text)'
+  return (
+    <section className="flex flex-col gap-2 border-t border-line p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="text-sm font-semibold">{t('chart.bufferTitle')}</h3>
+        {targetSen > 0 && <Legend items={[{ color: 'var(--border-strong)', label: `${t('chart.target')} ${rm(targetSen)}`, line: true }]} />}
+      </div>
+      <LineChart
+        values={pts.map((p) => p.balanceSen)}
+        labels={pts.map((p) => shortDate(p.weekStart, lang))}
+        color={color}
+        target={targetSen || undefined}
+        format={axisRM}
+        summary={t('chart.bufferSummary', { first: rm(pts[0]!.balanceSen), last: rm(pts.at(-1)!.balanceSen) })}
+        tips={pts.map((p) => ({ title: weekLabel(p.weekStart, lang), rows: [{ color, line: true, label: t('chart.balance'), value: rm(p.balanceSen) }] }))}
+      />
+    </section>
+  )
 }
 
 function Bar({ value, thin = false }: { value: number; thin?: boolean }) {

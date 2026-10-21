@@ -2,6 +2,16 @@ import { type QueryClient, queryOptions } from '@tanstack/react-query'
 
 export type Platform = 'grab' | 'foodpanda' | 'shopeefood' | 'lalamove' | 'other'
 export const PLATFORMS: Platform[] = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other']
+
+// Each app's logo on its own colour, so riders spot theirs quickly. Logo sources are in public/platforms/README.md.
+export const MARK: Record<Platform, { bg: string; src?: string }> = {
+  grab: { bg: '#00B14F', src: '/platforms/grab.svg' },
+  foodpanda: { bg: '#D70F64', src: '/platforms/foodpanda.svg' },
+  shopeefood: { bg: '#EE4D2D', src: '/platforms/shopeefood.svg' },
+  lalamove: { bg: '#F16622', src: '/platforms/lalamove.png' },
+  other: { bg: 'var(--border-strong)' },
+}
+
 export type Risk = 'selamat' | 'berhati' | 'berisiko'
 export type Accent = 'lime' | 'aqua' | 'amber' | 'pink' | 'sky'
 
@@ -179,6 +189,8 @@ export const meQuery = queryOptions({
 
 export const homeQuery = queryOptions({ queryKey: ['home'], queryFn: () => api<Home>('/api/home') })
 export const potsQuery = queryOptions({ queryKey: ['pots'], queryFn: async () => (await api<{ pots: Pot[] }>('/api/pots')).pots })
+// Under ['pots'], so confirming a transfer refreshes it too
+export const penampanHistoryQuery = queryOptions({ queryKey: ['pots', 'penampan-history'], queryFn: async () => (await api<{ points: { weekStart: string; balanceSen: number }[] }>('/api/pots/penampan/history')).points })
 export const streakQuery = queryOptions({ queryKey: ['streak'], queryFn: () => api<Streak>('/api/streak') })
 export const leaveQuery = queryOptions({ queryKey: ['leave'], queryFn: () => api<{ leave: Leave[]; sick: { daysCovered: number; daysUsed: number } }>('/api/leave') })
 export const carumanQuery = queryOptions({ queryKey: ['caruman'], queryFn: () => api<Caruman>('/api/caruman') })

@@ -71,6 +71,8 @@ test('the usage view is only for admins and holds no rider data', async () => {
   expect(res.body.riders).toMatchObject({ riders: 1, onboarded: 1, pushReminders: 0 })
   expect(res.body.retention.cohort).toBe(0) // first logged week is today
   expect(res.body.llm).toMatchObject({ days: 30, rows: [], myrPerRider: null })
+  expect(res.body.days).toHaveLength(30)
+  expect(res.body.days.at(-1)).toMatchObject({ active: 1, calls: {} }) // today: this rider did things
   expect(JSON.stringify(res.body)).not.toContain('example.com')
 })
 

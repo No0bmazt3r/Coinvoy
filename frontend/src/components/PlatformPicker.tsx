@@ -1,15 +1,6 @@
 import { Check, Plus } from 'lucide-react'
 import { useI18n, type Key } from '../i18n/t'
-import { PLATFORMS, type Platform } from '../lib/api'
-
-// Each app's logo on its own colour, so riders spot theirs quickly. Logo sources are in public/platforms/README.md.
-const MARK: Record<Platform, { bg: string; src?: string }> = {
-  grab: { bg: '#00B14F', src: '/platforms/grab.svg' },
-  foodpanda: { bg: '#D70F64', src: '/platforms/foodpanda.svg' },
-  shopeefood: { bg: '#EE4D2D', src: '/platforms/shopeefood.svg' },
-  lalamove: { bg: '#F16622', src: '/platforms/lalamove.png' },
-  other: { bg: 'var(--border-strong)' },
-}
+import { MARK, PLATFORMS, type Platform } from '../lib/api'
 
 // Load the logos early so the tiles don't appear empty for a moment on a slow connection.
 for (const { src } of Object.values(MARK)) if (src) new Image().src = src

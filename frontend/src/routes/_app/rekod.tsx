@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Copy, Download, FileText, Link2, Lock, Mic, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { BarChart, HBars, Legend } from '../../components/Chart'
 import { ErrorState } from '../../components/ErrorState'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
@@ -9,9 +10,9 @@ import { Skeleton } from '../../components/Skeleton'
 import { Select } from '../../components/Select'
 import { StatementCheck } from '../../components/StatementCheck'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, errorText, expensesQuery, linksQuery, penyataQuery, prefetch, type Week, weeksQuery } from '../../lib/api'
-import { thisWeekStart, weekLabel } from '../../lib/dates'
-import { formatRM } from '../../lib/money'
+import { api, errorText, expensesQuery, linksQuery, penyataQuery, prefetch, MARK, type Platform, type Week, weeksQuery } from '../../lib/api'
+import { shortDate, thisWeekStart, weekLabel } from '../../lib/dates'
+import { axisRM, formatRM } from '../../lib/money'
 import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/rekod')({ loader: prefetch(weeksQuery, penyataQuery), component: Rekod })
@@ -48,6 +49,8 @@ function Rekod() {
             {weeks.isPending ? <Skeleton className="h-40" /> : weeks.isError ? <ErrorState error={weeks.error} onRetry={() => weeks.refetch()} /> : weeks.data.length === 0 ? (
               <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('rekod.noWeeks')}</p>
             ) : (
+              <>
+              <PlatformChart weeks={weeks.data} onOpen={setOpen} />
               <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
                 {weeks.data.map((w) => (
                   <li key={w.weekStart}>
@@ -63,6 +66,7 @@ function Rekod() {
                   </li>
                 ))}
               </ul>
+              </>
             )}
           </section>
         </div>
@@ -71,6 +75,39 @@ function Rekod() {
         {open && <PayslipView week={open} onDone={() => setOpen(null)} />}
       </Sheet>
     </>
+  )
+}
+
+// Stacked from the bottom in this order. The colours were checked for colour blindness in this order.
+const STACK: Platform[] = ['grab', 'shopeefood', 'foodpanda', 'lalamove', 'other']
+
+// Each week's earnings split by app, the last 12 weeks. Tapping a week opens its payslip. Only with 2+ weeks.
+function PlatformChart({ weeks, onOpen }: { weeks: Week[]; onOpen: (w: Week) => void }) {
+  const { t, lang } = useI18n()
+  const last = weeks.slice(0, 12).reverse()
+  if (last.length < 2) return null
+  const used = STACK.filter((p) => last.some((w) => w.platforms.some((x) => x.platform === p)))
+  const color = (p: Platform) => `var(--c-${p})`
+  const name = (p: Platform) => t(`platform.${p}` as Key)
+  const of = (w: Week, p: Platform) => w.platforms.filter((x) => x.platform === p).reduce((a, x) => a + x.netSen, 0)
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
+      <div>
+        <h3 className="font-semibold">{t('chart.platformsTitle')}</h3>
+        <p className="text-sm text-muted">{t('chart.platformsHint')}</p>
+      </div>
+      {used.length > 1 && <Legend items={used.map((p) => ({ color: color(p), label: name(p), icon: MARK[p].src }))} />}
+      <BarChart
+        cols={last.map((w) => ({ label: shortDate(w.weekStart, lang), parts: used.map((p) => ({ color: color(p), value: of(w, p) })) }))}
+        format={axisRM}
+        onSelect={(i) => onOpen(last[i]!)}
+        summary={t('chart.platformsSummary', { n: last.length })}
+        tips={last.map((w) => ({
+          title: `${weekLabel(w.weekStart, lang)} · ${formatRM(w.netSen)}`,
+          rows: [...used].reverse().filter((p) => of(w, p)).map((p) => ({ color: color(p), label: name(p), value: formatRM(of(w, p)) })),
+        }))}
+      />
+    </div>
   )
 }
 
@@ -229,6 +266,7 @@ function Costs() {
         </div>
       )}
       {(parse.isError || save.isError) && <p className="text-sm text-[var(--risky)]">{errorText(parse.error ?? save.error, lang, t('common.tryAgain'))}</p>}
+      {list.data && <CostBars costs={list.data} />}
       {list.data && list.data.length > 0 && (
         <ul className="flex flex-col divide-y divide-line text-sm">
           {list.data.map((x) => (
@@ -241,6 +279,21 @@ function Costs() {
         </ul>
       )}
     </section>
+  )
+}
+
+// This week's costs by category, biggest first. Only once there are 2+ categories to compare.
+function CostBars({ costs }: { costs: { category: string; amountSen: number }[] }) {
+  const { t } = useI18n()
+  const by = new Map<string, number>()
+  for (const c of costs) by.set(c.category, (by.get(c.category) ?? 0) + c.amountSen)
+  if (by.size < 2) return null
+  const rows = [...by].sort((a, b) => b[1] - a[1]).map(([c, sen]) => ({ label: t(`cost.${c}` as Key), value: sen, text: formatRM(sen) }))
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-semibold text-muted">{t('chart.costsTitle')}</h3>
+      <HBars rows={rows} color="var(--text-muted)" summary={t('chart.costsSummary')} />
+    </div>
   )
 }
 

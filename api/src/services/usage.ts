@@ -82,3 +82,25 @@ export async function riderCounts(db: Db) {
   const [push] = await db.select({ n: sql<number>`count(DISTINCT ${schema.pushSubscriptions.userId})::int` }).from(schema.pushSubscriptions)
   return { ...r!, pushReminders: push?.n ?? 0 }
 }
+
+const day = (col: unknown) => sql<string>`to_char((${col} AT TIME ZONE 'Asia/Kuala_Lumpur')::date, 'YYYY-MM-DD')`
+
+/** The last `days` days in Malaysia time, oldest first: riders who did anything, and AI calls per job. Days with nothing are zero. */
+export async function daily(db: Db, days = 30) {
+  const since = new Date(Date.now() - days * 86_400_000)
+  const e = schema.events
+  const a = schema.authEvents
+  const u = schema.llmUsage
+  const real = (col: unknown) => sql`${col} IN (SELECT ${schema.users.id} FROM ${schema.users} WHERE NOT ${schema.users.isDemo})`
+  const [acts, logins, calls] = await Promise.all([
+    db.selectDistinct({ day: day(e.createdAt), userId: e.userId }).from(e).where(and(gte(e.createdAt, since), real(e.userId))),
+    db.selectDistinct({ day: day(a.createdAt), userId: a.userId }).from(a).where(and(gte(a.createdAt, since), sql`${a.event} IN ('login', 'signup')`, real(a.userId))),
+    db.select({ day: day(u.createdAt), route: u.route, n: sql<number>`count(*)::int` }).from(u).where(and(isNotNull(u.userId), gte(u.createdAt, since))).groupBy(sql`1`, u.route),
+  ])
+  const fmt = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kuala_Lumpur' })
+  const out = Array.from({ length: days }, (_, i) => ({ day: fmt.format(Date.now() - (days - 1 - i) * 86_400_000), active: new Set<number>(), calls: {} as Record<string, number> }))
+  const at = new Map(out.map((d) => [d.day, d]))
+  for (const r of [...acts, ...logins]) if (r.userId !== null) at.get(r.day)?.active.add(r.userId)
+  for (const r of calls) { const d = at.get(r.day); if (d) d.calls[r.route] = r.n }
+  return out.map((d) => ({ day: d.day, active: d.active.size, calls: d.calls }))
+}

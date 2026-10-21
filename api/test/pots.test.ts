@@ -2,6 +2,7 @@ import { beforeEach, expect, it } from 'vitest'
 import { env } from '../src/env.ts'
 import { describeAi, keyFor, routeConfigured } from '../src/llm/client.ts'
 import { byKeyword, cache, candidates } from '../src/services/reco.ts'
+import { db, schema } from '../src/db/index.ts'
 import { fakeLlm, rider } from './helpers.ts'
 
 beforeEach(() => cache.clear())
@@ -105,4 +106,23 @@ it('asks the AI to categorise a name the keywords miss', async () => {
   expect((await a.post('/api/pots/classify').send({ name: 'Untuk Mia' })).body).toMatchObject({ category: 'family', icon: 'users', source: 'ai' })
   expect((await a.post('/api/pots/classify').send({ name: 'Servis motor' })).body).toMatchObject({ category: 'vehicle', source: 'rules' })
   expect(llm.requests).toHaveLength(1)
+})
+
+it('rebuilds the Penampan balance after each confirmed transfer, counting back from today', async () => {
+  const a = await rider()
+  const me = (await a.get('/api/auth/me')).body.user
+  const userId = Number(me.id)
+  const add = async (weekStart: string, amountSen: number) =>
+    (await db.insert(schema.transfers).values({ userId, weekStart, direction: 'in', amountSen, allocation: {} }).returning())[0]!
+  const t1 = await add('2026-09-07', 10_000)
+  const t2 = await add('2026-09-14', 8_000)
+  await add('2026-09-21', 4_000) // still pending: not on the chart
+  await a.post(`/api/transfers/${t1.id}/confirm`).send({})
+  await a.post(`/api/transfers/${t2.id}/confirm`).send({ amountSen: 5_000 }) // partial
+  const before = (await a.get('/api/pots/penampan/history')).body.points
+  const balance = (await a.get('/api/pots')).body.pots.find((p: { kind: string }) => p.kind === 'penampan').balanceSen
+  expect(before).toEqual([
+    { weekStart: '2026-09-07', balanceSen: balance - 5_000 },
+    { weekStart: '2026-09-14', balanceSen: balance },
+  ])
 })

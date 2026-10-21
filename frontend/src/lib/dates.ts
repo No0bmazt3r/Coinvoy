@@ -32,3 +32,8 @@ export function weekLabel(monday: string, lang: 'ms' | 'en'): string {
 
 /** This week's Monday in Malaysia. */
 export const thisWeekStart = () => weekStart(todayKL())
+
+/** "21 Sep" for a chart axis. */
+export function shortDate(iso: string, lang: 'ms' | 'en'): string {
+  return new Intl.DateTimeFormat(lang === 'ms' ? 'ms-MY' : 'en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(utc(iso))
+}

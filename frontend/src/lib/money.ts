@@ -10,6 +10,9 @@ export function formatRM(sen: number, { whole = false, sign = false }: { whole?:
   return `${neg ? '-' : sign ? '+' : ''}RM${body}`
 }
 
+/** Short money for a chart axis: RM400, RM1.2K. */
+export const axisRM = (sen: number) => (sen >= 100_000 ? `RM${+(sen / 100_000).toFixed(1)}K` : `RM${Math.round(sen / 100)}`)
+
 /** "812.50", "RM 1,234", "40" → sen; null if it isn't a plain amount. */
 export function parseRM(text: string): number | null {
   const t = text.replace(/rm/i, '').replace(/[,\s]/g, '')
