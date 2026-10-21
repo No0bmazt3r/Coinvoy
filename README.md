@@ -598,7 +598,7 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 
 ### 2. Migrate the database
 
-Run **Actions → Database (Supabase) → Run workflow**, choose **migrate**. It checks that Supabase is reachable, lists the pending migrations, and applies them. Choose **check** any time to see what's pending without changing anything. Run **migrate** again before deploying backend code that changes `backend/api/src/db/schema.ts`.
+Run the standalone **Actions → Database (Supabase)** workflow first: choose **check** to see pending migrations without changing anything, then choose **migrate** to apply them. The **Deploy app (Vercel)** workflow does not run migrations; it verifies that the separate **Coinvoy checks** workflow passed for the exact commit before deploying.
 
 ### 3. The backend on Render
 
@@ -646,7 +646,8 @@ Run **Actions → Database (Supabase) → Run workflow**, choose **migrate**. It
 2. In the Vercel project: **Settings → Build and Deployment** → check **Root Directory** is `frontend`, **Include files outside the root directory** is on, and **Node.js Version** is 24.x. Build settings come from [`frontend/vercel.json`](frontend/vercel.json).
 3. Create a token at **vercel.com → Account Settings → Tokens**, and add `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` to the GitHub `production` environment.
 4. Set the backend's address in `frontend/vercel.json` (the two `rewrites`) if it isn't `https://coinvoy-backend.onrender.com`.
-5. Run **Actions → Deploy app (Vercel) → Run workflow**. The run's summary shows the live URL.
+5. In **Settings → Environments → production**, configure a required reviewer if the Vercel deployment must wait for your manual approval.
+6. Run **Actions → Deploy app (Vercel) → Run workflow** on `main` after the database workflow and **Coinvoy checks** have passed. It verifies the checks result for that exact commit, then waits for the `production` approval before deploying. The run's summary shows the live URL.
 
 ### 5. Google sign-in
 

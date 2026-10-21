@@ -1,6 +1,10 @@
 # Deploys the app (frontend/) to Vercel production, only when the repository owner starts it by hand:
 # Actions → "Deploy app (Vercel)" → Run workflow (branch: main). Pushes, pull requests and merges never trigger it.
 #
+# The run gates deployment in this order:
+#   1. Confirm that the separate "Coinvoy checks" workflow passed for this exact commit.
+#   2. Wait for the production environment approval, then deploy to Vercel.
+#
 # Why nobody else can deploy:
 # - The jobs run only if the owner both started the run and (for a re-run) clicked re-run, and only on main.
 # - The Vercel secrets live in the "production" GitHub Environment, which only main may use. A collaborator who edits
@@ -19,25 +23,35 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  check:
-    name: Check app
+  verify-checks:
+    name: Verify Coinvoy checks
     runs-on: ubuntu-latest
     if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with: { node-version: 24, cache: pnpm }
-      - run: pnpm install --frozen-lockfile --filter coinvoy-frontend
-      - run: pnpm --filter coinvoy-frontend typecheck
-      - run: pnpm --filter coinvoy-frontend lint
-      - run: pnpm --filter coinvoy-frontend test
+      - name: Require successful checks for this commit
+        run: |
+          conclusion=$(gh run list \
+            --workflow checks.yml \
+            --commit "$GITHUB_SHA" \
+            --status completed \
+            --limit 1 \
+            --json conclusion \
+            --jq '.[0].conclusion // empty')
+          if [ "$conclusion" != "success" ]; then
+            echo "Coinvoy checks has not passed for commit $GITHUB_SHA (result: ${conclusion:-not found})." >&2
+            echo "Push the commit to main, wait for Coinvoy checks to finish, then run this workflow again." >&2
+            exit 1
+          fi
+          echo "Coinvoy checks passed for commit $GITHUB_SHA."
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   deploy:
     name: Deploy to Vercel
-    needs: check
+    needs: verify-checks
     runs-on: ubuntu-latest
     environment:
       name: production # holds the secrets; only main may use it
