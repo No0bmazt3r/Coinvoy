@@ -256,6 +256,13 @@ Coinvoy/
 
 ## Architecture
 
+Coinvoy is a three-service production architecture with GitHub Actions coordinating delivery:
+
+- **Frontend — Vercel:** hosts the React/Vite progressive web app. The browser uses the Vercel URL as its single public origin; Vercel rewrites `/api/*` and `/o/*` requests to the Render backend.
+- **Backend — Render:** runs the Node/Express API and the private Python/FastAPI salary engine together in one Docker container. The ML engine listens only on `127.0.0.1`, so it is not publicly exposed.
+- **Database — Supabase:** provides the production PostgreSQL database. The backend and GitHub Actions connect to Supabase directly; local development and tests use PGlite.
+- **Delivery control plane — GitHub Actions:** runs checks, applies database migrations, verifies the exact commit, and gates the owner-triggered Vercel and Render deployments. A scheduled keepalive pings the Render health endpoint.
+
 ### System
 
 ```mermaid
@@ -278,6 +285,7 @@ flowchart LR
 
   db[("Supabase Postgres<br/>(PGlite locally)")]
 
+  actions["GitHub Actions<br/>checks · migrations · gated deploys<br/>keepalive"]
   google["Google sign-in<br/>(OpenID Connect)"]
   ai["AI providers<br/>(any OpenAI-compatible)"]
 
@@ -289,11 +297,15 @@ flowchart LR
   llm -->|OCR · chat · suggestions| ai
   rider -.->|sign in| google
   routes -.->|verify tokens| google
+  actions -.->|deploy frontend| vercel
+  actions -.->|deploy backend| render
+  actions -.->|check / migrate| db
 ```
 
 - **One address for the browser.** Vercel serves the app and forwards `/api` and `/o` to the API, so the session cookie is first-party and there's no CORS.
 - **The engine is private and stateless.** It runs in the same container as the API, listening on `127.0.0.1` only, with no database, users or AI; the API sends a rider's data as JSON and stores what comes back.
 - **The AI reads and talks; code computes.** Every number a rider sees comes from the engine or the database.
+- **Deployments are gated.** GitHub Actions runs checks and the Supabase migration workflow for the exact commit before the owner can deploy the frontend to Vercel or the backend to Render.
 
 ### Confirming a week → a new salary
 
