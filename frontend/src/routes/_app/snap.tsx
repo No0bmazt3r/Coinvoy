@@ -72,9 +72,9 @@ function Snap() {
         },
       })
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries()
-      await navigate({ to: '/' })
+    onSuccess: () => {
+      void queryClient.invalidateQueries() // home shows its skeleton or last numbers while the new salary loads
+      void navigate({ to: '/' })
     },
   })
 

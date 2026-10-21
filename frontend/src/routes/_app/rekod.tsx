@@ -81,9 +81,9 @@ function PayslipView({ week, onDone }: { week: Week; onDone: () => void }) {
     mutationFn: async () => {
       for (const p of week.platforms) await api(`/api/earnings/${p.id}`, { method: 'DELETE' })
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries()
+    onSuccess: () => {
       onDone()
+      void queryClient.invalidateQueries()
     },
   })
   if (!slip.data) return <Skeleton className="h-48" />

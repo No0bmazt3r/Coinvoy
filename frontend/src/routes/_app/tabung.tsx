@@ -136,7 +136,7 @@ function PotDetail({ pot, onDone }: { pot: Pot; onDone: () => void }) {
   const [target, setTarget] = useState<number | null>(pot.targetSen || null)
   const [weekly, setWeekly] = useState<number | null>(pot.weeklySen || null)
   const [closing, setClosing] = useState(false)
-  const done = async () => { await queryClient.invalidateQueries(); onDone() }
+  const done = () => { onDone(); void queryClient.invalidateQueries() }
   const save = useMutation({
     mutationFn: () => api(`/api/pots/${pot.kind}`, { method: 'PATCH', body: pot.kind === 'penampan' ? { targetSen: target ?? 0 } : { targetSen: target ?? 0, weeklySen: weekly ?? 0 } }),
     onSuccess: done,
@@ -287,7 +287,7 @@ function PlanPot({ draft, setDraft, onDone }: { draft: Draft; setDraft: (d: Draf
   })
   const add = useMutation({
     mutationFn: () => api('/api/pots', { body: custom ? { name: draft.name.trim(), icon: draft.icon, targetSen: draft.targetSen ?? 0, weeklySen: draft.weeklySen ?? 0 } : { kind: draft.kind, targetSen: draft.targetSen ?? 0, weeklySen: draft.weeklySen ?? 0 } }),
-    onSuccess: async () => { await queryClient.invalidateQueries(); onDone() },
+    onSuccess: () => { onDone(); void queryClient.invalidateQueries() },
   })
 
   return (
@@ -340,9 +340,9 @@ function ContributionForm({ onDone }: { onDone: () => void }) {
   const [match, setMatch] = useState<number | null>(null)
   const save = useMutation({
     mutationFn: () => api<{ matchSen: number }>('/api/caruman/isaraan', { body: { amountSen: amount } }),
-    onSuccess: async (r) => {
+    onSuccess: (r) => {
       setMatch(r.matchSen)
-      await queryClient.invalidateQueries()
+      void queryClient.invalidateQueries()
     },
   })
   if (match !== null) {

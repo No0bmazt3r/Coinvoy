@@ -1,14 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useIsMutating, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, Camera, Check, PencilLine } from 'lucide-react'
+import { ArrowLeft, Camera, Check, Loader2, PencilLine } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
-import { LangToggle } from '../components/LangToggle'
 import { Logo } from '../components/Logo'
 import { MoneyField } from '../components/MoneyField'
 import { PlatformPicker } from '../components/PlatformPicker'
 import { Select } from '../components/Select'
-import { useI18n, type Key } from '../i18n/t'
+import { useI18n, type Key, type Lang } from '../i18n/t'
 import { api, errorText, meQuery, type Platform, type User } from '../lib/api'
+import { applyAppearance } from '../lib/appearance'
 
 export const PRIVACY_VERSION = '2026-10'
 export const CITIES = ['Kuala Lumpur', 'Selangor', 'Penang', 'Johor Bahru', 'Ipoh', 'Melaka', 'Seremban', 'Kota Kinabalu', 'Kuching']
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/onboarding')({
 
 // One question per screen, first salary within 2 minutes (J1). Bills come after the first salary, from home.
 function Onboarding() {
-  const { t, lang } = useI18n()
+  const { t, lang, setLang } = useI18n()
   const { user } = Route.useRouteContext()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -38,23 +38,40 @@ function Onboarding() {
   const [hours, setHours] = useState(user.defaultHours ?? 45)
   const [payday, setPayday] = useState<number>(user.paydayWeekday ?? 0)
   const [essentials, setEssentials] = useState<number | null>(user.essentialsWeekSen)
+  const [theme, setTheme] = useState<User['theme']>(user.theme)
+  const [failed, setFailed] = useState<unknown>(null)
+  const saving = useIsMutating({ mutationKey: ['onboarding'] }) > 0
 
+  // Optimistic: the next question shows at once and each answer saves in the background. A failed save brings the
+  // rider back to that question with the error; the last screen waits only for "onboarded" to land.
   const save = useMutation({
+    mutationKey: ['onboarding'],
     mutationFn: async (s: number) => {
       if (s === 0) {
         await api('/api/consents', { body: { kind: 'privacy', version: PRIVACY_VERSION, granted: true } })
         await api('/api/consents', { body: { kind: 'llm_processing', version: PRIVACY_VERSION, granted: ai } })
       } else {
         const body =
-          s === 1 ? { platforms, city: city || null } : s === 2 ? { defaultHours: hours, paydayWeekday: payday } : { essentialsWeekSen: essentials, lang, onboarded: true }
+          s === 1 ? { platforms, city: city || null } : s === 2 ? { defaultHours: hours, paydayWeekday: payday } : s === 3 ? { essentialsWeekSen: essentials } : { lang, theme, onboarded: true }
         const { user: fresh } = await api<{ user: User }>('/api/me', { method: 'PATCH', body })
-        queryClient.setQueryData(meQuery.queryKey, fresh)
+        if (s === 4) queryClient.setQueryData(meQuery.queryKey, fresh) // only the last answer: earlier replies can land after it
       }
     },
-    onSuccess: (_d, s) => setStep(s + 1),
+    onMutate: (s) => {
+      setFailed(null)
+      setStep(s + 1)
+    },
+    onError: (err, s) => {
+      setFailed(err)
+      setStep(s)
+    },
   })
+  const pickTheme = (th: User['theme']) => {
+    setTheme(th)
+    applyAppearance(th, user.accent) // preview it now; it's saved with this step
+  }
 
-  const canNext = [privacy, platforms.length > 0, true, essentials !== null && essentials > 0][step]
+  const canNext = [privacy, platforms.length > 0, true, essentials !== null && essentials > 0, true][step]
   const screens: { title: Key; body?: Key; content: ReactNode }[] = [
     {
       title: 'onb.privacyTitle',
@@ -119,11 +136,32 @@ function Onboarding() {
       content: <MoneyField label={t('onb.essentialsLabel')} valueSen={essentials} onChange={setEssentials} hint={t('onb.essentialsHint')} required />,
     },
     {
+      title: 'onb.prefsTitle',
+      body: 'onb.prefsBody',
+      content: (
+        <>
+          <p className="text-sm font-semibold">{t('lang.label')}</p>
+          <div className="grid grid-cols-2 gap-2" role="group" aria-label={t('lang.label')}>
+            {([['ms', 'Bahasa Melayu'], ['en', 'English']] as [Lang, string][]).map(([l, name]) => (
+              <Chip key={l} on={lang === l} onClick={() => setLang(l)}>{name}</Chip>
+            ))}
+          </div>
+          <p className="mt-2 text-sm font-semibold">{t('settings.theme')}</p>
+          <div className="grid grid-cols-3 gap-2" role="group" aria-label={t('settings.theme')}>
+            {(['system', 'light', 'dark'] as User['theme'][]).map((th) => (
+              <Chip key={th} on={theme === th} onClick={() => pickTheme(th)}>{t(`theme.${th}` as Key)}</Chip>
+            ))}
+          </div>
+        </>
+      ),
+    },
+    {
       title: 'onb.firstTitle',
       body: 'onb.firstBody',
       content: (
-        <div className="flex flex-col gap-3">
-          <Link to="/snap" search={{ mode: 'history' }} className="btn btn-primary">
+        <div aria-busy={saving} className={`flex flex-col gap-3 ${saving ? 'pointer-events-none opacity-60' : ''}`}>
+          {saving && <p role="status" className="flex items-center gap-2 text-sm text-muted"><Loader2 size={16} className="spin" aria-hidden /> {t('onb.saving')}</p>}
+          <Link to="/snap" search={{ mode: 'history' }} className="btn btn-brand">
             <Camera size={20} aria-hidden />
             {t('onb.firstSnap')}
           </Link>
@@ -162,31 +200,31 @@ function Onboarding() {
         <p className="mt-auto max-w-xs text-lg font-medium text-on-ink-muted">{t('app.tagline')}</p>
       </aside>
       <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-5 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:w-full lg:max-w-[clamp(32rem,42vw,52rem)] lg:justify-center lg:px-8 lg:py-16">
-        <div className="flex min-h-11 items-center gap-2">
+        {/* Progress centred on the screen, whether or not the back button is there */}
+        <div className="relative flex min-h-11 items-center">
           {step > 0 && !last && (
-            <button type="button" onClick={() => setStep(step - 1)} aria-label={t('common.back')} className="pressable -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
+            <button type="button" onClick={() => setStep(step - 1)} aria-label={t('common.back')} className="pressable relative z-10 -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
               <ArrowLeft size={24} aria-hidden />
             </button>
           )}
-          <div className="flex flex-1 justify-center gap-1.5 lg:invisible" aria-label={t('onb.progress', { n: step + 1, total: screens.length })} role="img">
+          <div className="absolute inset-0 flex items-center justify-center gap-1.5 lg:invisible" aria-label={t('onb.progress', { n: step + 1, total: screens.length })} role="img">
             {screens.map((_, i) => (
               <span key={i} className={`h-2 rounded-full transition-all duration-200 ${i === step ? 'w-6 bg-brand-text' : i < step ? 'w-2 bg-brand-text/60' : 'w-2 bg-line'}`} />
             ))}
           </div>
-          <LangToggle />
         </div>
         <div key={step} className="page-in flex flex-1 flex-col gap-4 lg:flex-none">
           <h1 className="text-2xl font-bold tracking-tight lg:text-[clamp(2.25rem,3vw,3.5rem)] lg:leading-tight">{t(screen.title)}</h1>
           {screen.body && <p className="text-muted">{t(screen.body)}</p>}
           {screen.content}
         </div>
-        {save.isError && (
+        {failed !== null && (
           <p role="alert" className="text-sm font-semibold text-[var(--risky)]">
-            {errorText(save.error, lang, t('common.tryAgain'))}
+            {errorText(failed, lang, t('common.tryAgain'))}
           </p>
         )}
         {!last && (
-          <button type="button" className="btn btn-primary" disabled={!canNext || save.isPending} onClick={() => save.mutate(step)}>
+          <button type="button" className="btn btn-primary" disabled={!canNext} onClick={() => save.mutate(step)}>
             {t('intro.next')}
           </button>
         )}
@@ -213,7 +251,7 @@ export function Chip({ on, onClick, children }: { on: boolean; onClick: () => vo
 function Check2({ checked, onChange, label, hint }: { checked: boolean; onChange: (v: boolean) => void; label: string; hint?: string }) {
   return (
     <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface p-4">
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--brand-text)]" />
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="mt-0.5 size-5 shrink-0 accent-[var(--text)]" />
       <span className="flex flex-col">
         <span className="font-semibold">{label}</span>
         {hint && <span className="text-sm text-muted">{hint}</span>}

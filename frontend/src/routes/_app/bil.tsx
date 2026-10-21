@@ -82,9 +82,9 @@ function BillForm({ onDone }: { onDone: () => void }) {
       api('/api/bills', {
         body: { name, amountSen: amount, frequency, dueDay: frequency === 'monthly' || frequency === 'weekly' ? dueDay : null, dueDate: frequency === 'yearly' || frequency === 'once' ? dueDate : null },
       }),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries()
-      onDone()
+    onSuccess: () => {
+      onDone() // close at once; the lists refresh in the background
+      void queryClient.invalidateQueries()
     },
   })
   const valid = name.trim() && amount && (frequency === 'monthly' || frequency === 'weekly' || dueDate)

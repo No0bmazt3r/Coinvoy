@@ -13,8 +13,17 @@ import './index.css'
 
 restoreAppearance()
 const queryClient = new QueryClient()
-// Routes are code-split; a screen whose chunk is slow to arrive shows a skeleton instead of the previous screen.
-const router = createRouter({ routeTree, context: { queryClient }, defaultPreload: 'intent', defaultPendingComponent: RouteSkeleton })
+// Routes are code-split; a screen whose chunk is slow to arrive shows a skeleton after 150 ms (not the default 1 s of
+// a frozen previous screen), held 200 ms so it doesn't flicker. Screens never wait on data: they render at once and
+// show their own skeletons while their queries load.
+const router = createRouter({
+  routeTree,
+  context: { queryClient },
+  defaultPreload: 'intent',
+  defaultPendingComponent: RouteSkeleton,
+  defaultPendingMs: 150,
+  defaultPendingMinMs: 200,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
