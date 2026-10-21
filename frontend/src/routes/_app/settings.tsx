@@ -11,7 +11,9 @@ import { useI18n, type Key } from '../../i18n/t'
 import { api, clearOfflineData, errorText, meQuery, type Platform, post, type User } from '../../lib/api'
 import { applyAppearance } from '../../lib/appearance'
 import { deviceEndpoint, disablePush, enablePush, pushSupported, type PushState } from '../../lib/push'
-import { CITIES, Chip, PLATFORMS, PRIVACY_VERSION } from '../onboarding'
+import { PlatformPicker } from '../../components/PlatformPicker'
+import { Select } from '../../components/Select'
+import { Chip, PRIVACY_VERSION, cityOptions } from '../onboarding'
 
 export const Route = createFileRoute('/_app/settings')({ component: Settings })
 
@@ -193,16 +195,8 @@ function WorkProfile({ user, onSave, saving }: { user: User; onSave: (body: Part
   const [sick, setSick] = useState(user.sickDaysCovered)
   return (
     <form className="flex max-h-[70dvh] flex-col gap-4 overflow-y-auto" onSubmit={(e) => { e.preventDefault(); onSave({ platforms, city: city || null, defaultHours: hours, paydayWeekday: payday, essentialsWeekSen: essentials, sickDaysCovered: sick }) }}>
-      <div className="flex flex-wrap gap-2" role="group" aria-label={t('onb.platformsTitle')}>
-        {PLATFORMS.map((p) => <Chip key={p} on={platforms.includes(p)} onClick={() => setPlatforms((c) => (c.includes(p) ? c.filter((x) => x !== p) : [...c, p]))}>{t(`platform.${p}` as Key)}</Chip>)}
-      </div>
-      <label className="flex flex-col gap-1 text-sm font-semibold">
-        {t('onb.city')}
-        <select value={city} onChange={(e) => setCity(e.target.value)} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal">
-          <option value="">{t('onb.cityOther')}</option>
-          {CITIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
-      </label>
+      <PlatformPicker value={platforms} onChange={setPlatforms} />
+      <Select label={t('onb.city')} value={city} onChange={setCity} options={cityOptions(t('onb.cityOther'))} />
       <label className="flex flex-col gap-2 text-sm font-semibold">
         <span className="flex justify-between">{t('onb.hoursLabel')} <span className="tabular-nums">{t('onb.hoursValue', { n: hours })}</span></span>
         <input type="range" min={0} max={84} value={hours} onChange={(e) => setHours(Number(e.target.value))} className="accent-[var(--brand-text)]" data-no-swipe />

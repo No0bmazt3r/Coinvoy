@@ -1,6 +1,7 @@
 import { queryOptions } from '@tanstack/react-query'
 
 export type Platform = 'grab' | 'foodpanda' | 'shopeefood' | 'lalamove' | 'other'
+export const PLATFORMS: Platform[] = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other']
 export type Risk = 'selamat' | 'berhati' | 'berisiko'
 export type Accent = 'lime' | 'aqua' | 'amber' | 'pink' | 'sky'
 

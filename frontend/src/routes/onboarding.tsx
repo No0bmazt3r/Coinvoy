@@ -5,11 +5,12 @@ import { useState, type ReactNode } from 'react'
 import { LangToggle } from '../components/LangToggle'
 import { Logo } from '../components/Logo'
 import { MoneyField } from '../components/MoneyField'
+import { PlatformPicker } from '../components/PlatformPicker'
+import { Select } from '../components/Select'
 import { useI18n, type Key } from '../i18n/t'
 import { api, errorText, meQuery, type Platform, type User } from '../lib/api'
 
 export const PRIVACY_VERSION = '2026-10'
-export const PLATFORMS: Platform[] = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other']
 export const CITIES = ['Kuala Lumpur', 'Selangor', 'Penang', 'Johor Bahru', 'Ipoh', 'Melaka', 'Seremban', 'Kota Kinabalu', 'Kuching']
 const DAYS: Key[] = ['day.0', 'day.1', 'day.2', 'day.3', 'day.4', 'day.5', 'day.6']
 
@@ -81,22 +82,10 @@ function Onboarding() {
       body: 'onb.platformsBody',
       content: (
         <>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('onb.platformsTitle')}>
-            {PLATFORMS.map((p) => (
-              <Chip key={p} on={platforms.includes(p)} onClick={() => setPlatforms((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]))}>
-                {t(`platform.${p}` as Key)}
-              </Chip>
-            ))}
+          <PlatformPicker value={platforms} onChange={setPlatforms} />
+          <div className="mt-2">
+            <Select label={t('onb.city')} value={city} onChange={setCity} options={cityOptions(t('onb.cityOther'))} />
           </div>
-          <label className="mt-2 flex flex-col gap-1 text-sm font-semibold">
-            {t('onb.city')}
-            <select value={city} onChange={(e) => setCity(e.target.value)} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal">
-              <option value="">{t('onb.cityOther')}</option>
-              {CITIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </label>
         </>
       ),
     },
@@ -206,13 +195,15 @@ function Onboarding() {
   )
 }
 
+export const cityOptions = (other: string) => [...CITIES.map((c) => ({ value: c, label: c })), { value: '', label: other }]
+
 export function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
-      className={`pressable min-h-11 rounded-full border px-4 text-sm font-semibold ${on ? 'border-transparent bg-brand text-on-brand' : 'border-line-strong bg-surface text-text'}`}
+      className={`pressable min-h-11 rounded-full border px-4 text-sm font-semibold ${on ? 'border-text bg-text text-bg' : 'border-line-strong bg-surface text-text'}`}
     >
       {children}
     </button>

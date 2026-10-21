@@ -8,6 +8,7 @@ import { MoneyField } from '../../components/MoneyField'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
+import { Select } from '../../components/Select'
 import { useI18n, type Key } from '../../i18n/t'
 import { api, type Bill, billsQuery, errorText } from '../../lib/api'
 import { formatRM } from '../../lib/money'
@@ -100,16 +101,7 @@ function BillForm({ onDone }: { onDone: () => void }) {
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t('bills.namePlaceholder')} maxLength={60} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal" />
       </label>
       <MoneyField label={t('bills.amount')} valueSen={amount} onChange={setAmount} required />
-      <label className="flex flex-col gap-1 text-sm font-semibold">
-        {t('bills.frequency')}
-        <select value={frequency} onChange={(e) => setFrequency(e.target.value as Bill['frequency'])} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal">
-          {FREQS.map((f) => (
-            <option key={f} value={f}>
-              {t(`bills.freq.${f}` as Key)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select label={t('bills.frequency')} value={frequency} onChange={setFrequency} options={FREQS.map((f) => ({ value: f, label: t(`bills.freq.${f}` as Key) }))} />
       {frequency === 'monthly' && (
         <label className="flex flex-col gap-1 text-sm font-semibold">
           {t('bills.dueDay')}
@@ -117,16 +109,7 @@ function BillForm({ onDone }: { onDone: () => void }) {
         </label>
       )}
       {frequency === 'weekly' && (
-        <label className="flex flex-col gap-1 text-sm font-semibold">
-          {t('bills.dueWeekday')}
-          <select value={dueDay} onChange={(e) => setDueDay(Number(e.target.value))} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal">
-            {DAYS.map((d, i) => (
-              <option key={d} value={i}>
-                {t(d)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <Select label={t('bills.dueWeekday')} value={dueDay} onChange={setDueDay} options={DAYS.map((d, i) => ({ value: i, label: t(d) }))} />
       )}
       {(frequency === 'yearly' || frequency === 'once') && (
         <label className="flex flex-col gap-1 text-sm font-semibold">

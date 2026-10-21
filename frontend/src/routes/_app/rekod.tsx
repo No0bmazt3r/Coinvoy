@@ -6,6 +6,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
+import { Select } from '../../components/Select'
 import { StatementCheck } from '../../components/StatementCheck'
 import { useI18n, type Key } from '../../i18n/t'
 import { api, errorText, expensesQuery, linksQuery, penyataQuery, type Week, weeksQuery } from '../../lib/api'
@@ -219,9 +220,7 @@ function Costs() {
           {parsed.amountSen === null ? <p className="text-sm text-[var(--careful)]">{t('cost.noAmount')}</p> : (
             <div className="flex flex-wrap items-center gap-2">
               <b className="tabular-nums">{formatRM(parsed.amountSen)}</b>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label={t('cost.category')} className="h-11 rounded-full border border-line-strong bg-surface px-3 text-sm font-semibold">
-                {CATEGORIES.map((c) => <option key={c} value={c}>{t(`cost.${c}` as Key)}</option>)}
-              </select>
+              <Select label={t('cost.category')} hideLabel compact value={category} onChange={setCategory} options={CATEGORIES.map((c) => ({ value: c, label: t(`cost.${c}` as Key) }))} />
               <span className="text-[0.8125rem] text-muted">{t(`cost.tier.${parsed.tier}` as Key)}</span>
               <button type="button" className="btn btn-primary ml-auto w-auto" disabled={save.isPending} onClick={() => save.mutate()}>{t('common.save')}</button>
             </div>

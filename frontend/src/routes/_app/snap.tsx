@@ -5,12 +5,12 @@ import { useRef, useState } from 'react'
 import { MoneyField } from '../../components/MoneyField'
 import { ResultPlaceholder } from '../../components/EmptyState'
 import { ScreenHeader } from '../../components/ScreenHeader'
+import { Select } from '../../components/Select'
 import { useI18n, type Key } from '../../i18n/t'
-import { ApiError, api, errorText, type Draft, type Platform } from '../../lib/api'
+import { ApiError, PLATFORMS, api, errorText, type Draft, type Platform } from '../../lib/api'
 import { addDays, todayKL, weekLabel, weekStart } from '../../lib/dates'
 import { shrink } from '../../lib/image'
 import { formatRM } from '../../lib/money'
-import { PLATFORMS } from '../onboarding'
 
 type Mode = 'snap' | 'history' | 'manual'
 
@@ -178,30 +178,12 @@ function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
       <div className="flex items-center gap-2">
-        <select
-          aria-label={t('snap.platform')}
-          value={d.platform}
-          onChange={(e) => onChange({ platform: e.target.value as Platform })}
-          className="h-11 flex-1 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-2 font-semibold"
-        >
-          {PLATFORMS.map((p) => (
-            <option key={p} value={p}>
-              {t(`platform.${p}` as Key)}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label={t('snap.week')}
-          value={d.weekStart}
-          onChange={(e) => onChange({ weekStart: e.target.value })}
-          className="h-11 flex-1 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-2"
-        >
-          {(weeks.includes(d.weekStart) ? weeks : [d.weekStart, ...weeks]).map((w) => (
-            <option key={w} value={w}>
-              {weekLabel(w, lang)}
-            </option>
-          ))}
-        </select>
+        <div className="min-w-0 flex-1">
+          <Select label={t('snap.platform')} hideLabel compact value={d.platform} onChange={(v: Platform) => onChange({ platform: v })} options={PLATFORMS.map((p) => ({ value: p, label: t(`platform.${p}` as Key) }))} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <Select label={t('snap.week')} hideLabel compact value={d.weekStart} onChange={(v) => onChange({ weekStart: v })} options={(weeks.includes(d.weekStart) ? weeks : [d.weekStart, ...weeks]).map((w) => ({ value: w, label: weekLabel(w, lang) }))} />
+        </div>
         <button type="button" onClick={onRemove} aria-label={t('common.delete')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
           <Trash2 size={20} aria-hidden />
         </button>
