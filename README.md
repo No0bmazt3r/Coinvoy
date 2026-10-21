@@ -248,7 +248,7 @@ Coinvoy/
 │   ├── Dockerfile            the one image: API on $PORT, engine on 127.0.0.1 inside
 │   ├── start.sh              starts both, stops both
 │   └── .env.example          every backend setting
-├── .github/workflows/        CI checks, deploy-frontend (Vercel), deploy-backend (Render), keepalive
+├── .github/workflows/        CI checks, deploy-frontend (Vercel), database (Supabase), keepalive
 └── .github/                  issue and PR templates, CODEOWNERS
 ```
 
@@ -574,15 +574,15 @@ Screenshots and statement PDFs are read in memory and **never stored**; EXIF is 
 
 ## Deployment
 
-Three free services, and every deploy is a button only the repository owner can press. The browser only ever talks to the app's address: Vercel forwards `/api` and `/o` to the backend, so the sign-in cookie stays first-party and there's no CORS.
+Three free services. The app's deploy and the database's migrations are buttons only the repository owner can press; Render builds the backend straight from this repository. The browser only ever talks to the app's address: Vercel forwards `/api` and `/o` to the backend, so the sign-in cookie stays first-party and there's no CORS.
 
 <div align="center">
 
 | Part | Where (free) | How it deploys |
 |---|---|---|
 | The app (`frontend/`) | **Vercel** | [`deploy-frontend.yml`](.github/workflows/deploy-frontend.yml): owner clicks *Run workflow* on `main` |
-| The backend (`backend/`: API + engine) | **Render**, one container | [`deploy-backend.yml`](.github/workflows/deploy-backend.yml): checks, builds the image, checks and migrates the database, then deploys |
-| The database | **Supabase** Postgres | Migrations run from the backend pipeline, never by hand |
+| The backend (`backend/`: API + engine) | **Render**, one container | Render builds [`backend/Dockerfile`](backend/Dockerfile) from this repository |
+| The database | **Supabase** Postgres | [`database.yml`](.github/workflows/database.yml): owner clicks *Run workflow* → **check** (changes nothing) or **migrate** |
 | Staying awake | GitHub Actions | [`keepalive.yml`](.github/workflows/keepalive.yml) pings every 10 minutes, so Render doesn't sleep and Supabase doesn't pause |
 
 </div>
@@ -591,24 +591,44 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 
 ### 1. The database on Supabase
 
-1. Create a project at [supabase.com](https://supabase.com) (region **Southeast Asia (Singapore)**), and save the database password.
+1. Create a project at [supabase.com](https://supabase.com) (region **Southeast Asia (Singapore)**), and save the database password. Under **Security**, turn **Enable Data API** off (Coinvoy talks to Postgres directly, so the auto-generated REST API would only be an extra way in) and leave **automatic RLS** on. Don't connect GitHub there: migrations run from this repository's own workflow.
 2. **Connect** (top bar) → **Session pooler** → copy the connection string and put your password in it. Use the session pooler, not "Direct connection": the direct one is IPv6-only, which GitHub Actions and Render can't reach. Don't add `?sslmode=…` to it.
 3. **Project Settings → Database → SSL Configuration** → **Download certificate**. The backend verifies the database's certificate with it.
 4. Add two secrets to the GitHub `production` environment: `DATABASE_URL` (step 2) and `DATABASE_SSL_CA` (the whole certificate file's text, including the `BEGIN`/`END` lines).
 
-### 2. The backend on Render
+### 2. Migrate the database
 
-1. Run **Actions → Deploy backend (Render) → Run workflow** once. It checks, builds the image and migrates the database, then stops before deploying because Render isn't set up yet.
-2. On GitHub, open your profile → **Packages** → `coinvoy-backend` → **Package settings** → **Change visibility → Public**, so Render can pull it (the code is public anyway).
-3. On [render.com](https://render.com): **New → Web Service → Existing Image** → `ghcr.io/<your-username-lowercase>/coinvoy-backend:latest`. Choose the **Free** instance type and the **Singapore** region, and set **Health Check Path** to `/api/health`.
-4. **Environment** on Render: copy what you need from [`backend/.env.example`](backend/.env.example). The deployed values that differ from local:
+Run **Actions → Database (Supabase) → Run workflow**, choose **migrate**. It checks that Supabase is reachable, lists the pending migrations, and applies them. Choose **check** any time to see what's pending without changing anything. Run **migrate** again before deploying backend code that changes `backend/api/src/db/schema.ts`.
+
+### 3. The backend on Render
+
+1. On [render.com](https://render.com): **New → Web Service** → connect this GitHub repository.
+2. Settings:
+
+<div align="center">
+
+| Setting | Value |
+|---|---|
+| Language / Runtime | **Docker** |
+| Branch | `main` |
+| Region | **Singapore** |
+| Root Directory | *(leave empty: the repo root)* |
+| Dockerfile Path | `backend/Dockerfile` |
+| Docker Build Context Directory | `.` (the repo root, where the pnpm workspace files are) |
+| Instance Type | **Free** |
+| Health Check Path (Advanced) | `/api/health` |
+| Auto-Deploy | **Off** if you want to migrate first and deploy by hand (**Manual Deploy → Deploy latest commit**); or on, remembering to run *migrate* first when the schema changed |
+
+</div>
+
+3. **Environment** on Render: copy what you need from [`backend/.env.example`](backend/.env.example). The deployed values that differ from local:
 
 <div align="center">
 
 | Variable | Deployed value |
 |---|---|
 | `DATABASE_URL`, `DATABASE_SSL_CA` | Same as the GitHub secrets |
-| `MIGRATE_ON_START` | `false` (the pipeline migrates) |
+| `MIGRATE_ON_START` | `false` (the Database workflow migrates) |
 | `APP_URL` | Your Vercel address, e.g. `https://coinvoy.vercel.app` |
 | `COOKIE_SECURE` | `true` |
 | `TRUST_PROXY` | `2` (Vercel, then Render's proxy) |
@@ -617,11 +637,10 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 
 </div>
 
-5. **Settings → Deploy Hook** → copy it, and add it to the GitHub `production` environment as the secret `RENDER_DEPLOY_HOOK_URL`.
-6. In GitHub **Settings → Secrets and variables → Actions → Variables**, add the repository variable `BACKEND_URL` = the service's address (e.g. `https://coinvoy-backend.onrender.com`). The pipeline waits on it after deploying, and the keep-alive pings it.
-7. Run **Deploy backend (Render)** again: this time it deploys and waits until `/api/health` reports the new commit.
+4. Deploy. When it's live, `https://<your-service>.onrender.com/api/health?db=1` should answer `{"ok":true,…}` with the deployed commit as `version`.
+5. In GitHub **Settings → Secrets and variables → Actions → Variables**, add the repository variable `BACKEND_URL` = the service's address (e.g. `https://coinvoy-backend.onrender.com`, no trailing slash). The keep-alive pings it.
 
-### 3. The app on Vercel
+### 4. The app on Vercel
 
 1. From the **repo root** (Vercel's monorepo docs say not to run the CLI from the subfolder): `npm install --global vercel`, `vercel login`, then `vercel link`. Create a new project and answer **`frontend`** for the code directory. This writes `.vercel/project.json` (git-ignored) with the `orgId` and `projectId`.
 2. In the Vercel project: **Settings → Build and Deployment** → check **Root Directory** is `frontend`, **Include files outside the root directory** is on, and **Node.js Version** is 24.x. Build settings come from [`frontend/vercel.json`](frontend/vercel.json).
@@ -629,7 +648,7 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 4. Set the backend's address in `frontend/vercel.json` (the two `rewrites`) if it isn't `https://coinvoy-backend.onrender.com`.
 5. Run **Actions → Deploy app (Vercel) → Run workflow**. The run's summary shows the live URL.
 
-### 4. Google sign-in
+### 5. Google sign-in
 
 In Google Cloud Console, add the Vercel address as an authorized JavaScript origin and `https://<vercel-address>/api/auth/google/callback` as a redirect URI.
 
