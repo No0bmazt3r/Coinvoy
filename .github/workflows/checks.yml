@@ -1,7 +1,8 @@
-# Runs on every push and pull request: lint, types, tests, bundle size and a secret scan.
+# Runs on every push to main and every pull request: lint, types, tests, bundle size and a secret scan.
 name: Coinvoy checks
 on:
   push:
+    branches: [main] # other branches are checked through their pull request, so nothing runs twice
   pull_request:
 
 jobs:
