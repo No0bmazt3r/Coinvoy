@@ -66,3 +66,6 @@ client_secret_*.json
 
 # Claude Code project config (skills, plugins): local only
 .claude/
+
+# Statements and screenshots dropped in the repo root for testing (they hold real names and accounts)
+/*.pdf

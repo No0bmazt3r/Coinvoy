@@ -37,6 +37,26 @@ services:
         sync: false
       - key: LLM_API_KEY_RECO
         sync: false
+      - key: LLM_BASE_URL_SNAP # a job's own provider; empty uses LLM_BASE_URL
+        sync: false
+      - key: LLM_BASE_URL_TANYA
+        sync: false
+      - key: LLM_BASE_URL_RECO
+        sync: false
+      - key: LLM_MODEL_SNAP # a job's own model; empty uses LLM_MODEL
+        sync: false
+      - key: LLM_MODEL_TANYA
+        sync: false
+      - key: LLM_MODEL_LENDER
+        sync: false
+      - key: LLM_MODEL_RECO
+        sync: false
+      - key: LLM_MODEL_BM
+        sync: false
+      - key: LLM_REASONING_LENDER # how hard a model thinks (e.g. low); empty = the provider's default
+        sync: false
+      - key: PRIVACY_CONTACT_EMAIL # shown on the privacy page
+        sync: false
       - key: LLM_PROVIDER_NAME
         sync: false
       - key: LLM_REGION_NOTE

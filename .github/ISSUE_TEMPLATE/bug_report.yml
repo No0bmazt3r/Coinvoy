@@ -1,0 +1,43 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Please don't include real riders' data, screenshots with names, or any keys.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Log in with the demo
+        2. Open Snap
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of the app?
+      options: [Gaji, Tabung, Tanya, Snap, Rekod, Bil, Cuti, Profil, Sign-in, Other]
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: e.g. Android 14, Chrome 141 · or desktop Firefox
+  - type: textarea
+    id: logs
+    attributes:
+      label: Errors or logs
+      description: Browser console or API log lines, if you have them.
+      render: text

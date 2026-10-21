@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest an idea for Coinvoy
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve for riders?
+      description: Describe the rider's situation, not the solution yet.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything else you considered?
+  - type: checkboxes
+    id: boundaries
+    attributes:
+      label: Coinvoy's boundaries
+      options:
+        - label: This doesn't involve lending, holding riders' money, or a credit score
+          required: true

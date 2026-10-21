@@ -1,0 +1,16 @@
+# Weekly pull requests for outdated or vulnerable dependencies, grouped so they don't flood the repo.
+version: 2
+updates:
+  - package-ecosystem: npm # the pnpm workspace (frontend + api)
+    directory: /
+    schedule: { interval: weekly }
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: uv # the ML service
+    directory: /ml
+    schedule: { interval: weekly }
+    groups:
+      minor-and-patch: { update-types: [minor, patch] }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
