@@ -23,7 +23,7 @@ type Jurang =
 
 export const Route = createFileRoute('/_app/jurang')({ component: JurangPage })
 
-// FR-ADV-7: the truth when income is too low, turned into three simulated options.
+// Shown when income is too low: the honest gap, plus three options to close it.
 function JurangPage() {
   const { t } = useI18n()
   const q = useQuery({ queryKey: ['jurang'], queryFn: () => api<Jurang>('/api/jurang') })

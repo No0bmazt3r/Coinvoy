@@ -67,7 +67,7 @@ class Inputs:
     essentials_week_sen: int = 0
     reserves_week_sen: int = 0  # contributions set aside every week (i-Saraan, PERKESO if not deducted)
     seed: int = 0
-    rate_model: str = "shrink"  # "gbm" = the pooled model (ADR-6), only once it wins the real backtest
+    rate_model: str = "shrink"  # "gbm" is the newer model; only switch once it wins the real backtest
 
 
 @dataclass

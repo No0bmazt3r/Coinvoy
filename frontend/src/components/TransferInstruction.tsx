@@ -7,7 +7,7 @@ import { useI18n, type Key } from '../i18n/t'
 import { api, type Transfer } from '../lib/api'
 import { formatRM } from '../lib/money'
 
-// FR-GAJI-2/3: one instruction a week. The buffer only counts what the rider confirms here.
+// The weekly transfer. Penampan only counts money the rider confirms here.
 export function TransferInstruction({ transfer: tr }: { transfer: Transfer }) {
   const { t, lang } = useI18n()
   const queryClient = useQueryClient()

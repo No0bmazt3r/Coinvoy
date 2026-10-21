@@ -29,7 +29,7 @@ export const users = pgTable('users', {
   essentialsWeekSen: integer('essentials_week_sen'),
   pocketReady: boolean('pocket_ready').notNull().default(false),
   sickDaysCovered: integer('sick_days_covered').notNull().default(3),
-  accent: text().notNull().default('lime'), // cosmetic, unlocked by streak level (FR-STRK-4)
+  accent: text().notNull().default('lime'), // app colour, unlocked by streak level
   onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
   seenTips: jsonb('seen_tips').$type<string[]>().notNull().default([]), // screens whose first-visit guide hint is done
 })
@@ -85,7 +85,7 @@ export const earnings = pgTable(
     grossSen: integer('gross_sen').notNull(),
     commissionSen: integer('commission_sen').notNull().default(0),
     incentivesSen: integer('incentives_sen').notNull().default(0),
-    tipsSen: integer('tips_sen').notNull().default(0), // incl. cash orders (FR-SNAP-8)
+    tipsSen: integer('tips_sen').notNull().default(0), // includes cash orders
     trips: integer(),
     hoursOnline: doublePrecision('hours_online'),
     source: text().notNull().default('manual'), // snap | manual | history

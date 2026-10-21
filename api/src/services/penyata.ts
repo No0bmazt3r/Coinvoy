@@ -6,7 +6,7 @@ import { type Db, schema } from '../db/index.ts'
 import { env } from '../env.ts'
 import { addDays, addWeeks, thisWeek } from '../lib/weeks.ts'
 
-export const UNLOCK_WEEKS = 12 // FR-SLIP-5; uploaded history counts
+export const UNLOCK_WEEKS = 12 // uploaded history counts too
 const RANK = { self: 0, checked: 1, verified: 2 } as const
 type Source = keyof typeof RANK
 const weakest = (sources: string[]): Source => (sources as Source[]).reduce<Source>((a, b) => (RANK[b] < RANK[a] ? b : a), 'verified')
