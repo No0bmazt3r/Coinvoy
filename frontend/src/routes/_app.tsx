@@ -63,7 +63,7 @@ function AppShell() {
         {/* Keyed by path so each screen's sections animate in turn on arrival */}
         <div
           key={pathname}
-          className={`page-in flex flex-col gap-4 ${OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
+          className={`page-in flex flex-col gap-4 ${pathname === '/tanya' ? 'lg:mx-auto lg:max-w-3xl' : OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
           style={shown.dir ? ({ '--page-dx': `${shown.dir * 24}px`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />

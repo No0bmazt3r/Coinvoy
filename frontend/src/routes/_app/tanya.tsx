@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { BadgeAlert, Calculator, ChevronRight, Lightbulb, Send } from 'lucide-react'
+import { ArrowUp, ArrowUpRight, BadgeAlert, Calculator, ChevronRight, Lightbulb, Sparkles } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -35,9 +35,10 @@ function Tanya() {
       setPending(null)
     },
   })
+  const started = (history.data?.length ?? 0) > 0 || pending !== null
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'end' }) // braces: newer browsers return a Promise, which React would call as cleanup
-  }, [history.data?.length, pending])
+    if (started) end.current?.scrollIntoView({ block: 'end' }) // braces: newer browsers return a Promise, which React would call as cleanup
+  }, [history.data?.length, pending, started])
   const send = (m: string) => {
     if (m.trim() && !ask.isPending) {
       ask.mutate(m.trim())
@@ -48,28 +49,41 @@ function Tanya() {
 
   return (
     <>
-      <ScreenHeader title={t('tanya.title')} />
-      <div className="grid grid-cols-2 gap-2">
-        <Link to="/layak" className="pressable flex flex-col gap-1 rounded-lg border border-line bg-surface p-3 hover:bg-surface-2">
-          <Calculator size={20} aria-hidden />
-          <span className="font-semibold">{t('layak.title')}</span>
-          <span className="text-[0.8125rem] text-muted">{t('layak.entry')}</span>
-        </Link>
-        <Link to="/pemberi" className="pressable flex flex-col gap-1 rounded-lg border border-line bg-surface p-3 hover:bg-surface-2">
-          <BadgeAlert size={20} aria-hidden />
-          <span className="font-semibold">{t('lender.title')}</span>
-          <span className="text-[0.8125rem] text-muted">{t('lender.entry')}</span>
-        </Link>
-      </div>
+      <ScreenHeader
+        title={t('tanya.title')}
+        action={
+          started && (
+            <div className="flex gap-1">
+              <Link to="/layak" aria-label={t('layak.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+                <Calculator size={20} aria-hidden />
+              </Link>
+              <Link to="/pemberi" aria-label={t('lender.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+                <BadgeAlert size={20} aria-hidden />
+              </Link>
+            </div>
+          )
+        }
+      />
 
-      {celik.data && celik.data.length > 0 && (
+      {(!started || aiOff) && (
+        <section aria-labelledby="tools" className="flex flex-col gap-2">
+          <h2 id="tools" className="px-1 text-sm font-semibold text-muted">{t('tanya.tools')}</h2>
+          <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface">
+            <ToolRow to="/layak" icon={<Calculator size={20} aria-hidden />} title={t('layak.title')} sub={t('layak.entry')} />
+            <ToolRow to="/pemberi" icon={<BadgeAlert size={20} aria-hidden />} title={t('lender.title')} sub={t('lender.entry')} />
+          </div>
+        </section>
+      )}
+
+      {!started && celik.data && celik.data.length > 0 && (
         <section aria-labelledby="celik" className="flex flex-col gap-2">
-          <h2 id="celik" className="flex items-center gap-2 px-1 text-sm font-semibold text-muted"><Lightbulb size={16} aria-hidden /> {t('celik.title')}</h2>
-          <div className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4" data-no-swipe>
+          <h2 id="celik" className="flex items-center gap-1.5 px-1 text-sm font-semibold text-muted"><Lightbulb size={16} aria-hidden /> {t('celik.title')}</h2>
+          {/* scroll-px keeps snapped cards on the page's left edge instead of flush to the screen */}
+          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 lg:mx-0 lg:scroll-px-0 lg:px-0" data-no-swipe>
             {celik.data.map((l) => (
-              <article key={l.topic} className="w-64 shrink-0 snap-start rounded-lg border border-line bg-surface p-3">
-                <h3 className="font-semibold">{l.title}</h3>
-                <p className="text-sm text-muted">{l.text}</p>
+              <article key={l.topic} className="flex w-[78%] max-w-72 shrink-0 snap-start flex-col gap-1 rounded-[var(--radius-md)] border border-line bg-surface p-4">
+                <h3 className="font-semibold leading-snug">{l.title}</h3>
+                <p className="text-sm leading-relaxed text-muted">{l.text}</p>
               </article>
             ))}
           </div>
@@ -77,56 +91,91 @@ function Tanya() {
       )}
 
       <section aria-label={t('tanya.chat')} aria-live="polite" className="flex flex-col gap-3">
+        <p className="mx-auto max-w-sm text-center text-xs leading-relaxed text-muted">
+          {t('common.disclaimer')}{' '}
+          <Link to="/privacy" className="inline-flex items-center gap-0.5 underline underline-offset-2">{t('tanya.whereData')}<ChevronRight size={12} aria-hidden /></Link>
+        </p>
         {aiOff ? (
-          <p className="rounded-lg border border-line bg-surface p-4 text-sm">{t('tanya.aiOff')}</p>
+          <p className="flex items-start gap-3 rounded-[var(--radius-md)] border border-line bg-surface p-4 text-sm leading-relaxed">
+            <Sparkles size={18} className="mt-0.5 shrink-0 text-muted" aria-hidden />
+            {t('tanya.aiOff')}
+          </p>
         ) : history.isPending ? (
           <>
             <Skeleton className="h-12 w-2/3 self-end" />
             <Skeleton className="h-20 w-5/6" />
           </>
-        ) : history.data?.length === 0 && !pending ? (
-          <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('tanya.hello')}</p>
+        ) : !started ? (
+          <>
+            <Bubble m={{ role: 'assistant', content: t('tanya.hello'), risk: null, at: '' }} />
+            <h2 className="mt-2 px-1 text-sm font-semibold text-muted">{t('tanya.tryAsking')}</h2>
+            <div className="flex flex-col gap-2">
+              {SUGGESTED.map((k) => (
+                <button key={k} type="button" onClick={() => send(t(k))} disabled={ask.isPending} className="pressable flex min-h-12 items-center justify-between gap-3 rounded-[var(--radius-md)] border border-line bg-surface px-4 py-3 text-left text-sm font-medium hover:bg-surface-2">
+                  {t(k)}
+                  <ArrowUpRight size={16} className="shrink-0 text-muted" aria-hidden />
+                </button>
+              ))}
+            </div>
+          </>
         ) : null}
         {history.data?.map((m, i) => <Bubble key={m.id ?? i} m={m} />)}
         {pending && (
           <>
             <Bubble m={{ role: 'user', content: pending, risk: null, at: '' }} />
-            <p className="text-sm text-muted">{t('tanya.thinking')}</p>
+            <div role="status" className="flex items-center gap-2 self-start rounded-[var(--radius-md)] rounded-bl-sm bg-surface px-4 py-3 text-sm text-muted">
+              <span className="flex gap-1" aria-hidden>
+                {[0, 150, 300].map((d) => <span key={d} className="size-1.5 rounded-full bg-current motion-safe:animate-bounce" style={{ animationDelay: `${d}ms` }} />)}
+              </span>
+              {t('tanya.thinking')}
+            </div>
           </>
         )}
         {ask.isError && !aiOff && <p role="alert" className="text-sm font-semibold text-[var(--risky)]">{errorText(ask.error, lang, t('common.tryAgain'))}</p>}
-        <div ref={end} />
+        {/* scroll-margin clears the pinned composer and the bottom nav when scrolling to the newest message */}
+        <div ref={end} className="scroll-mb-[calc(11rem+env(safe-area-inset-bottom))] lg:scroll-mb-24" />
       </section>
 
       {!aiOff && (
         <>
-          <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" data-no-swipe>
-            {SUGGESTED.map((k) => (
-              <button key={k} type="button" onClick={() => send(t(k))} disabled={ask.isPending} className="pressable min-h-11 shrink-0 rounded-full border border-line-strong bg-surface px-4 text-sm font-semibold">
-                {t(k)}
+          <div aria-hidden className="h-24 lg:hidden" />
+          {/* Pinned above the bottom nav on phones; sticks to the bottom of the column on desktop */}
+          <form
+            className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 mx-auto w-full max-w-[480px] bg-bg px-4 pt-2 pb-8 lg:sticky lg:bottom-0 lg:max-w-none lg:px-0 lg:pb-4"
+            onSubmit={(e) => { e.preventDefault(); send(text) }}
+          >
+            <div className="flex items-center gap-2 rounded-full border border-line-strong bg-surface-2 p-1.5 pl-5 shadow-[0_8px_24px_rgb(0_0_0/0.18)] focus-within:border-text">
+              <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder={t('tanya.placeholder')} aria-label={t('tanya.placeholder')} className="h-10 min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" />
+              <button type="submit" aria-label={t('tanya.send')} disabled={!text.trim() || ask.isPending} className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand disabled:bg-line disabled:text-muted">
+                <ArrowUp size={20} strokeWidth={2.5} aria-hidden />
               </button>
-            ))}
-          </div>
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); send(text) }}>
-            <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder={t('tanya.placeholder')} aria-label={t('tanya.placeholder')} className="h-12 min-w-0 flex-1 rounded-[var(--radius-md)] border border-line-strong bg-surface-2 px-3" />
-            <button type="submit" aria-label={t('tanya.send')} disabled={!text.trim() || ask.isPending} className="btn btn-primary w-12 shrink-0 px-0">
-              <Send size={20} aria-hidden />
-            </button>
+            </div>
           </form>
         </>
       )}
-      <p className="flex items-start gap-1 text-[0.8125rem] text-muted">{t('common.disclaimer')}</p>
-      <Link to="/privacy" className="btn-ghost -mt-2 flex items-center gap-1 self-start text-[0.8125rem]">{t('tanya.whereData')} <ChevronRight size={14} aria-hidden /></Link>
     </>
   )
 }
 
-function Bubble({ m }: { m: Message }) {
-  if (m.role === 'user') return <p className="ml-10 self-end rounded-[var(--radius-md)] rounded-br-sm bg-surface-2 px-4 py-2">{m.content}</p>
+function ToolRow({ to, icon, title, sub }: { to: '/layak' | '/pemberi'; icon: ReactNode; title: string; sub: string }) {
   return (
-    <div className="mr-10 flex flex-col gap-2 self-start rounded-[var(--radius-md)] rounded-bl-sm border border-line bg-surface px-4 py-3">
+    <Link to={to} className="pressable flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-surface-2">
+      <span className="shrink-0 text-muted">{icon}</span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-semibold">{title}</span>
+        <span className="text-[0.8125rem] text-muted">{sub}</span>
+      </span>
+      <ChevronRight size={18} className="shrink-0 text-muted" aria-hidden />
+    </Link>
+  )
+}
+
+function Bubble({ m }: { m: Message }) {
+  if (m.role === 'user') return <p className="max-w-[85%] self-end whitespace-pre-wrap rounded-[var(--radius-lg)] rounded-br-md bg-brand px-4 py-2.5 text-on-brand">{m.content}</p>
+  return (
+    <div className="flex max-w-[88%] flex-col items-start gap-2 self-start rounded-[var(--radius-lg)] rounded-bl-md bg-surface px-4 py-3 leading-relaxed">
       {m.risk && <RiskBadge risk={m.risk} size="sm" />}
-      <p>{withBoldNumbers(m.content)}</p>
+      <p className="whitespace-pre-wrap">{withBoldNumbers(m.content)}</p>
     </div>
   )
 }
