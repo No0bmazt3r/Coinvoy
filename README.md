@@ -516,7 +516,7 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 | Calendar data | Transcribed from the official calendars but **not yet checked line by line** (`verified: false`); season effects are team estimates. |
 | BM classifier (`ml/app/nlp/artifacts/model_card.md`) | Trained on 770 **synthetic seed** phrases; no real-world accuracy figure yet. |
 | Snap accuracy (`api/scripts/eval-snap.ts`) | Script ready; needs labelled real screenshots. |
-| Cost per rider (`api/scripts/llm-cost-report.ts`) | Script ready; needs real usage and a dated price table. |
+| Cost per rider (`api/scripts/llm-cost-report.ts`) | AI runs on free tiers today (RM0). Every call is logged with its tokens, so the script prices paid-tier usage once there is real usage and a dated price table. |
 
 </div>
 
