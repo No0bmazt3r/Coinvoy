@@ -44,7 +44,7 @@ ml/results/
 api/.llm-cache/
 
 # Local embedded Postgres (PGlite)
-api/.pglite/
+api/.pglite*/
 
 # Logs
 logs/

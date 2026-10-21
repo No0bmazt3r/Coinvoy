@@ -67,4 +67,10 @@ if (!parsed.success) {
 export const env = parsed.data
 export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 export const pushConfigured = () => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)
-export const llmConfigured = () => Boolean((env.LLM_API_KEY || env.LLM_API_KEY_SNAP || env.LLM_API_KEY_TANYA || env.LLM_API_KEY_RECO) && env.LLM_MODEL)
+// AI is on if any job has a key and a model (its own or the shared one)
+export const llmConfigured = () =>
+  [
+    [env.LLM_API_KEY_SNAP, env.LLM_MODEL_SNAP],
+    [env.LLM_API_KEY_TANYA, env.LLM_MODEL_TANYA],
+    [env.LLM_API_KEY_RECO, env.LLM_MODEL_RECO],
+  ].some(([key, model]) => (key || env.LLM_API_KEY) && (model || env.LLM_MODEL))
