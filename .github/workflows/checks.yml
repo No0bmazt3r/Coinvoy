@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
       - run: uv sync --directory ml
       - run: uv run --directory ml ruff check .
@@ -33,7 +33,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
       - run: pnpm install --frozen-lockfile
       - run: uv sync --directory ml # the API tests talk to the real ML service
