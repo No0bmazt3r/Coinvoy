@@ -59,7 +59,7 @@ function Tanya() {
   }, [started])
   const send = (m: string) => {
     if (m.trim() && !busy) {
-      void sendTanya(m.trim(), queryClient)
+      void sendTanya(m.trim(), lang, queryClient)
       setText('')
     }
   }

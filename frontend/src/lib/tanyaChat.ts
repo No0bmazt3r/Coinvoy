@@ -24,11 +24,11 @@ const toError = (e: { code?: string; message_ms?: string; message_en?: string } 
   new ApiError(status, e?.code ?? 'network', e?.message_ms ?? 'Tak dapat sambung. Cuba lagi.', e?.message_en ?? "Couldn't connect. Try again.")
 
 /** Send a message and read the reply as it streams in (one JSON event per line). */
-export async function sendTanya(message: string, queryClient: QueryClient) {
+export async function sendTanya(message: string, lang: 'ms' | 'en', queryClient: QueryClient) {
   if (state.pending) return
   set({ pending: message, text: '', error: null, failed: null })
   try {
-    const res = await fetch('/api/tanya/messages?stream=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) })
+    const res = await fetch('/api/tanya/messages?stream=1', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message, lang }) })
     if (!res.ok || !res.body) throw toError((await res.json().catch(() => null))?.error, res.status)
     const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
     let buffer = ''

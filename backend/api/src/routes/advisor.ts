@@ -61,13 +61,14 @@ advisorRouter.delete('/tanya/messages', async (_req, res) => {
 // The answer is saved even if the rider leaves the page halfway, so it is there when they come back.
 advisorRouter.post('/tanya/messages', async (req, res) => {
   const user = userOf(res)
-  const { message } = z.strictObject({ message: z.string().trim().min(1).max(500) }).parse(req.body)
+  const { message, lang: requestedLang } = z.strictObject({ message: z.string().trim().min(1).max(500), lang: z.enum(['ms', 'en']).optional() }).parse(req.body)
+  const lang: 'ms' | 'en' = requestedLang ?? (user.lang === 'en' ? 'en' : 'ms')
   await checkQuota(user.id, 'tanya')
   await db.delete(schema.tanyaMessages).where(and(eq(schema.tanyaMessages.userId, user.id), lt(schema.tanyaMessages.createdAt, new Date(Date.now() - RETENTION_MS))))
   const recent = await db.select().from(schema.tanyaMessages).where(eq(schema.tanyaMessages.userId, user.id)).orderBy(desc(schema.tanyaMessages.id)).limit(HISTORY_TURNS * 2)
   const history: ChatCompletionMessageParam[] = recent.reverse().map((m) => (m.role === 'user' ? { role: 'user', content: `<rider_message>${m.content}</rider_message>` } : { role: 'assistant', content: m.content }))
   const turn = async (onEvent?: (e: TanyaEvent) => void) => {
-    const out = await answer(user, history, message, (r) => logUsage(user.id, 'tanya', r), onEvent)
+    const out = await answer(user, history, message, lang ?? user.lang, (r) => logUsage(user.id, 'tanya', r), onEvent)
     const [saved] = await db
       .insert(schema.tanyaMessages)
       .values([

@@ -132,11 +132,11 @@ export async function answer(
   user: User,
   history: ChatCompletionMessageParam[],
   message: string,
+  lang: 'ms' | 'en',
   onCall: (r: ChatResult<undefined>) => Promise<void>,
   onEvent?: (e: TanyaEvent) => void, // given: stream the reply as it is written
 ): Promise<TanyaAnswer> {
-  const lang = user.lang === 'en' ? 'en' : 'ms'
-  const system = PROMPT.replace('{style}', STYLE[lang])
+  const system = `${PROMPT.replace('{style}', STYLE[lang])}\n\nLanguage requirement: Reply only in ${lang === 'en' ? 'English' : 'Bahasa Melayu'} for this turn. Do not follow the language used in older messages if it differs.`
   const messages: ChatCompletionMessageParam[] = [{ role: 'system', content: system }, ...history, { role: 'user', content: `<rider_message>${message}</rider_message>` }]
   const results: Record<string, unknown>[] = []
   const tools: string[] = []
