@@ -6,7 +6,7 @@ import { env } from '../src/env.ts'
 import { addWeeks } from '../src/lib/weeks.ts'
 import { chat, imagePart, modelFor } from '../src/llm/client.ts'
 import { cleanImage, MAX_BYTES } from '../src/llm/snap.ts'
-import { demo, fakeLlm, noLlm, THIS_WEEK } from './helpers.ts'
+import { demo, fakeLlm, noLlm, pdf, THIS_WEEK } from './helpers.ts'
 
 const LAST_WEEK = addWeeks(THIS_WEEK, -1)
 const Week = z.object({ gross_rm: z.number().nullable(), trips: z.number().nullable() })
@@ -70,6 +70,27 @@ test('a screenshot becomes a draft in sen, and nothing is saved', async () => {
   expect(await db.select().from(schema.llmUsage)).toHaveLength(1)
 })
 
+test('an earnings PDF is read as text, fenced as data, and becomes a draft like a screenshot', async () => {
+  const a = await signedIn()
+  const llm = fakeLlm()
+  llm.reply = answer({ platform: 'grab', week_start: LAST_WEEK, gross_rm: 640, trips: 52 })
+  const res = await a.post('/api/snap/extract').attach('files', pdf(['GrabFood weekly statement', 'Total earnings RM640.00', 'Jobs completed 52']), 'grab.pdf')
+  expect(res.status, res.text).toBe(200)
+  expect(res.body.drafts[0]).toMatchObject({ grossSen: 64000, trips: 52, platform: 'grab', weekStart: LAST_WEEK })
+  const sent = (llm.requests[0]!.messages as { content: unknown }[])[1]!.content as string
+  expect(sent).toContain('<<<PDF')
+  expect(sent).toContain('Total earnings RM640.00')
+})
+
+test('a scanned PDF with no text is refused before any AI call', async () => {
+  const a = await signedIn()
+  const llm = fakeLlm()
+  const res = await a.post('/api/snap/extract').attach('files', pdf([]), 'scan.pdf')
+  expect(res.status).toBe(422)
+  expect(res.body.error.code).toBe('pdf_no_text')
+  expect(llm.requests).toHaveLength(0)
+})
+
 test('missing fields stay empty and odd figures are flagged', async () => {
   const a = await signedIn()
   fakeLlm().reply = answer({ gross_rm: 650, trips: 900, hours_online: 40 })
@@ -101,10 +122,12 @@ test('not an earnings screen', async () => {
   expect((await upload(a, await png())).body).toEqual({ drafts: [], notEarnings: 1 })
 })
 
-test('non-images and big files are refused before the LLM', async () => {
+test('non-images, broken PDFs and big files are refused before the LLM', async () => {
   const a = await signedIn()
   const llm = fakeLlm()
-  expect((await upload(a, Buffer.from('%PDF-1.4 not an image'))).status).toBe(415)
+  expect((await upload(a, Buffer.from('GIF89a not a supported image'))).status).toBe(415)
+  const broken = await upload(a, Buffer.from('%PDF-1.4 a broken pdf'))
+  expect([broken.status, broken.body.error.code]).toEqual([422, 'pdf_unreadable'])
   expect((await upload(a, Buffer.alloc(MAX_BYTES + 10))).status).toBe(413)
   const img = await png()
   expect((await upload(a, img, img, img, img, img, img)).status).toBe(422)

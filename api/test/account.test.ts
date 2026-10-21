@@ -2,30 +2,9 @@ import { expect, test } from 'vitest'
 import { db, schema } from '../src/db/index.ts'
 import { addDays, addWeeks } from '../src/lib/weeks.ts'
 import { parseStatement } from '../src/services/statement.ts'
-import { demo, logHistory, onboard, rider, THIS_WEEK } from './helpers.ts'
+import { demo, logHistory, onboard, pdf, rider, THIS_WEEK } from './helpers.ts'
 
 /** A minimal one-page PDF with one text line per entry (Helvetica), enough for pypdf to read. */
-function pdf(lines: string[]): Buffer {
-  const esc = (s: string) => s.replace(/[\\()]/g, (c) => `\\${c}`)
-  const content = `BT /F1 10 Tf 40 800 Td 14 TL ${lines.map((l) => `(${esc(l)}) Tj T*`).join(' ')} ET`
-  const objs = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>',
-    `<< /Length ${content.length} >>\nstream\n${content}\nendstream`,
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
-  ]
-  let out = '%PDF-1.4\n'
-  const offsets: number[] = []
-  objs.forEach((o, i) => {
-    offsets.push(out.length)
-    out += `${i + 1} 0 obj\n${o}\nendobj\n`
-  })
-  const xref = out.length
-  out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`
-  out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`
-  return Buffer.from(out, 'latin1')
-}
 const dmy = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}`
 
 test('export has everything about the rider and no secrets', async () => {

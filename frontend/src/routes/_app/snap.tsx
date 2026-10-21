@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Camera, ImagePlus, Loader2, PencilLine, Plus, ScanLine, ShieldAlert, Trash2, TriangleAlert } from 'lucide-react'
+import { Camera, FileText, ImagePlus, Loader2, PencilLine, Plus, ScanLine, ShieldAlert, Trash2, TriangleAlert } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { MoneyField } from '../../components/MoneyField'
 import { ResultPlaceholder } from '../../components/EmptyState'
@@ -21,6 +21,9 @@ export const Route = createFileRoute('/_app/snap')({
 })
 
 const lastWeek = () => addDays(weekStart(todayKL()), -7)
+const IMAGES = 'image/png,image/jpeg,image/webp'
+const PDF = 'application/pdf'
+type Source = 'camera' | 'gallery' | 'pdf' | 'any'
 type Row = Draft & { key: number }
 let nextKey = 0
 const keyed = (d: Draft): Row => ({ ...d, key: nextKey++ })
@@ -40,11 +43,25 @@ function Snap() {
   const [drafts, setDrafts] = useState<Row[]>(() => (mode === 'manual' ? [blank()] : []))
   const [notice, setNotice] = useState<string | null>(null)
   const aiAllowed = user.consents.llm_processing?.granted !== false
+  // One hidden file input, set up for whichever button was tapped: the camera straight away, the photo gallery, or PDFs
+  // (earnings statements the apps email). "Add more" takes any of them.
+  const pick = (source: Source) => {
+    const input = fileRef.current
+    if (!input) return
+    input.accept = source === 'camera' || source === 'gallery' ? IMAGES : source === 'pdf' ? PDF : `${IMAGES},${PDF}`
+    input.multiple = source !== 'camera'
+    if (source === 'camera') input.setAttribute('capture', 'environment')
+    else input.removeAttribute('capture')
+    input.click()
+  }
 
   const read = useMutation({
     mutationFn: async (files: File[]) => {
       const form = new FormData()
-      for (const f of files.slice(0, 5)) form.append('files', await shrink(f), f.name.replace(/\.\w+$/, '.jpg'))
+      for (const f of files.slice(0, 5)) {
+        if (f.type === PDF) form.append('files', f, f.name) // read as text on the server; nothing to shrink
+        else form.append('files', await shrink(f), f.name.replace(/\.\w+$/, '.jpg'))
+      }
       return api<{ drafts: Draft[]; notEarnings: number }>('/api/snap/extract', { form })
     },
     onSuccess: (res) => {
@@ -91,10 +108,20 @@ function Snap() {
             <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
             {aiAllowed ? (
               <>
-                <button type="button" className="btn btn-brand" onClick={() => fileRef.current?.click()}>
-                  {mode === 'history' ? <ImagePlus size={20} aria-hidden /> : <Camera size={20} aria-hidden />}
-                  {t(mode === 'history' ? 'snap.pickMany' : 'snap.pick')}
+                <button type="button" className="btn btn-brand" onClick={() => pick('camera')}>
+                  <Camera size={20} aria-hidden />
+                  {t('snap.camera')}
                 </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" className="btn btn-secondary px-3" onClick={() => pick('gallery')}>
+                    <ImagePlus size={20} aria-hidden />
+                    {t('snap.gallery')}
+                  </button>
+                  <button type="button" className="btn btn-secondary px-3" onClick={() => pick('pdf')}>
+                    <FileText size={20} aria-hidden />
+                    {t('snap.pdf')}
+                  </button>
+                </div>
                 <p className="text-[0.8125rem] text-muted">{t('snap.privacy')}</p>
               </>
             ) : (
@@ -109,7 +136,7 @@ function Snap() {
         <input
           ref={fileRef}
           type="file"
-          accept="image/png,image/jpeg,image/webp"
+          accept={`${IMAGES},${PDF}`}
           multiple
           hidden
           onChange={(e) => {
@@ -141,7 +168,7 @@ function Snap() {
                 {t('snap.addPlatform')}
               </button>
               {aiAllowed && (
-                <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()} disabled={read.isPending}>
+                <button type="button" className="btn btn-secondary" onClick={() => pick('any')} disabled={read.isPending}>
                   <ImagePlus size={18} aria-hidden />
                   {t('snap.addScreenshot')}
                 </button>

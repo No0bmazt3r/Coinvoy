@@ -18,8 +18,10 @@ const scannedPdf = () =>
 
 async function pdfText(raw: Buffer): Promise<string> {
   if (raw.length > MAX_BYTES) throw new ApiError(413, 'image_too_big', 'Fail terlalu besar (had 5 MB).', 'File too large (5 MB max).')
-  const lines = await ml.statementLines(raw).catch(() => {
-    throw new ApiError(422, 'pdf_unreadable', 'PDF ini tak dapat dibaca. Cuba PDF lain (tanpa kata laluan) atau gambar skrin.', "This PDF can't be read. Try another PDF (no password) or a screenshot.")
+  const lines = await ml.statementLines(raw).catch((err: unknown) => {
+    if (err instanceof ApiError && err.code === 'statement_unreadable') // broken or password-protected; an outage stays an outage
+      throw new ApiError(422, 'pdf_unreadable', 'PDF ini tak dapat dibaca. Cuba PDF lain (tanpa kata laluan) atau gambar skrin.', "This PDF can't be read. Try another PDF (no password) or a screenshot.")
+    throw err
   })
   if (lines.length === 0) throw scannedPdf()
   return lines.join('\n')
@@ -32,14 +34,14 @@ snapRouter.post('/snap/extract', requireUser, (req, res, next) => {
     if (err instanceof multer.MulterError) {
       next(
         err.code === 'LIMIT_FILE_SIZE'
-          ? new ApiError(413, 'image_too_big', 'Gambar terlalu besar (had 5 MB).', 'Image too large (5 MB max).')
-          : new ApiError(422, 'too_many_images', 'Pilih 1 hingga 5 gambar.', 'Choose 1 to 5 images.'),
+          ? new ApiError(413, 'image_too_big', 'Fail terlalu besar (had 5 MB).', 'File too large (5 MB max).')
+          : new ApiError(422, 'too_many_images', 'Pilih 1 hingga 5 fail.', 'Choose 1 to 5 files.'),
       )
     } else next(err)
   })
 }, async (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? []
-  if (files.length < 1 || files.length > MAX_FILES) throw new ApiError(422, 'too_many_images', 'Pilih 1 hingga 5 gambar.', 'Choose 1 to 5 images.')
+  if (files.length < 1 || files.length > MAX_FILES) throw new ApiError(422, 'too_many_images', 'Pilih 1 hingga 5 fail.', 'Choose 1 to 5 files.')
   const user = userOf(res)
   // Screenshots and photos are re-encoded (refusing anything that isn't a real image); PDFs become their text via the
   // ML service, in memory. Both happen before any AI call, so a bad file costs no tokens.
