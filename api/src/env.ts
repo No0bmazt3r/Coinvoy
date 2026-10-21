@@ -6,6 +6,8 @@ const schema = z.object({
   PORT: z.coerce.number().default(8000),
   // Empty = embedded Postgres (PGlite) in api/.pglite, zero setup. 'memory://' for tests. postgres://… in production.
   DATABASE_URL: z.string().default(''),
+  // Local PGlite only: also accept Postgres connections (DBeaver, psql) on this port while the API runs. 0 = off.
+  PGLITE_PORT: z.coerce.number().int().min(0).max(65535).default(5433),
   APP_URL: z.url().default('http://localhost:5173'),
   COOKIE_SECURE: bool(false),
   SESSION_TTL_DAYS: z.coerce.number().positive().default(7),
