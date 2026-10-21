@@ -137,10 +137,20 @@ body {
 .page-in > *, .page-in .col > * { translate: var(--drag-x, 0px) 0; transition: translate 320ms var(--ease-out); }
 .page-in.dragging > *, .page-in.dragging .col > * { transition: none; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-down { to { transform: translateY(100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: 0.55; } }
-.sheet { max-height: 90dvh; }
-.sheet[open] > div { animation: sheet-up 250ms var(--ease-out); }
+/* The dialog itself can't scroll (overflow: clip): opening focuses the close button while the panel is still below the
+   screen, and a scrollable dialog jumped to reach it mid-slide. The panel inside scrolls instead. */
+.sheet { max-height: 90dvh; overflow: clip; }
+.sheet > div { max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; }
+/* The iOS sheet curve: quick to start, long gentle settle. Exit is shorter and accelerates away. */
+.sheet[open] > div { animation: sheet-up 380ms cubic-bezier(0.32, 0.72, 0, 1); }
+.sheet[open]::backdrop { animation: fade-in 300ms ease-out; }
+.sheet.closing > div { animation: sheet-down 220ms cubic-bezier(0.4, 0, 1, 1) forwards; }
+.sheet.closing::backdrop { animation: fade-out 220ms ease-in forwards; }
 /* Two-column screens (Home, Tabung, Rekod): on phones a .col is display:contents, so its cards join the single
    column (reordered with max-lg:order-*) and animate in like direct children; from lg it's a real column. */
 .col { display: contents; }
@@ -150,6 +160,7 @@ body {
   /* The sidebar is vertical, so tab changes fade up instead of sliding sideways; the sheet is a centred dialog */
   .page-in > *, .page-in .col > * { --page-dx: 0px; --page-dy: 8px; }
   .sheet[open] > div { animation: rise 250ms var(--ease-out); }
+  .sheet.closing > div { animation: fade-out 160ms ease-in forwards; }
 }
 .spin { animation: spin 900ms linear infinite; }
 .skeleton { animation: pulse 1.4s ease-in-out infinite; }
