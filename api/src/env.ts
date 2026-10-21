@@ -26,6 +26,8 @@ const schema = z.object({
   // Render gives host:port without http://, so we add it.
   ML_URL: z.preprocess((v) => (typeof v === 'string' && v && !/^https?:\/\//.test(v) ? `http://${v}` : v), z.url().default('http://127.0.0.1:8001')),
   ML_TOKEN: z.string().default(''),
+  // How many proxies sit in front of the API: 1 for the Vite dev server or Render alone, 2 behind Vercel + Render
+  TRUST_PROXY: z.coerce.number().int().min(0).max(5).default(1),
   // Any OpenAI-compatible LLM provider (see .env.example). Empty key = AI off, manual entry still works.
   LLM_BASE_URL: z.url().default('https://openrouter.ai/api/v1'),
   LLM_API_KEY: z.string().default(''),

@@ -69,3 +69,6 @@ client_secret_*.json
 
 # Statements and screenshots dropped in the repo root for testing (they hold real names and accounts)
 /*.pdf
+
+# Vercel CLI link (vercel link / vercel pull)
+.vercel/

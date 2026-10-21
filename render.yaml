@@ -18,7 +18,9 @@ services:
       - key: COOKIE_SECURE
         value: "true"
       - key: APP_URL
-        sync: false # your site address, e.g. https://coinvoy.onrender.com
+        sync: false # the app's address on Vercel, e.g. https://coinvoy.vercel.app (riders sign in there)
+      - key: TRUST_PROXY # Vercel forwards /api to Render's proxy, then here: two hops
+        value: "2"
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET

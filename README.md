@@ -152,7 +152,7 @@ This is a **monorepo**: one repository, one `.env` and one command start all thr
 | Folder | What | Language |
 |---|---|---|
 | `frontend/` | The app (a PWA) | TypeScript, React |
-| `api/` | The API, which also serves the built app | TypeScript, Node + Express |
+| `api/` | The API | TypeScript, Node + Express |
 | `ml/` | The salary engine, BM classifier and PDF renderer | Python, FastAPI |
 
 </div>
@@ -256,11 +256,14 @@ Coinvoy/
 flowchart LR
   rider(["Rider's phone<br/>PWA · BM / EN"])
 
+  subgraph vercel["Vercel"]
+    pwa["The app (PWA)<br/>offline shell · forwards /api and /o"]
+  end
+
   subgraph render["Render · Singapore"]
     direction TB
     subgraph web["Web service: api/ (Node 24 + Express 5)"]
       direction TB
-      pwa["Built PWA<br/>(same origin, offline shell)"]
       routes["/api/* routes<br/>zod · sessions · rate limits"]
       llm["src/llm/<br/>Snap · Odah Bot · number guard"]
     end
@@ -271,8 +274,8 @@ flowchart LR
   google["Google sign-in<br/>(OpenID Connect)"]
   ai["AI providers<br/>(any OpenAI-compatible)"]
 
-  rider <-->|HTTPS| pwa
-  rider <-->|HTTPS| routes
+  rider <-->|HTTPS, one address| pwa
+  pwa <-->|/api · /o| routes
   routes <--> db
   routes -->|JSON + shared token| ml
   routes --> llm
@@ -281,7 +284,7 @@ flowchart LR
   routes -.->|verify tokens| google
 ```
 
-- **One origin.** The API serves the built app, so the session cookie is first-party and there's no CORS.
+- **One address for the browser.** Vercel serves the app and forwards `/api` and `/o` to the API, so the session cookie is first-party and there's no CORS.
 - **The ML service is private and stateless.** It has no database, users or AI; the API sends a rider's data as JSON and stores what comes back.
 - **The AI reads and talks; code computes.** Every number a rider sees comes from the engine or the database.
 
@@ -332,7 +335,7 @@ The reply streams word by word, but a word is only shown once the guard has pass
 | AI | `openai` SDK against any OpenAI-compatible provider, a key and model per job |
 | Auth | Google OpenID Connect (code flow + PKCE) and One Tap; server-side sessions |
 | Tests and CI | vitest, supertest, pytest; GitHub Actions (lint, types, tests on PGlite and real Postgres, bundle budget, gitleaks) |
-| Hosting | Render, Singapore: web service + private ML service + Postgres, no Docker |
+| Hosting | Vercel (the app) + Render, Singapore (API, private ML service, Postgres), no Docker |
 
 </div>
 
@@ -564,23 +567,43 @@ Screenshots and statement PDFs are read in memory and **never stored**; EXIF is 
 
 ## Deployment
 
-Coinvoy deploys as **one Render Blueprint** ([`render.yaml`](render.yaml)) in Singapore, with no Docker:
+The app and the backend deploy separately. The browser only ever talks to the app's address: Vercel forwards `/api` and `/o` to the backend, so the sign-in cookie stays first-party and there's no CORS.
 
 <div align="center">
 
-| Render resource | What runs there |
-|---|---|
-| Web service `coinvoy` | The API **and** the built app (one origin) |
-| Private service `coinvoy-ml` | The Python ML service, reachable only from the API |
-| Postgres `coinvoy-db` | The database; migrations run when the API starts |
+| Part | Where | How it deploys |
+|---|---|---|
+| The app (`frontend/`) | **Vercel** | GitHub Actions ([`deploy-frontend.yml`](.github/workflows/deploy-frontend.yml)), **only by hand**: the repository owner clicks *Run workflow* on `main` |
+| The API (`api/`) | Render web service `coinvoy` (Singapore) | Render Blueprint ([`render.yaml`](render.yaml)) |
+| The ML service (`ml/`) | Render private service `coinvoy-ml` | Same Blueprint; reachable only from the API |
+| Postgres | Render `coinvoy-db` | Same Blueprint; migrations run when the API starts |
 
 </div>
 
-1. Push to GitHub, then in Render choose **New → Blueprint** and pick this repository. Render creates all three and wires `DATABASE_URL`, `ML_URL` and a shared `ML_TOKEN`.
-2. Fill in the secrets Render asks for (`APP_URL`, Google client, AI keys, `PRIVACY_CONTACT_EMAIL`, VAPID keys, `ADMIN_EMAILS`).
-3. In Google Cloud Console, add `https://<your-domain>` as an origin and `https://<your-domain>/api/auth/google/callback` as a redirect URI.
+### The app on Vercel
 
-There is no separate frontend deploy: the web service builds the app and serves it. Once it's live, `https://<your-domain>/try` is the one-scan demo link for a QR code.
+1. **Create and link the project** (once, from the repo root):
+   ```bash
+   npm install --global vercel
+   vercel login
+   vercel link          # create a new project, e.g. "coinvoy"
+   ```
+   This writes `.vercel/project.json` (git-ignored) with the project's `orgId` and `projectId`.
+2. In the Vercel dashboard, open the project → **Settings → Build and Deployment** → set **Root Directory** to `frontend` (keep "Include files outside the root directory" on, since the pnpm lockfile is at the repo root) and **Node.js Version** to 24.x. Build settings come from [`frontend/vercel.json`](frontend/vercel.json).
+3. Create a token at **vercel.com → Account Settings → Tokens**.
+4. In GitHub, open **Settings → Environments → New environment**, name it `production`, set **Deployment branches and tags** to **Selected branches and tags** → add `main`, then add three **environment secrets**: `VERCEL_TOKEN` (step 3), `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (from `.vercel/project.json`). Keeping them in the environment, not as repository secrets, means no workflow on any other branch can read them.
+5. Set the backend's address in [`frontend/vercel.json`](frontend/vercel.json): replace `https://coinvoy.onrender.com` in the two `rewrites` with your API's URL.
+6. Open **Actions → Deploy app (Vercel) → Run workflow**, keep the branch on `main`, and click **Run workflow**. Nothing deploys on a push, pull request or merge, and runs started or re-run by anyone else are skipped. The run's summary shows the live URL.
+
+`frontend/vercel.json` also turns off Vercel's own Git deployments, so pushing to GitHub never deploys anything by itself.
+
+### The backend on Render
+
+1. In Render choose **New → Blueprint** and pick this repository. Render creates the API, the ML service and Postgres, and wires `DATABASE_URL`, `ML_URL` and a shared `ML_TOKEN`.
+2. Fill in the secrets Render asks for. **`APP_URL` is the Vercel address** (e.g. `https://coinvoy.vercel.app`), since that's where riders sign in. Also the Google client, AI keys, `PRIVACY_CONTACT_EMAIL`, VAPID keys and `ADMIN_EMAILS`.
+3. In Google Cloud Console, add the Vercel address as an authorized JavaScript origin and `https://<vercel-address>/api/auth/google/callback` as a redirect URI.
+
+Once both are live, `https://<vercel-address>/try` is the one-scan demo link for a QR code.
 
 ---
 

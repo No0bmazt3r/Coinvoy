@@ -59,7 +59,7 @@ export function rateLimit(perMinute: number): RequestHandler {
 export function createApp() {
   const app = express()
   app.disable('x-powered-by')
-  app.set('trust proxy', 1) // one proxy hop (Vite dev proxy / Render), so req.ip is the real client
+  app.set('trust proxy', env.TRUST_PROXY) // proxy hops in front (TRUST_PROXY), so req.ip is the real client
   app.use(requestLog)
   app.use(securityHeaders)
   app.use(express.json({ limit: '100kb' }))
