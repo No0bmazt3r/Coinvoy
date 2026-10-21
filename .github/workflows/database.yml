@@ -1,11 +1,7 @@
-# Checks the Supabase database on every push to main and runs its migrations only when the repository owner starts
-# it by hand:
-#   push to main       checks reachability and reports whether migration is needed
+# Checks the Supabase database on every push to main and applies pending migrations after the check:
+#   push to main       checks reachability, then migrates if needed
 #   manual "check"     checks reachability and pending migrations without changing anything
 #   manual "migrate"   checks, then applies pending migrations
-#   check    is the database reachable? which migrations are pending? (changes nothing)
-#   migrate  the same, then applies the pending ones
-# Run "migrate" before deploying backend code that changes the database (Render builds and deploys the backend).
 #
 # Why nobody else can run it: the job runs only when the owner both started the run and (for a re-run) clicked
 # re-run, and only on main; DATABASE_URL lives in the "production" GitHub Environment, which only main may use.
@@ -29,11 +25,11 @@ concurrency:
 permissions:
   contents: read
 
-run-name: Database ${{ inputs.action || 'check' }} for ${{ github.sha }}
+run-name: Database ${{ github.event_name == 'push' && 'migrate' || inputs.action || 'check' }} for ${{ github.sha }}
 
 jobs:
   database:
-    name: ${{ inputs.action == 'migrate' && 'Check and migrate' || 'Check' }} database
+    name: ${{ (github.event_name == 'push' || inputs.action == 'migrate') && 'Check and migrate' || 'Check' }} database
     outputs:
       migration_needed: ${{ steps.migration-status.outputs.migration_needed }}
     runs-on: ubuntu-latest
@@ -72,5 +68,5 @@ jobs:
             echo "${{ steps.check.outputs.pending }} migration(s) need to be applied."
           fi
       - name: Apply pending migrations
-        if: github.event_name == 'workflow_dispatch' && inputs.action == 'migrate' && steps.check.outputs.pending != '0'
+        if: steps.check.outputs.pending != '0' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.action == 'migrate'))
         run: node scripts/migrate.ts

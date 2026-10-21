@@ -598,7 +598,7 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 
 ### 2. Migrate the database
 
-The **Database (Supabase)** workflow runs a read-only check automatically on every push to `main`. Its summary reports `migration_needed=true` or `migration_needed=false`; it never migrates automatically. Before a deployment, run it manually with **migrate**. That performs the check and applies pending migrations. The deployment workflows require a successful manual migration run for the exact commit.
+The **Database (Supabase)** workflow checks the database automatically on every push to `main`, reports `migration_needed=true` or `migration_needed=false`, and applies pending migrations when needed. A manual **check** remains read-only; a manual **migrate** performs the check and applies pending migrations. The deployment workflows require a successful database workflow run for the exact commit.
 
 ### 3. The backend on Render
 
