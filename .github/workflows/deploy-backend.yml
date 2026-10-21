@@ -24,6 +24,7 @@ jobs:
       - name: Require successful checks for this commit
         run: |
           conclusion=$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
             --workflow checks.yml \
             --commit "$GITHUB_SHA" \
             --status completed \
@@ -47,6 +48,7 @@ jobs:
       - name: Require successful migration for this commit
         run: |
           conclusion=$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
             --workflow database.yml \
             --commit "$GITHUB_SHA" \
             --status completed \
