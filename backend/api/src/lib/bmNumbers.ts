@@ -1,4 +1,4 @@
-// BM / English number words → numbers, for the number guard. Mirrors ml/app/nlp/bm_parser.words_to_number.
+// BM / English number words → numbers, for the number guard. Mirrors backend/ml/app/nlp/bm_parser.words_to_number.
 export const UNITS: Record<string, number> = {
   kosong: 0, satu: 1, dua: 2, tiga: 3, empat: 4, lima: 5, enam: 6, tujuh: 7, lapan: 8, sembilan: 9,
   one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9,

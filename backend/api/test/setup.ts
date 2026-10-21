@@ -4,7 +4,7 @@ import { db, migrate } from '../src/db/index.ts'
 import { env } from '../src/env.ts'
 import { provider } from '../src/llm/client.ts'
 
-// Tests only ever run on throwaway databases: in-memory PGlite or the CI Postgres. Never the developer's api/.pglite.
+// Tests only ever run on throwaway databases: in-memory PGlite or the CI Postgres. Never the developer's backend/api/.pglite.
 if (env.DATABASE_URL !== 'memory://' && !env.DATABASE_URL.startsWith('postgres')) {
   throw new Error(`Tests refuse DATABASE_URL="${env.DATABASE_URL}": use memory:// or a test Postgres (TEST_DATABASE_URL)`)
 }

@@ -1,6 +1,6 @@
 // Snap extraction accuracy per platform and field. Needs a configured LLM.
 //
-//   node --env-file=../.env scripts/eval-snap.ts ../private_data/snap
+//   node --env-file=../.env scripts/eval-snap.ts ../../private_data/snap
 //
 // The folder holds real, consented screenshots plus labels.json:
 //   { "grab-1.png": { "platform": "grab", "gross_rm": 812.5, "commission_rm": null, "incentives_rm": 40,
@@ -13,7 +13,7 @@ import { cleanImage, extract } from '../src/llm/snap.ts'
 const FIELDS = ['gross_rm', 'commission_rm', 'incentives_rm', 'tips_rm', 'trips', 'hours_online'] as const
 type Label = { platform: string } & Record<(typeof FIELDS)[number], number | null>
 
-const dir = process.argv[2] ?? '../private_data/snap'
+const dir = process.argv[2] ?? '../../private_data/snap'
 const labels = JSON.parse(readFileSync(join(dir, 'labels.json'), 'utf8')) as Record<string, Label>
 const score: Record<string, Record<string, [right: number, total: number]>> = {}
 

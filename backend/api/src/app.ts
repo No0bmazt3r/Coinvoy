@@ -1,6 +1,8 @@
 import { existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import express, { type RequestHandler } from 'express'
+import { sql } from 'drizzle-orm'
+import { db } from './db/index.ts'
 import { env, googleConfigured, llmConfigured } from './env.ts'
 import { ApiError, errorHandler } from './errors.ts'
 import { requestLog } from './log.ts'
@@ -17,7 +19,7 @@ import { recordsRouter } from './routes/records.ts'
 import { snapRouter } from './routes/snap.ts'
 import { weeksRouter } from './routes/weeks.ts'
 
-const DIST = fileURLToPath(new URL('../../frontend/dist', import.meta.url))
+const DIST = fileURLToPath(new URL('../../../frontend/dist', import.meta.url)) // served only by `pnpm preview:prod`; in production Vercel serves the app
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 // Security headers. Allows Google profile pictures, inline styles, and Google's sign-in script for One Tap.
@@ -65,7 +67,11 @@ export function createApp() {
   app.use(express.json({ limit: '100kb' }))
   app.use(sameOrigin)
 
-  app.get('/api/health', (_req, res) => void res.json({ ok: true }))
+  // ?db=1 also runs one query: the keep-alive workflow uses it so Supabase never pauses for inactivity
+  app.get('/api/health', async (req, res) => {
+    if (req.query.db !== undefined) await db.execute(sql`select 1`)
+    res.json({ ok: true, version: env.GIT_SHA })
+  })
   // Public facts the privacy page shows: who processes screenshots and chat, and where.
   app.get('/api/meta', (_req, res) =>
     void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured(), privacyContact: env.PRIVACY_CONTACT_EMAIL || null }),

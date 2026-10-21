@@ -145,19 +145,19 @@ The problem has two parts. **Uneven income:** good weeks get spent and bad weeks
 
 ## Getting started
 
-This is a **monorepo**: one repository, one `.env` and one command start all three parts.
+This is a **monorepo**: one repository, and one command starts everything. The app and the backend each have their own `.env.example`.
 
 <div align="center">
 
 | Folder | What | Language |
 |---|---|---|
 | `frontend/` | The app (a PWA) | TypeScript, React |
-| `api/` | The API | TypeScript, Node + Express |
-| `ml/` | The salary engine, BM classifier and PDF renderer | Python, FastAPI |
+| `backend/api/` | The API | TypeScript, Node + Express |
+| `backend/ml/` | The salary engine, BM classifier and PDF renderer | Python, FastAPI |
 
 </div>
 
-The `frontend` and `api` packages are a [pnpm workspace](https://pnpm.io/workspaces) (`pnpm-workspace.yaml`); `ml` is a [uv](https://docs.astral.sh/uv/) project. Run every command **from the repo root**.
+`frontend` and `backend/api` are a [pnpm workspace](https://pnpm.io/workspaces) (`pnpm-workspace.yaml`); `backend/ml` is a [uv](https://docs.astral.sh/uv/) project. The backend deploys as **one container** (`backend/Dockerfile`). Run every command **from the repo root**.
 
 ### 1. Prerequisites
 
@@ -172,7 +172,7 @@ The `frontend` and `api` packages are a [pnpm workspace](https://pnpm.io/workspa
 
 </div>
 
-No database to install: locally the API uses an embedded Postgres (PGlite) stored in `api/.pglite`.
+No database to install: locally the API uses an embedded Postgres (PGlite) stored in `backend/api/.pglite`.
 
 ### 2. Install and run
 
@@ -180,15 +180,15 @@ No database to install: locally the API uses an embedded Postgres (PGlite) store
 git clone https://github.com/No0bmazt3r/Coinvoy.git
 cd Coinvoy
 pnpm bootstrap          # installs the web app and API (pnpm) and the ML service (uv)
-cp .env.example .env    # optional: AI keys and Google sign-in (the demo works without them)
+cp backend/.env.example backend/.env    # optional: AI keys and Google sign-in (the demo works without them)
 pnpm dev                # API :8000 · ML service :8001 · app http://localhost:5173
 ```
 
 Open http://localhost:5173 and tap **Cuba demo**, or go straight to http://localhost:5173/try, which skips the intro and signs you into the demo in one step (the link the pitch deck's QR code uses). You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Odah Bot need an AI key; everything else works without one.
 
-### 3. Configuration (`.env`)
+### 3. Configuration (`backend/.env`)
 
-Every setting is documented in [`.env.example`](.env.example). Only the API reads it. To run locally, the only things you might add are:
+Every backend setting is documented in [`backend/.env.example`](backend/.env.example). The app (`frontend/`) needs none; its [`frontend/.env.example`](frontend/.env.example) explains why. To run locally, the only things you might add are:
 
 <div align="center">
 
@@ -200,7 +200,7 @@ Every setting is documented in [`.env.example`](.env.example). Only the API read
 
 </div>
 
-**Any OpenAI-compatible AI provider works.** Groq, Gemini, OpenRouter, OpenAI, Mistral, Ollama and others: set a base URL, key and model per job (the list of base URLs is in `.env.example`). Switching provider is never a code change. Before sending real rider data, check the provider's data terms: Groq offers zero data retention, while Gemini's **free** tier may use prompts to improve Google's products.
+**Any OpenAI-compatible AI provider works.** Groq, Gemini, OpenRouter, OpenAI, Mistral, Ollama and others: set a base URL, key and model per job (the list of base URLs is in `backend/.env.example`). Switching provider is never a code change. Before sending real rider data, check the provider's data terms: Groq offers zero data retention, while Gemini's **free** tier may use prompts to improve Google's products.
 
 ### 4. Commands
 
@@ -212,7 +212,7 @@ Every setting is documented in [`.env.example`](.env.example). Only the API read
 | `pnpm check` | Lint, typecheck, all tests and the production build (what CI runs) |
 | `pnpm test` | ML (pytest) + API (vitest, against the real ML service) + web tests |
 | `pnpm preview:prod` | Builds the app and serves the **production build** at http://localhost:8000 (the dev build is several times slower) |
-| `pnpm db:generate` | Writes a SQL migration from `api/src/db/schema.ts` (applied when the API starts) |
+| `pnpm db:generate` | Writes a SQL migration from `backend/api/src/db/schema.ts` (applied when the API starts) |
 | `pnpm train:bm` | Regenerates the seed phrases and retrains the BM cost classifier |
 | `pnpm train:rate <csv>` | Trains the pooled rate model (`--synthetic N` for a dry run) |
 | `pnpm icons` | Regenerates the app icons from `public/Coinvoy.png` |
@@ -228,22 +228,28 @@ Every setting is documented in [`.env.example`](.env.example). Only the API read
 ```
 Coinvoy/
 ├── frontend/                 React 19 PWA: src/routes (screens), src/components, src/lib, src/i18n (ms.json, en.json)
-├── api/
-│   ├── src/routes/           HTTP: zod validation, auth, status codes
-│   ├── src/services/         rules and orchestration (salary, pots, penyata, reco, scam, …)
-│   ├── src/llm/              AI client, Snap, Odah Bot (`tanya.ts`), the number guard, prompts/*.md
-│   ├── src/db/               Drizzle schema (every table), Postgres or PGlite
-│   ├── drizzle/              SQL migrations, applied at startup
-│   └── test/                 vitest suites (fake AI provider, real ML service)
-├── ml/
-│   ├── app/engine/           forecast, simulation, salary search, Malaysian calendar
-│   ├── app/nlp/              BM parser and classifier
-│   ├── app/render/           Penyata PDF and officer page
-│   ├── scripts/              training, backtest, evaluation
-│   └── tests/                pytest
-├── render.yaml               deployment blueprint (Render, Singapore)
-├── .github/                  CI, issue and PR templates, CODEOWNERS
-└── .env.example              one .env at the root for everything
+│   ├── vercel.json           Vercel build settings, /api forwarding, security headers
+│   └── .env.example          the app's settings (none needed)
+├── backend/                  everything server-side, deployed as one container
+│   ├── api/
+│   │   ├── src/routes/       HTTP: zod validation, auth, status codes
+│   │   ├── src/services/     rules and orchestration (salary, pots, penyata, reco, scam, …)
+│   │   ├── src/llm/          AI client, Snap, Odah Bot (`tanya.ts`), the number guard, prompts/*.md
+│   │   ├── src/db/           Drizzle schema (every table), Postgres or PGlite
+│   │   ├── drizzle/          SQL migrations
+│   │   ├── scripts/          migrate.ts (check / apply), eval and cost reports
+│   │   └── test/             vitest suites (fake AI provider, real ML service)
+│   ├── ml/
+│   │   ├── app/engine/       forecast, simulation, salary search, Malaysian calendar
+│   │   ├── app/nlp/          BM parser and classifier
+│   │   ├── app/render/       Penyata PDF and officer page
+│   │   ├── scripts/          training, backtest, evaluation
+│   │   └── tests/            pytest
+│   ├── Dockerfile            the one image: API on $PORT, engine on 127.0.0.1 inside
+│   ├── start.sh              starts both, stops both
+│   └── .env.example          every backend setting
+├── .github/workflows/        CI checks, deploy-frontend (Vercel), deploy-backend (Render), keepalive
+└── .github/                  issue and PR templates, CODEOWNERS
 ```
 
 ---
@@ -260,16 +266,17 @@ flowchart LR
     pwa["The app (PWA)<br/>offline shell · forwards /api and /o"]
   end
 
-  subgraph render["Render · Singapore"]
+  subgraph render["Render (free) · one container: backend/"]
     direction TB
-    subgraph web["Web service: api/ (Node 24 + Express 5)"]
+    subgraph web["API: backend/api (Node 24 + Express 5), on $PORT"]
       direction TB
       routes["/api/* routes<br/>zod · sessions · rate limits"]
       llm["src/llm/<br/>Snap · Odah Bot · number guard"]
     end
-    ml["Private service: ml/ (Python + FastAPI)<br/>salary engine · BM classifier · Penyata PDF"]
-    db[("Postgres<br/>(PGlite locally)")]
+    ml["Engine: backend/ml (Python + FastAPI), on 127.0.0.1 only<br/>salary engine · BM classifier · Penyata PDF"]
   end
+
+  db[("Supabase Postgres<br/>(PGlite locally)")]
 
   google["Google sign-in<br/>(OpenID Connect)"]
   ai["AI providers<br/>(any OpenAI-compatible)"]
@@ -277,7 +284,7 @@ flowchart LR
   rider <-->|HTTPS, one address| pwa
   pwa <-->|/api · /o| routes
   routes <--> db
-  routes -->|JSON + shared token| ml
+  routes -->|localhost + shared token| ml
   routes --> llm
   llm -->|OCR · chat · suggestions| ai
   rider -.->|sign in| google
@@ -285,7 +292,7 @@ flowchart LR
 ```
 
 - **One address for the browser.** Vercel serves the app and forwards `/api` and `/o` to the API, so the session cookie is first-party and there's no CORS.
-- **The ML service is private and stateless.** It has no database, users or AI; the API sends a rider's data as JSON and stores what comes back.
+- **The engine is private and stateless.** It runs in the same container as the API, listening on `127.0.0.1` only, with no database, users or AI; the API sends a rider's data as JSON and stores what comes back.
 - **The AI reads and talks; code computes.** Every number a rider sees comes from the engine or the database.
 
 ### Confirming a week → a new salary
@@ -335,7 +342,7 @@ The reply streams word by word, but a word is only shown once the guard has pass
 | AI | `openai` SDK against any OpenAI-compatible provider, a key and model per job |
 | Auth | Google OpenID Connect (code flow + PKCE) and One Tap; server-side sessions |
 | Tests and CI | vitest, supertest, pytest; GitHub Actions (lint, types, tests on PGlite and real Postgres, bundle budget, gitleaks) |
-| Hosting | Vercel (the app) + Render, Singapore (API, private ML service, Postgres), no Docker |
+| Hosting | Vercel (the app) · Render free (the backend, one container) · Supabase (Postgres) |
 
 </div>
 
@@ -502,11 +509,11 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 
 **The salary.** Income is forecast as rate × hours: the rider's own average RM per hour, shrunk toward a population prior when there are few weeks. The engine simulates 1,000 12-week futures with a **block bootstrap** (runs of 4 consecutive weeks, so bad spells stay together), subtracts bills, contributions and leave set-asides in the weeks they fall due, and searches for the largest whole-ringgit salary that keeps the buffer at or above zero in at least 95% of futures. While the buffer is below 2 weeks of essentials, it also has to reach that target within about 8 weeks. Same rider, same week, same seed: the number doesn't jitter.
 
-**The Malaysian calendar.** Ramadan, public holidays and school holidays (`ml/app/engine/data/calendar_my.json`) are features of every week: past weeks have their season effect taken out before fitting, and future weeks get theirs put back, so a Raya week isn't mistaken for a slump. A pooled gradient-boosted rate model can replace the shrinkage mean, but stays off until it beats it on real histories.
+**The Malaysian calendar.** Ramadan, public holidays and school holidays (`backend/ml/app/engine/data/calendar_my.json`) are features of every week: past weeks have their season effect taken out before fitting, and future weeks get theirs put back, so a Raya week isn't mistaken for a slump. A pooled gradient-boosted rate model can replace the shrinkage mean, but stays off until it beats it on real histories.
 
-**The AI is fenced in.** Every number Odah Bot says is checked by plain code against the tool results and the rider's own message (`api/src/llm/guard.ts`). Snap and the lender check have no tools and must answer in a schema; text inside a screenshot is data, never instructions.
+**The AI is fenced in.** Every number Odah Bot says is checked by plain code against the tool results and the rider's own message (`backend/api/src/llm/guard.ts`). Snap and the lender check have no tools and must answer in a schema; text inside a screenshot is data, never instructions.
 
-**BM NLP, our own.** Cost phrases go through rules (BM number words like "dua ratus lima puluh", "rm40", "1.5k"), then our TF-IDF + logistic regression classifier (`ml/app/nlp/`), and only reach the AI when both are unsure. A number the rules found always wins.
+**BM NLP, our own.** Cost phrases go through rules (BM number words like "dua ratus lima puluh", "rm40", "1.5k"), then our TF-IDF + logistic regression classifier (`backend/ml/app/nlp/`), and only reach the AI when both are unsure. A number the rules found always wins.
 
 ## Results (honest status)
 
@@ -514,12 +521,12 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 
 | What | Status |
 |---|---|
-| Walk-forward backtest (`ml/scripts/backtest.py`) | **Dry run on 30 synthetic riders only**: Coinvoy ran short in 0.0% of 660 replayed weeks vs 1.2% for "4-week average − 20%", at a higher median salary (RM594 vs RM511). Synthetic data follows the engine's own assumptions, so this is **not evidence**; a real-data run comes after launch. |
+| Walk-forward backtest (`backend/ml/scripts/backtest.py`) | **Dry run on 30 synthetic riders only**: Coinvoy ran short in 0.0% of 660 replayed weeks vs 1.2% for "4-week average − 20%", at a higher median salary (RM594 vs RM511). Synthetic data follows the engine's own assumptions, so this is **not evidence**; a real-data run comes after launch. |
 | Pooled rate model | **Synthetic dry run only**; off by default (`RATE_MODEL`). |
 | Calendar data | Transcribed from the official calendars but **not yet checked line by line** (`verified: false`); season effects are team estimates. |
-| BM classifier (`ml/app/nlp/artifacts/model_card.md`) | Trained on 770 **synthetic seed** phrases; no real-world accuracy figure yet. |
-| Snap accuracy (`api/scripts/eval-snap.ts`) | Script ready; needs labelled real screenshots. |
-| Cost per rider (`api/scripts/llm-cost-report.ts`) | AI runs on free tiers today (RM0). Every call is logged with its tokens, so the script prices paid-tier usage once there is real usage and a dated price table. |
+| BM classifier (`backend/ml/app/nlp/artifacts/model_card.md`) | Trained on 770 **synthetic seed** phrases; no real-world accuracy figure yet. |
+| Snap accuracy (`backend/api/scripts/eval-snap.ts`) | Script ready; needs labelled real screenshots. |
+| Cost per rider (`backend/api/scripts/llm-cost-report.ts`) | AI runs on free tiers today (RM0). Every call is logged with its tokens, so the script prices paid-tier usage once there is real usage and a dated price table. |
 
 </div>
 
@@ -567,43 +574,66 @@ Screenshots and statement PDFs are read in memory and **never stored**; EXIF is 
 
 ## Deployment
 
-The app and the backend deploy separately. The browser only ever talks to the app's address: Vercel forwards `/api` and `/o` to the backend, so the sign-in cookie stays first-party and there's no CORS.
+Three free services, and every deploy is a button only the repository owner can press. The browser only ever talks to the app's address: Vercel forwards `/api` and `/o` to the backend, so the sign-in cookie stays first-party and there's no CORS.
 
 <div align="center">
 
-| Part | Where | How it deploys |
+| Part | Where (free) | How it deploys |
 |---|---|---|
-| The app (`frontend/`) | **Vercel** | GitHub Actions ([`deploy-frontend.yml`](.github/workflows/deploy-frontend.yml)), **only by hand**: the repository owner clicks *Run workflow* on `main` |
-| The API (`api/`) | Render web service `coinvoy` (Singapore) | Render Blueprint ([`render.yaml`](render.yaml)) |
-| The ML service (`ml/`) | Render private service `coinvoy-ml` | Same Blueprint; reachable only from the API |
-| Postgres | Render `coinvoy-db` | Same Blueprint; migrations run when the API starts |
+| The app (`frontend/`) | **Vercel** | [`deploy-frontend.yml`](.github/workflows/deploy-frontend.yml): owner clicks *Run workflow* on `main` |
+| The backend (`backend/`: API + engine) | **Render**, one container | [`deploy-backend.yml`](.github/workflows/deploy-backend.yml): checks, builds the image, checks and migrates the database, then deploys |
+| The database | **Supabase** Postgres | Migrations run from the backend pipeline, never by hand |
+| Staying awake | GitHub Actions | [`keepalive.yml`](.github/workflows/keepalive.yml) pings every 10 minutes, so Render doesn't sleep and Supabase doesn't pause |
 
 </div>
 
-### The app on Vercel
+All deploy secrets live in one GitHub **Environment** called `production`, which only `main` may use: **Settings → Environments → New environment** → `production` → **Deployment branches and tags** → **Selected branches and tags** → add `main`. A workflow on any other branch can't read them.
 
-1. **Create and link the project** (once, from the repo root):
-   ```bash
-   npm install --global vercel
-   vercel login
-   vercel link          # create a new project, e.g. "coinvoy"
-   ```
-   This writes `.vercel/project.json` (git-ignored) with the project's `orgId` and `projectId`.
-2. In the Vercel dashboard, open the project → **Settings → Build and Deployment** → set **Root Directory** to `frontend` (keep "Include files outside the root directory" on, since the pnpm lockfile is at the repo root) and **Node.js Version** to 24.x. Build settings come from [`frontend/vercel.json`](frontend/vercel.json).
-3. Create a token at **vercel.com → Account Settings → Tokens**.
-4. In GitHub, open **Settings → Environments → New environment**, name it `production`, set **Deployment branches and tags** to **Selected branches and tags** → add `main`, then add three **environment secrets**: `VERCEL_TOKEN` (step 3), `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` (from `.vercel/project.json`). Keeping them in the environment, not as repository secrets, means no workflow on any other branch can read them.
-5. Set the backend's address in [`frontend/vercel.json`](frontend/vercel.json): replace `https://coinvoy.onrender.com` in the two `rewrites` with your API's URL.
-6. Open **Actions → Deploy app (Vercel) → Run workflow**, keep the branch on `main`, and click **Run workflow**. Nothing deploys on a push, pull request or merge, and runs started or re-run by anyone else are skipped. The run's summary shows the live URL.
+### 1. The database on Supabase
 
-`frontend/vercel.json` also turns off Vercel's own Git deployments, so pushing to GitHub never deploys anything by itself.
+1. Create a project at [supabase.com](https://supabase.com) (region **Southeast Asia (Singapore)**), and save the database password.
+2. **Connect** (top bar) → **Session pooler** → copy the connection string and put your password in it. Use the session pooler, not "Direct connection": the direct one is IPv6-only, which GitHub Actions and Render can't reach. Don't add `?sslmode=…` to it.
+3. **Project Settings → Database → SSL Configuration** → **Download certificate**. The backend verifies the database's certificate with it.
+4. Add two secrets to the GitHub `production` environment: `DATABASE_URL` (step 2) and `DATABASE_SSL_CA` (the whole certificate file's text, including the `BEGIN`/`END` lines).
 
-### The backend on Render
+### 2. The backend on Render
 
-1. In Render choose **New → Blueprint** and pick this repository. Render creates the API, the ML service and Postgres, and wires `DATABASE_URL`, `ML_URL` and a shared `ML_TOKEN`.
-2. Fill in the secrets Render asks for. **`APP_URL` is the Vercel address** (e.g. `https://coinvoy.vercel.app`), since that's where riders sign in. Also the Google client, AI keys, `PRIVACY_CONTACT_EMAIL`, VAPID keys and `ADMIN_EMAILS`.
-3. In Google Cloud Console, add the Vercel address as an authorized JavaScript origin and `https://<vercel-address>/api/auth/google/callback` as a redirect URI.
+1. Run **Actions → Deploy backend (Render) → Run workflow** once. It checks, builds the image and migrates the database, then stops before deploying because Render isn't set up yet.
+2. On GitHub, open your profile → **Packages** → `coinvoy-backend` → **Package settings** → **Change visibility → Public**, so Render can pull it (the code is public anyway).
+3. On [render.com](https://render.com): **New → Web Service → Existing Image** → `ghcr.io/<your-username-lowercase>/coinvoy-backend:latest`. Choose the **Free** instance type and the **Singapore** region, and set **Health Check Path** to `/api/health`.
+4. **Environment** on Render: copy what you need from [`backend/.env.example`](backend/.env.example). The deployed values that differ from local:
 
-Once both are live, `https://<vercel-address>/try` is the one-scan demo link for a QR code.
+<div align="center">
+
+| Variable | Deployed value |
+|---|---|
+| `DATABASE_URL`, `DATABASE_SSL_CA` | Same as the GitHub secrets |
+| `MIGRATE_ON_START` | `false` (the pipeline migrates) |
+| `APP_URL` | Your Vercel address, e.g. `https://coinvoy.vercel.app` |
+| `COOKIE_SECURE` | `true` |
+| `TRUST_PROXY` | `2` (Vercel, then Render's proxy) |
+| `PGLITE_PORT` | `0` |
+| AI keys, Google client, `ADMIN_EMAILS`, `PRIVACY_CONTACT_EMAIL`, VAPID keys | As needed |
+
+</div>
+
+5. **Settings → Deploy Hook** → copy it, and add it to the GitHub `production` environment as the secret `RENDER_DEPLOY_HOOK_URL`.
+6. In GitHub **Settings → Secrets and variables → Actions → Variables**, add the repository variable `BACKEND_URL` = the service's address (e.g. `https://coinvoy-backend.onrender.com`). The pipeline waits on it after deploying, and the keep-alive pings it.
+7. Run **Deploy backend (Render)** again: this time it deploys and waits until `/api/health` reports the new commit.
+
+### 3. The app on Vercel
+
+1. From the **repo root** (Vercel's monorepo docs say not to run the CLI from the subfolder): `npm install --global vercel`, `vercel login`, then `vercel link`. Create a new project and answer **`frontend`** for the code directory. This writes `.vercel/project.json` (git-ignored) with the `orgId` and `projectId`.
+2. In the Vercel project: **Settings → Build and Deployment** → check **Root Directory** is `frontend`, **Include files outside the root directory** is on, and **Node.js Version** is 24.x. Build settings come from [`frontend/vercel.json`](frontend/vercel.json).
+3. Create a token at **vercel.com → Account Settings → Tokens**, and add `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` to the GitHub `production` environment.
+4. Set the backend's address in `frontend/vercel.json` (the two `rewrites`) if it isn't `https://coinvoy-backend.onrender.com`.
+5. Run **Actions → Deploy app (Vercel) → Run workflow**. The run's summary shows the live URL.
+
+### 4. Google sign-in
+
+In Google Cloud Console, add the Vercel address as an authorized JavaScript origin and `https://<vercel-address>/api/auth/google/callback` as a redirect URI.
+
+Once everything is live, `https://<vercel-address>/try` is the one-scan demo link for a QR code. On the free plan, Render may still restart the service now and then; the first request after that takes about a minute.
 
 ---
 

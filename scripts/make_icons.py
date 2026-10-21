@@ -34,6 +34,7 @@ def main() -> None:
     logo = master.crop(master.getchannel("A").point(lambda a: 255 if a > 20 else 0).getbbox())
 
     fit(logo, 512).save(OUT / "logo.png", optimize=True)
+    fit(logo, 512).save(ROOT / "backend" / "ml" / "app" / "render" / "logo.png", optimize=True)  # for the Penyata PDF
 
     # The logo keeps its own colours everywhere, including the app icons
     big = fit(logo, 800)

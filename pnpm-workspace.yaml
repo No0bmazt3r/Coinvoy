@@ -1,5 +1,5 @@
 packages:
   - frontend
-  - api
+  - backend/api
 allowBuilds:
   esbuild: false

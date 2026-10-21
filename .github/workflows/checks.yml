@@ -13,9 +13,9 @@ jobs:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
-      - run: uv sync --directory ml
-      - run: uv run --directory ml ruff check .
-      - run: uv run --directory ml pytest -q
+      - run: uv sync --directory backend/ml
+      - run: uv run --directory backend/ml ruff check .
+      - run: uv run --directory backend/ml pytest -q
 
   api:
     name: API (${{ matrix.db == 'postgres' && 'Postgres' || 'PGlite' }})
@@ -37,7 +37,7 @@ jobs:
       - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
       - run: pnpm install --frozen-lockfile
-      - run: uv sync --directory ml # the API tests talk to the real ML service
+      - run: uv sync --directory backend/ml # the API tests talk to the real ML service
       - run: pnpm --filter coinvoy-api typecheck
       - run: pnpm --filter coinvoy-api lint
       - run: pnpm --filter coinvoy-api test

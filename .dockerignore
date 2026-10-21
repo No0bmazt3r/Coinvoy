@@ -1,0 +1,27 @@
+# Only what backend/Dockerfile needs goes into the build (the context is the repo root)
+**/node_modules
+**/.venv
+**/.pglite*
+**/.llm-cache
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+.vercel
+.claude
+docs
+private_data
+public
+scripts
+*.pdf
+backend/ml/results
+backend/ml/tests
+backend/ml/scripts
+backend/ml/data
+backend/api/test
+frontend/*
+!frontend/package.json

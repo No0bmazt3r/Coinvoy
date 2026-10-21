@@ -644,7 +644,7 @@
   "admin.llm": "AI, last {n} days",
   "admin.calls": "Calls",
   "admin.none": "No AI calls yet.",
-  "admin.noPrices": "Fill api/data/llm_prices.json to estimate cost.",
+  "admin.noPrices": "Fill backend/api/data/llm_prices.json to estimate cost.",
   "admin.perRider": "RM{rm} per rider (prices checked {date}).",
   "chart.earnedTitle": "Earnings go up and down. Your salary doesn't.",
   "chart.weeks": "Last {n} weeks",

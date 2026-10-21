@@ -1,0 +1,133 @@
+# Deploys the backend (backend/: the API and the engine in one container) to Render, only when the repository owner
+# starts it by hand: Actions → "Deploy backend (Render)" → Run workflow (branch: main). Nothing else triggers it.
+#
+#   1. Check      lint, types and all backend tests
+#   2. Image      build backend/Dockerfile and push it to GitHub's registry (ghcr.io), tagged with the commit
+#   3. Database   is Supabase reachable? which migrations are pending? apply them (only once the image built)
+#   4. Deploy     tell Render to run exactly that image, then wait until /api/health reports the new commit
+#
+# Why nobody else can deploy: the jobs run only when the owner both started the run and (for a re-run) clicked
+# re-run, and only on main; the secrets live in the "production" GitHub Environment, which only main may use.
+# Setup: README → Deployment → "The backend on Render".
+name: Deploy backend (Render)
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check backend
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - uses: astral-sh/setup-uv@v7
+        with: { version: "0.13.1" }
+      - run: uv sync --directory backend/ml
+      - run: uv run --directory backend/ml ruff check .
+      - run: uv run --directory backend/ml pytest -q
+      - run: pnpm install --frozen-lockfile --filter coinvoy-api
+      - run: pnpm --filter coinvoy-api typecheck
+      - run: pnpm --filter coinvoy-api lint
+      - run: pnpm --filter coinvoy-api test # against the real engine and an in-memory Postgres
+
+  image:
+    name: Build image
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # push to ghcr.io with the run's own token
+    outputs:
+      ref: ${{ steps.name.outputs.image }}:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: name
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/coinvoy-backend" >> "$GITHUB_OUTPUT" # registry names are lowercase
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          build-args: GIT_SHA=${{ github.sha }}
+          tags: |
+            ${{ steps.name.outputs.image }}:${{ github.sha }}
+            ${{ steps.name.outputs.image }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: echo "Image ${{ steps.name.outputs.image }}:${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+
+  database:
+    name: Check and migrate database
+    needs: image # only touch the database once the new version has built
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_SSL_CA: ${{ secrets.DATABASE_SSL_CA }}
+    defaults:
+      run:
+        working-directory: backend/api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile --prod --filter coinvoy-api
+      - name: Is the database reachable, and what's pending?
+        id: check
+        run: node scripts/migrate.ts --check
+      - name: Apply pending migrations
+        if: steps.check.outputs.pending != '0'
+        run: node scripts/migrate.ts
+
+  deploy:
+    name: Deploy to Render
+    needs: [image, database]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ vars.BACKEND_URL }}
+    env:
+      HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      IMAGE: ${{ needs.image.outputs.ref }}
+      BACKEND_URL: ${{ vars.BACKEND_URL }}
+    steps:
+      - name: Tell Render to run the new image
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "No RENDER_DEPLOY_HOOK_URL yet: the image is built ($IMAGE). Create the Render service, add the hook, run again." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          curl --fail --silent --show-error --get --data-urlencode "imgURL=$IMAGE" "$HOOK" > /dev/null
+          echo "Render is deploying $IMAGE" >> "$GITHUB_STEP_SUMMARY"
+      - name: Wait until the new version answers
+        if: env.HOOK != '' && env.BACKEND_URL != ''
+        run: |
+          for i in $(seq 1 60); do # up to 10 minutes
+            version=$(curl --silent --max-time 20 "$BACKEND_URL/api/health" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+            if [ "$version" = "$GITHUB_SHA" ]; then
+              echo "✅ Live: $BACKEND_URL is running $GITHUB_SHA" | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "waiting ($i/60): running ${version:-nothing yet}"
+            sleep 10
+          done
+          echo "❌ The new version didn't come up in 10 minutes: check the service's logs on Render." | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1

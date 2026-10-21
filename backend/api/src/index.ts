@@ -5,7 +5,7 @@ import { describeAi } from './llm/client.ts'
 import { log } from './log.ts'
 import { startReminders } from './services/reminders.ts'
 
-await migrate()
+if (env.MIGRATE_ON_START) await migrate()
 if (serveDb && env.PGLITE_PORT) {
   await serveDb(env.PGLITE_PORT)
     .then((url) => log('info', 'local database open to Postgres clients (DBeaver, psql)', { url }))

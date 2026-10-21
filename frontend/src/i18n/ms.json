@@ -644,7 +644,7 @@
   "admin.llm": "AI, {n} hari lepas",
   "admin.calls": "Panggilan",
   "admin.none": "Tiada panggilan AI lagi.",
-  "admin.noPrices": "Isi api/data/llm_prices.json untuk anggaran kos.",
+  "admin.noPrices": "Isi backend/api/data/llm_prices.json untuk anggaran kos.",
   "admin.perRider": "RM{rm} setiap rider (harga disemak {date}).",
   "chart.earnedTitle": "Pendapatan naik turun. Gaji anda tetap.",
   "chart.weeks": "{n} minggu lepas",

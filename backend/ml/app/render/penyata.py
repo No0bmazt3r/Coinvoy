@@ -10,7 +10,8 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 TEMPLATES = Path(__file__).parent / "templates"
-LOGO = Path(__file__).resolve().parents[3] / "frontend" / "public" / "logo.png"
+# A copy of frontend/public/logo.png, so the backend deploys on its own (`pnpm icons` updates both)
+LOGO = Path(__file__).parent / "logo.png"
 _env = Environment(loader=FileSystemLoader(TEMPLATES), autoescape=select_autoescape(["html"]))
 
 LABELS = {

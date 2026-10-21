@@ -40,11 +40,11 @@ htmlcov/
 
 # Rider data, screenshots and model inputs never go in git (agents.md §5)
 private_data/
-ml/results/
-api/.llm-cache/
+backend/ml/results/
+backend/api/.llm-cache/
 
 # Local embedded Postgres (PGlite)
-api/.pglite*/
+backend/api/.pglite*/
 
 # Logs
 logs/

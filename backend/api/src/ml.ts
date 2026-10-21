@@ -1,4 +1,4 @@
-// Typed client for the Python ML service (ml/app/service.py): the engine, our BM classifier and the Penyata renderer.
+// Typed client for the Python ML service (backend/ml/app/service.py): the engine, our BM classifier and the Penyata renderer.
 import type { EngineResult } from './db/schema.ts'
 import { env } from './env.ts'
 import { ApiError } from './errors.ts'

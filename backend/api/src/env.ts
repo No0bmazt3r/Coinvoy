@@ -6,6 +6,13 @@ const schema = z.object({
   PORT: z.coerce.number().default(8000),
   // Empty: the built-in local database. memory:// for tests. postgres://… on a server.
   DATABASE_URL: z.string().default(''),
+  // Supabase signs its database certificate with its own CA: paste that certificate (PEM) here so the connection is
+  // verified. Empty: the system's trusted CAs (enough for most hosted Postgres; not for Supabase).
+  DATABASE_SSL_CA: z.string().default(''),
+  // Apply migrations at startup (local). Deployed it's false: the deploy pipeline checks and applies them first.
+  MIGRATE_ON_START: bool(true),
+  // The commit the running build came from, shown by /api/health (set by the deploy pipeline)
+  GIT_SHA: z.string().default('dev'),
   // Local PGlite only: also accept Postgres connections (DBeaver, psql) on this port while the API runs. 0 = off.
   PGLITE_PORT: z.coerce.number().int().min(0).max(65535).default(5433),
   APP_URL: z.url().default('http://localhost:5173'),
@@ -15,7 +22,7 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().default(''),
   DEMO_ENABLED: bool(true),
   AUTH_RATE_PER_MIN: z.coerce.number().default(30), // per IP on /api/auth/*
-  LOG_REQUESTS: bool(true), // one JSON line per request (api/src/log.ts)
+  LOG_REQUESTS: bool(true), // one JSON line per request (backend/api/src/log.ts)
   // Comma-separated Google emails that can open the usage view (/admin). Empty = nobody.
   ADMIN_EMAILS: z.string().default('').transform((s) => s.split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)),
   // Web Push for the payday reminder. Generate once: pnpm --filter coinvoy-api exec web-push generate-vapid-keys

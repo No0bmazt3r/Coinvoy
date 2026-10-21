@@ -170,7 +170,7 @@ importers:
         specifier: ^10.0.6
         version: 10.0.6
 
-  api:
+  backend/api:
     dependencies:
       '@electric-sql/pglite':
         specifier: ^0.5.10

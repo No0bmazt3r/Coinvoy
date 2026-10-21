@@ -1,5 +1,5 @@
 // What the AI costs and whether riders come back: shared by the admin view and scripts/llm-cost-report.ts.
-// Prices never live in the app: fill api/data/llm_prices.json from the provider's pricing page and date it.
+// Prices never live in the app: fill backend/api/data/llm_prices.json from the provider's pricing page and date it.
 import { readFileSync } from 'node:fs'
 import { and, eq, gte, isNotNull, sql } from 'drizzle-orm'
 import { type Db, schema } from '../db/index.ts'

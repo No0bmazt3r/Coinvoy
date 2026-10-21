@@ -21,13 +21,13 @@ You need Node 24, pnpm (`corepack enable`), Python 3.12 and [uv](https://docs.as
 git clone https://github.com/<your-username>/Coinvoy.git   # your fork
 cd Coinvoy
 pnpm bootstrap
-cp .env.example .env     # optional; the demo login works without any keys
+cp backend/.env.example backend/.env     # optional; the demo login works without any keys
 pnpm dev                 # http://localhost:5173
 ```
 
 Rules for this repo:
 - **pnpm only** (no npm or yarn), and run every command **from the repo root**.
-- **One `.env` at the root.** Never commit it, or any key, token or Google client file.
+- **Settings live in `backend/.env`** (and the app needs none). Never commit it, or any key, token or Google client file.
 
 ## Workflow
 
@@ -79,12 +79,12 @@ Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
 | Folder | What |
 |---|---|
 | `frontend/` | The React PWA (screens in `src/routes`) |
-| `api/` | Express API: `src/routes` (HTTP), `src/services` (rules), `src/llm` (AI), `src/db/schema.ts` (tables) |
-| `ml/` | Python ML service: `app/engine` (salary), `app/nlp` (BM parser), `app/render` (PDF) |
+| `backend/api/` | Express API: `src/routes` (HTTP), `src/services` (rules), `src/llm` (AI), `src/db/schema.ts` (tables) |
+| `backend/ml/` | Python engine: `app/engine` (salary), `app/nlp` (BM parser), `app/render` (PDF) |
 
 </div>
 
-Changing the database? Edit `api/src/db/schema.ts`, run `pnpm db:generate`, and commit the new file in `api/drizzle/`.
+Changing the database? Edit `backend/api/src/db/schema.ts`, run `pnpm db:generate`, and commit the new file in `backend/api/drizzle/`. The deploy pipeline applies it to production before deploying the new code.
 
 ## Licence
 

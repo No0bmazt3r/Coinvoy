@@ -6,8 +6,8 @@
   "outputDirectory": "dist",
   "git": { "deploymentEnabled": false },
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://coinvoy.onrender.com/api/:path*" },
-    { "source": "/o/:path*", "destination": "https://coinvoy.onrender.com/o/:path*" },
+    { "source": "/api/:path*", "destination": "https://coinvoy-backend.onrender.com/api/:path*" },
+    { "source": "/o/:path*", "destination": "https://coinvoy-backend.onrender.com/o/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
