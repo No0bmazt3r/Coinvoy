@@ -153,7 +153,7 @@ Screenshots and statement PDFs are read in memory and **never stored**; EXIF is 
 | `frontend/` | React 19 + TypeScript + Vite PWA (TanStack Router and Query, Tailwind v4), BM/EN, offline shell |
 | `api/` | Express 5 + zod + Drizzle API; `src/routes`, `src/services`, `src/llm` (client, Snap, Tanya, guard), `drizzle/` SQL migrations, `test/` |
 | `ml/` | Python ML service: `app/engine` (forecast, simulation, salary search), `app/nlp` (BM parser + classifier), `app/render` (Penyata), `scripts/` (training, backtest, evaluation) |
-| `Dockerfile.api` · `Dockerfile.ml` · `render.yaml` | Deployment: the API + PWA as a web service, the ML service private, Postgres, Singapore |
+| `Dockerfile.ml` · `render.yaml` | Deployment: the API + PWA as a native Node web service, the ML service private, Postgres, Singapore |
 | `.github/workflows/ci.yml` | Lint, types, tests (also on real Postgres), bundle budget, gitleaks, Docker builds |
 
 ## Google sign-in setup

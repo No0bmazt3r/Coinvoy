@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import { RouteSkeleton } from './components/Skeleton'
 import { Splash } from './components/Splash'
 import { I18nProvider } from './i18n/I18nProvider'
 import { meQuery } from './lib/api'
@@ -11,7 +12,8 @@ import './index.css'
 
 restoreAppearance()
 const queryClient = new QueryClient()
-const router = createRouter({ routeTree, context: { queryClient }, defaultPreload: 'intent' })
+// Routes are code-split; a screen whose chunk is slow to arrive shows a skeleton instead of the previous screen.
+const router = createRouter({ routeTree, context: { queryClient }, defaultPreload: 'intent', defaultPendingComponent: RouteSkeleton })
 
 declare module '@tanstack/react-router' {
   interface Register {

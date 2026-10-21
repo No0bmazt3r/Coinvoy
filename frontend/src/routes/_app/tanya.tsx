@@ -4,6 +4,7 @@ import { BadgeAlert, Calculator, ChevronRight, Lightbulb, Send } from 'lucide-re
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
+import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
 import { ApiError, api, celikQuery, errorText, type Message, messagesQuery, metaQuery } from '../../lib/api'
 
@@ -76,6 +77,11 @@ function Tanya() {
       <section aria-label={t('tanya.chat')} aria-live="polite" className="flex flex-col gap-3">
         {aiOff ? (
           <p className="rounded-lg border border-line bg-surface p-4 text-sm">{t('tanya.aiOff')}</p>
+        ) : history.isPending ? (
+          <>
+            <Skeleton className="h-12 w-2/3 self-end" />
+            <Skeleton className="h-20 w-5/6" />
+          </>
         ) : history.data?.length === 0 && !pending ? (
           <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('tanya.hello')}</p>
         ) : null}

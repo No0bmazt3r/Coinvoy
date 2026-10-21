@@ -2,9 +2,9 @@
 services:
   - type: web
     name: coinvoy
-    runtime: docker
-    dockerfilePath: ./Dockerfile.api
-    dockerContext: .
+    runtime: node # Node 24 from root package.json "engines"; the API runs its .ts directly
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
     region: singapore
     plan: starter
     healthCheckPath: /api/health

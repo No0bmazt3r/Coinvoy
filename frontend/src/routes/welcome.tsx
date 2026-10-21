@@ -29,8 +29,8 @@ const PERKS: { icon: LucideIcon; label: Key }[] = [
 const TRUST: Key[] = ['intro.trust1', 'intro.trust2', 'intro.trust3']
 // Weekly earnings as a share of the best week: the uneven bars the steady line smooths over.
 const WEEKS = [0.9, 0.42, 0.75, 0.3, 1, 0.55]
-// Desktop side padding: content up to 72rem wide, centred
-const GUTTER = 'lg:px-[max(2.5rem,calc(50vw-36rem))]'
+// Desktop side padding grows with the window, so the slides use the full width at any size
+const GUTTER = 'lg:px-[clamp(2.5rem,6vw,8rem)]'
 
 // First launch: swipe (native scroll-snap) or tap Next through four slides, then on to login.
 function Welcome() {
@@ -139,18 +139,18 @@ function Welcome() {
           <section
             key={s.title}
             aria-hidden={i !== index}
-            className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center lg:grid lg:grid-cols-2 lg:gap-16 lg:text-left ${GUTTER} ${i === index ? 'intro-active' : ''}`}
+            className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center lg:grid lg:grid-cols-2 lg:gap-[clamp(3rem,6vw,8rem)] lg:text-left ${GUTTER} ${i === index ? 'intro-active' : ''}`}
           >
-            <div className="intro-art grid min-h-48 w-full place-items-center lg:order-2 lg:h-full lg:max-h-[560px] lg:rounded-[40px] lg:bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--brand)_16%,transparent),transparent)]">
+            <div className="intro-art grid min-h-48 w-full place-items-center lg:order-2 lg:h-full lg:max-h-[75dvh] lg:rounded-[40px] lg:bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--brand)_16%,transparent),transparent)]">
               {/* scale (not transform) so it stacks with the float/pop animations; on the children so the track never widens */}
-              <div className="flex w-full justify-center lg:*:scale-150">{s.art}</div>
+              <div className="flex w-full justify-center lg:*:scale-150 xl:*:scale-[1.75] 2xl:*:scale-200">{s.art}</div>
             </div>
             <div className="flex flex-col gap-3 lg:gap-5">
               <p className="intro-rise hidden text-sm font-bold tracking-widest text-brand lg:block">
                 {String(i + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
               </p>
-              <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight lg:text-5xl lg:leading-[1.1]">{t(s.title)}</h1>
-              <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms] lg:mx-0 lg:max-w-lg lg:text-lg">{t(s.body)}</p>
+              <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight lg:text-[clamp(3rem,4.2vw,5.5rem)] lg:leading-[1.05]">{t(s.title)}</h1>
+              <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms] lg:mx-0 lg:max-w-[min(40rem,100%)] lg:text-[clamp(1.125rem,1.25vw,1.5rem)]">{t(s.body)}</p>
             </div>
           </section>
         ))}

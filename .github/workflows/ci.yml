@@ -1,4 +1,4 @@
-# Every push and PR: lint, types, tests, the bundle budget, a secret scan, and both Docker images (architecture §14).
+# Every push and PR: lint, types, tests, the bundle budget, a secret scan, and the ML Docker image (architecture §14).
 name: ci
 on:
   push:
@@ -74,5 +74,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f Dockerfile.api -t coinvoy-api .
       - run: docker build -f Dockerfile.ml -t coinvoy-ml .
