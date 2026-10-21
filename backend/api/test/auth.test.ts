@@ -132,6 +132,16 @@ test('the Kak Lina demo opens on Jurang', async () => {
   expect(j.active).toBe(true)
 })
 
+test('all demo personas seed a usable account', async () => {
+  for (const persona of ['faiz', 'lina', 'siti', 'ravi', 'mei']) {
+    const a = agent()
+    expect((await a.post(`/api/auth/demo?persona=${persona}`)).status).toBe(204)
+    const home = (await a.get('/api/home')).body
+    expect(home.weeksLogged).toBe(12)
+    expect(home.salary.salarySen).toBeGreaterThan(0)
+  }
+})
+
 test('a foreign Origin is refused on unsafe requests', async () => {
   expect((await agent().post('/api/auth/demo?empty').set('Origin', 'https://evil.example')).status).toBe(403)
   expect((await agent().post('/api/auth/demo?empty').set('Origin', 'http://localhost:5173')).status).toBe(204)

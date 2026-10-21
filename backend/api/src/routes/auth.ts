@@ -15,6 +15,8 @@ import { userJson } from '../services/profile.ts'
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth'
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 const GOOGLE_ISSUERS = ['accounts.google.com', 'https://accounts.google.com']
+
+const isPersonaKey = (value: string): value is PersonaKey => Object.hasOwn(PERSONAS, value)
 const GOOGLE_JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs'
 const FLOW_COOKIE = 'google_flow'
 const ONE_TAP_COOKIE = 'google_onetap'
@@ -185,10 +187,11 @@ authRouter.post('/google/one-tap', async (req, res) => {
 })
 
 // A fresh temporary demo rider per tap, so each judge has their own copy.
-// ?persona=lina opens Kak Lina's Jurang story instead of Abang Faiz; ?empty starts at onboarding.
+// ?persona selects a seeded story; ?empty starts at onboarding.
 authRouter.post('/demo', async (req, res) => {
   if (!env.DEMO_ENABLED) throw new ApiError(404, 'demo_disabled', 'Demo tidak tersedia.', "The demo isn't available.")
-  const persona: PersonaKey = req.query.persona === 'lina' ? 'lina' : 'faiz'
+  const requested = typeof req.query.persona === 'string' ? req.query.persona : 'faiz'
+  const persona: PersonaKey = isPersonaKey(requested) ? requested : 'faiz'
   // Simple for now: old demo users are cleaned up here. Use a scheduled job if demo traffic grows.
   await db.delete(schema.users).where(and(eq(schema.users.isDemo, true), lt(schema.users.createdAt, new Date(Date.now() - DEMO_TTL_MS))))
   const token = await db.transaction(async (tx) => {

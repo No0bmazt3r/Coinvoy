@@ -3,6 +3,9 @@
 // - Abang Faiz: 12 weeks on Grab + foodpanda in Ipoh, a motorbike instalment, a buffer he's been building, leave planned.
 // - Kak Lina: a single mother on ShopeeFood in Kuala Lumpur, 30 hours around school runs. Her safe salary is below
 //   her essentials, so the demo opens on Jurang.
+// - Siti: a part-time rider in Johor Bahru balancing school runs and a small buffer.
+// - Ravi: a higher-earning multi-platform rider in Penang building i-Saraan and a holiday pot.
+// - Mei: an irregular rider in Kuching with urgent bills and no buffer yet.
 import { eq } from 'drizzle-orm'
 import type { User } from '../auth.ts'
 import { db, schema } from '../db/index.ts'
@@ -53,6 +56,55 @@ export const PERSONAS = {
       { name: 'Telefon', amountSen: 3_000, frequency: 'monthly', dueDay: 15 },
     ],
     penampanSen: 65_000, // past the build-up target (2 weeks of essentials), so the gap is about income, not saving
+  },
+  siti: {
+    name: 'Siti',
+    profile: { city: 'Johor Bahru', defaultHours: 24, essentialsWeekSen: 26_000 },
+    nets: [28000, 35000, 31000, 42000, 26000, 39000, 33000, 45000, 30000, 37000, 41000, 34000],
+    platforms: [
+      { platform: 'grab', share: 0.7, hours: 17, commission: 0, senPerTrip: 750 },
+      { platform: 'foodpanda', share: 0.3, hours: 7, commission: 0.15, senPerTrip: 650 },
+    ],
+    bills: [
+      { name: 'Barang dapur', amountSen: 18_000, frequency: 'monthly', dueDay: 3 },
+      { name: 'Telefon', amountSen: 2_500, frequency: 'monthly', dueDay: 15 },
+      { name: 'Yuran sekolah', amountSen: 8_000, frequency: 'monthly', dueDay: 20 },
+    ],
+    penampanSen: 34_000,
+    leave: { label: 'Cuti sekolah', inWeeks: 6, setAsideWeekSen: 3_000 },
+  },
+  ravi: {
+    name: 'Ravi',
+    profile: { city: 'Penang', defaultHours: 52, essentialsWeekSen: 42_000 },
+    nets: [88000, 102000, 76000, 95000, 118000, 84000, 110000, 99000, 73000, 106000, 92000, 125000],
+    platforms: [
+      { platform: 'grab', share: 0.5, hours: 25, commission: 0, senPerTrip: 850 },
+      { platform: 'foodpanda', share: 0.35, hours: 18, commission: 0.15, senPerTrip: 750 },
+      { platform: 'lalamove', share: 0.15, hours: 9, commission: 0.2, senPerTrip: 1_100 },
+    ],
+    bills: [
+      { name: 'Ansuran motor', amountSen: 32_000, frequency: 'monthly', dueDay: 28 },
+      { name: 'Sewa rumah', amountSen: 65_000, frequency: 'monthly', dueDay: 1 },
+      { name: 'Insurans', amountSen: 24_000, frequency: 'yearly', dueDate: `${todayKL().slice(0, 4)}-11-10` },
+    ],
+    penampanSen: 180_000,
+    isaraan: { balanceSen: 18_000, weeklySen: 3_000, paidSen: 60_000, matchSen: 12_000 },
+    leave: { label: 'Balik kampung', inWeeks: 8, setAsideWeekSen: 8_000 },
+  },
+  mei: {
+    name: 'Mei',
+    profile: { city: 'Kuching', defaultHours: 36, essentialsWeekSen: 34_000 },
+    nets: [22000, 67000, 29000, 54000, 18000, 72000, 31000, 46000, 24000, 61000, 27000, 49000],
+    platforms: [
+      { platform: 'foodpanda', share: 0.55, hours: 20, commission: 0.15, senPerTrip: 650 },
+      { platform: 'grab', share: 0.45, hours: 16, commission: 0, senPerTrip: 750 },
+    ],
+    bills: [
+      { name: 'Sewa bilik', amountSen: 48_000, frequency: 'monthly', dueDay: 1 },
+      { name: 'Bil perubatan', amountSen: 15_000, frequency: 'monthly', dueDay: 12 },
+      { name: 'Telefon', amountSen: 3_000, frequency: 'monthly', dueDay: 18 },
+    ],
+    penampanSen: 8_000,
   },
 } satisfies Record<string, Persona>
 

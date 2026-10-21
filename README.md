@@ -184,7 +184,7 @@ cp backend/.env.example backend/.env    # optional: AI keys and Google sign-in (
 pnpm dev                # API :8000 · ML service :8001 · app http://localhost:5173
 ```
 
-Open http://localhost:5173 and tap **Cuba demo**, or go straight to http://localhost:5173/try, which skips the intro and signs you into the demo in one step (the link the pitch deck's QR code uses). You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Odah Bot need an AI key; everything else works without one.
+Open http://localhost:5173 and choose one of the synthetic demo accounts, or go straight to http://localhost:5173/try, which skips the intro and signs you into Abang Faiz in one step (the link the pitch deck's QR code uses). The login screen includes five varied stories: Abang Faiz (steady multi-platform work), Kak Lina (an income gap), Siti (part-time work and school costs), Ravi (strong weeks with i-Saraan), and Mei (irregular income and urgent bills). Snap and Odah Bot need an AI key; everything else works without one.
 
 ### 3. Configuration (`backend/.env`)
 
@@ -362,7 +362,7 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 | GET | `/api/auth/google` | Starts Google sign-in (redirect) |
 | GET | `/api/auth/google/callback` | Google redirects back here; creates the session |
 | GET · POST | `/api/auth/google/one-tap` | Google One Tap sign-in |
-| POST | `/api/auth/demo` | Creates a temporary demo rider (`?persona=lina`, `?empty`) |
+| POST | `/api/auth/demo` | Creates a temporary demo rider (`?persona=faiz|lina|siti|ravi|mei`, `?empty`) |
 | POST | `/api/auth/logout` | Ends the session |
 | GET | `/api/auth/me` | The signed-in rider, or 401 |
 | PATCH | `/api/me` | Update profile and settings |
