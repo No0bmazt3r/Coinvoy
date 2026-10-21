@@ -15,6 +15,7 @@ import { allowedValues, check } from './guard.ts'
 
 const PROMPT = readFileSync(new URL('./prompts/tanya.md', import.meta.url), 'utf8')
 const MAX_TOOL_ROUNDS = 4
+const SCAM_HOTLINE = '997' // NSRC, the National Scam Response Centre (prompts/tanya.md)
 const RISK: Record<'ms' | 'en', Record<Risk, string>> = {
   ms: { selamat: 'Selamat', berhati: 'Berhati-hati', berisiko: 'Berisiko' },
   en: { selamat: 'Safe', berhati: 'Careful', berisiko: 'Risky' },
@@ -137,7 +138,8 @@ export async function answer(user: User, history: ChatCompletionMessageParam[], 
     }
   }
 
-  const allowed = allowedValues(message, ...results.map((x) => JSON.stringify(x)))
+  // Besides tool results and the rider's words, one fixed fact the prompt tells Tanya to give: the scam hotline
+  const allowed = allowedValues(message, SCAM_HOTLINE, ...results.map((x) => JSON.stringify(x)))
   const bad = check(reply, allowed)
   if (bad.length) {
     // One retry, naming the numbers that had no source; then the templated answer.

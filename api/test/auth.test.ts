@@ -161,3 +161,54 @@ test('the auth rate limit blocks a burst from one IP', async () => {
   for (let i = 0; i < 5; i++) codes.push((await request(tiny).get('/')).status)
   expect(codes).toEqual([200, 200, 200, 429, 429])
 })
+
+// Google One Tap: an ID token from the browser, so the signature is checked against Google's keys (rule 6)
+const { generateKeyPairSync, sign } = await import('node:crypto')
+const googleKey = generateKeyPairSync('rsa', { modulusLength: 2048 })
+const otherKey = generateKeyPairSync('rsa', { modulusLength: 2048 })
+const signedToken = (claims: Record<string, unknown>, key = googleKey.privateKey, kid = 'k1') => {
+  const head = Buffer.from(JSON.stringify({ alg: 'RS256', kid, typ: 'JWT' })).toString('base64url')
+  const body = Buffer.from(JSON.stringify(claims)).toString('base64url')
+  return `${head}.${body}.${sign('RSA-SHA256', Buffer.from(`${head}.${body}`), key).toString('base64url')}`
+}
+async function oneTapNonce(a: Agent) {
+  google.jwks = async () => [{ ...googleKey.publicKey.export({ format: 'jwk' }), kid: 'k1' }]
+  const res = await a.get('/api/auth/google/one-tap')
+  expect(res.status).toBe(200)
+  expect(res.body.clientId).toBe('test-client')
+  expect((res.headers['set-cookie'] as unknown as string[]).find((c) => c.startsWith('google_onetap='))).toMatch(/HttpOnly/i)
+  return res.body.nonce as string
+}
+
+test('One Tap: a token signed by Google, for us, with our nonce, signs the rider in, once', async () => {
+  const a = agent()
+  const nonce = await oneTapNonce(a)
+  const credential = signedToken(goodClaims(nonce))
+  expect((await a.post('/api/auth/google/one-tap').send({ credential })).status).toBe(204)
+  expect((await a.get('/api/auth/me')).body.user.email).toBe('faiz@example.com')
+  // the nonce was used up: the same token can't be replayed
+  const replay = agent()
+  await oneTapNonce(replay)
+  expect((await replay.post('/api/auth/google/one-tap').send({ credential })).status).toBe(401)
+})
+
+test('One Tap refuses a forged signature, an unknown key, another app, a wrong or missing nonce', async () => {
+  const cases: [string, (n: string) => string][] = [
+    ['forged', (n) => signedToken(goodClaims(n), otherKey.privateKey)],
+    ['unknown key', (n) => signedToken(goodClaims(n), googleKey.privateKey, 'k-unknown')],
+    ['other app', (n) => signedToken(goodClaims(n, { aud: 'someone-else' }))],
+    ['wrong nonce', () => signedToken(goodClaims('not-our-nonce'))],
+    ['unverified email', (n) => signedToken(goodClaims(n, { email_verified: false }))],
+    ['not a jwt', () => 'nonsense'],
+  ]
+  for (const [name, make] of cases) {
+    const a = agent()
+    const nonce = await oneTapNonce(a)
+    const res = await a.post('/api/auth/google/one-tap').send({ credential: make(nonce) })
+    expect([name, res.status]).toEqual([name, 401])
+  }
+  const noCookie = agent() // never asked for a nonce
+  google.jwks = async () => [{ ...googleKey.publicKey.export({ format: 'jwk' }), kid: 'k1' }]
+  expect((await noCookie.post('/api/auth/google/one-tap').send({ credential: signedToken(goodClaims('x')) })).status).toBe(401)
+  expect((await events()).filter(([e]) => e === 'login_failed')).toHaveLength(cases.length + 1)
+})

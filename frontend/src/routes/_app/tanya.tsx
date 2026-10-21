@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { ArrowUp, ArrowUpRight, BadgeAlert, Calculator, ChevronRight, Lightbulb, Sparkles } from 'lucide-react'
+import { ArrowUp, ArrowUpRight, BadgeAlert, Calculator, ChevronRight, Lightbulb, MessageSquareWarning, Sparkles } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -60,6 +60,9 @@ function Tanya() {
               <Link to="/pemberi" aria-label={t('lender.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <BadgeAlert size={20} aria-hidden />
               </Link>
+              <Link to="/semak" aria-label={t('scam.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+                <MessageSquareWarning size={20} aria-hidden />
+              </Link>
             </div>
           )
         }
@@ -71,6 +74,7 @@ function Tanya() {
           <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface">
             <ToolRow to="/layak" icon={<Calculator size={20} aria-hidden />} title={t('layak.title')} sub={t('layak.entry')} />
             <ToolRow to="/pemberi" icon={<BadgeAlert size={20} aria-hidden />} title={t('lender.title')} sub={t('lender.entry')} />
+            <ToolRow to="/semak" icon={<MessageSquareWarning size={20} aria-hidden />} title={t('scam.title')} sub={t('scam.entry')} />
           </div>
         </section>
       )}
@@ -157,7 +161,7 @@ function Tanya() {
   )
 }
 
-function ToolRow({ to, icon, title, sub }: { to: '/layak' | '/pemberi'; icon: ReactNode; title: string; sub: string }) {
+function ToolRow({ to, icon, title, sub }: { to: '/layak' | '/pemberi' | '/semak'; icon: ReactNode; title: string; sub: string }) {
   return (
     <Link to={to} className="pressable flex min-h-16 items-center gap-3 px-4 py-3 hover:bg-surface-2">
       <span className="shrink-0 text-muted">{icon}</span>

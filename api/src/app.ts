@@ -21,10 +21,12 @@ const DIST = fileURLToPath(new URL('../../frontend/dist', import.meta.url))
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 // Architecture §8.2. Google avatars load from googleusercontent; styles allow inline (React style props, officer view).
+// One Tap: only Google's sign-in script, its stylesheet and its account-picker frame (Google's documented CSP for GIS).
+const GSI = 'https://accounts.google.com/gsi/'
 const securityHeaders: RequestHandler = (_req, res, next) => {
   res.set({
     'Content-Security-Policy':
-      "default-src 'self'; img-src 'self' data: blob: https://*.googleusercontent.com; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+      `default-src 'self'; img-src 'self' data: blob: https://*.googleusercontent.com; style-src 'self' 'unsafe-inline' ${GSI}style; script-src 'self' ${GSI}client; connect-src 'self' ${GSI}; frame-src ${GSI}; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     ...(env.COOKIE_SECURE ? { 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains' } : {}),

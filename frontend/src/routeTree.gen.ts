@@ -24,6 +24,7 @@ import { Route as AppPemberiRouteImport } from './routes/_app/pemberi'
 import { Route as AppPencapaianRouteImport } from './routes/_app/pencapaian'
 import { Route as AppPocketRouteImport } from './routes/_app/pocket'
 import { Route as AppRekodRouteImport } from './routes/_app/rekod'
+import { Route as AppSemakRouteImport } from './routes/_app/semak'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSnapRouteImport } from './routes/_app/snap'
 import { Route as AppTabungRouteImport } from './routes/_app/tabung'
@@ -103,6 +104,11 @@ const AppRekodRoute = AppRekodRouteImport.update({
   path: '/rekod',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSemakRoute = AppSemakRouteImport.update({
+  id: '/semak',
+  path: '/semak',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/pencapaian': typeof AppPencapaianRoute
   '/pocket': typeof AppPocketRoute
   '/rekod': typeof AppRekodRoute
+  '/semak': typeof AppSemakRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
   '/tabung': typeof AppTabungRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/pencapaian': typeof AppPencapaianRoute
   '/pocket': typeof AppPocketRoute
   '/rekod': typeof AppRekodRoute
+  '/semak': typeof AppSemakRoute
   '/settings': typeof AppSettingsRoute
   '/snap': typeof AppSnapRoute
   '/tabung': typeof AppTabungRoute
@@ -180,6 +188,7 @@ export interface FileRoutesById {
   '/_app/pencapaian': typeof AppPencapaianRoute
   '/_app/pocket': typeof AppPocketRoute
   '/_app/rekod': typeof AppRekodRoute
+  '/_app/semak': typeof AppSemakRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/snap': typeof AppSnapRoute
   '/_app/tabung': typeof AppTabungRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/pencapaian'
     | '/pocket'
     | '/rekod'
+    | '/semak'
     | '/settings'
     | '/snap'
     | '/tabung'
@@ -222,6 +232,7 @@ export interface FileRouteTypes {
     | '/pencapaian'
     | '/pocket'
     | '/rekod'
+    | '/semak'
     | '/settings'
     | '/snap'
     | '/tabung'
@@ -243,6 +254,7 @@ export interface FileRouteTypes {
     | '/_app/pencapaian'
     | '/_app/pocket'
     | '/_app/rekod'
+    | '/_app/semak'
     | '/_app/settings'
     | '/_app/snap'
     | '/_app/tabung'
@@ -365,6 +377,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRekodRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/semak': {
+      id: '/_app/semak'
+      path: '/semak'
+      fullPath: '/semak'
+      preLoaderRoute: typeof AppSemakRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -406,6 +425,7 @@ interface AppRouteChildren {
   AppPencapaianRoute: typeof AppPencapaianRoute
   AppPocketRoute: typeof AppPocketRoute
   AppRekodRoute: typeof AppRekodRoute
+  AppSemakRoute: typeof AppSemakRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppSnapRoute: typeof AppSnapRoute
   AppTabungRoute: typeof AppTabungRoute
@@ -423,6 +443,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppPencapaianRoute: AppPencapaianRoute,
   AppPocketRoute: AppPocketRoute,
   AppRekodRoute: AppRekodRoute,
+  AppSemakRoute: AppSemakRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppSnapRoute: AppSnapRoute,
   AppTabungRoute: AppTabungRoute,

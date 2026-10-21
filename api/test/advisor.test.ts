@@ -65,6 +65,15 @@ test('Tanya: a fixed reply after the retry passes', async () => {
   expect(r.reply).toBe('Saya tak pasti angka tepat. Cuba tanya gaji anda.')
 })
 
+test('Tanya can point a scam victim to 997 without the guard blocking it', async () => {
+  const a = await rider()
+  const llm = fakeLlm()
+  llm.replies = ['Jangan kongsi kod TAC. Jika duit sudah hilang, telefon 997 segera dan semak mesej di Semak Mesej.']
+  const r = (await a.post('/api/tanya/messages').send({ message: 'Ada orang minta kod TAC saya' })).body
+  expect(r.guardTriggered).toBe(false)
+  expect(r.reply).toContain('997')
+})
+
 test('Tanya tools only see the signed-in rider', async () => {
   const a = await rider()
   const b = await demo() // no data

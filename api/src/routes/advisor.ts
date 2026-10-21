@@ -12,12 +12,15 @@ import { checkQuota, logUsage } from '../llm/usage.ts'
 import { ml } from '../ml.ts'
 import { checkOffer, instalment, LlmOffer } from '../services/advisor.ts'
 import { triggered } from '../services/lessons.ts'
+import { aiAllowed } from '../services/reco.ts'
+import { checkMessage } from '../services/scam.ts'
 import { buildInputs, currentWeek } from '../services/salary.ts'
 import { readFileSync } from 'node:fs'
 import { ApiError } from '../errors.ts'
 import { MAX_SEN } from '../lib/limits.ts'
 
 const LENDER_PROMPT = readFileSync(new URL('../llm/prompts/lender.md', import.meta.url), 'utf8')
+const SCAM_PROMPT = readFileSync(new URL('../llm/prompts/scam.md', import.meta.url), 'utf8')
 const RETENTION_MS = 90 * 24 * 60 * 60 * 1000 // Tanya messages are kept 90 days (architecture §12)
 const HISTORY_TURNS = 10
 
@@ -106,6 +109,36 @@ advisorRouter.post('/lender-check', async (req, res) => {
   const result = checkOffer(text, offer)
   await db.insert(schema.events).values({ userId: user.id, name: 'lender_checked', props: { level: result.level, fca: result.fca.matched } })
   res.json({ ...result, usedAi: offer !== null })
+})
+
+// Semak Mesej: warning signs in a pasted message or link (the brief's "identify financial risks online"). The rules
+// decide the level and work without AI; with the rider's AI consent, the chatbot key may add signs it noticed (it shares
+// the lender check's daily limit). Nothing pasted is stored, only the level.
+advisorRouter.post('/scam-check', async (req, res) => {
+  const user = userOf(res)
+  const { text } = z.strictObject({ text: z.string().trim().min(5).max(2000) }).parse(req.body)
+  const result = checkMessage(text)
+  let extraFlags: string[] = []
+  let usedAi = false
+  if (await aiAllowed(db, user, 'lender')) {
+    try {
+      await checkQuota(user.id, 'lender')
+      const lang = user.lang === 'en' ? 'English' : 'Bahasa Melayu'
+      const r = await chat('lender', [{ role: 'system', content: SCAM_PROMPT.replace('{lang}', lang) }, { role: 'user', content: `<message>${text}</message>` }], {
+        schema: z.object({ red_flags: z.array(z.string().max(160)).max(4).default([]) }),
+        maxTokens: 300,
+      })
+      await logUsage(user.id, 'lender', r)
+      extraFlags = r.parsed.red_flags
+      usedAi = true
+    } catch (err) {
+      if (!(err instanceof ApiError)) throw err // the rules still answer
+    }
+  }
+  // AI signs can't lower the level, and alone they raise "no signs" to "be careful" at most
+  const level = result.level === 'rendah' && extraFlags.length ? 'sederhana' : result.level
+  await db.insert(schema.events).values({ userId: user.id, name: 'scam_checked', props: { level } })
+  res.json({ ...result, level, extraFlags, usedAi })
 })
 
 advisorRouter.get('/celik', async (_req, res) => {

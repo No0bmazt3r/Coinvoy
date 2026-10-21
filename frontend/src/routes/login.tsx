@@ -1,11 +1,13 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { Play } from 'lucide-react'
+import { useState } from 'react'
 import { GoogleIcon } from '../components/GoogleIcon'
 import { LangToggle } from '../components/LangToggle'
 import { Logo } from '../components/Logo'
 import { useI18n, type Key } from '../i18n/t'
-import { meQuery, post } from '../lib/api'
+import { errorText, meQuery, metaQuery, post } from '../lib/api'
+import { useGoogleOneTap } from '../lib/oneTap'
 import { introSeen } from '../lib/intro'
 
 // The API sends failed Google sign-ins back here as ?error=<reason> (docs/GOOGLE_AUTH_PORTABLE.md §2 rule 10).
@@ -27,7 +29,7 @@ export const Route = createFileRoute('/login')({
 })
 
 function Login() {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   const { error } = Route.useSearch()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -40,7 +42,26 @@ function Login() {
     },
   })
 
-  const message = demo.isError ? t('login.error.demo') : error ? t(ERRORS[error] ?? 'login.error.failed') : ''
+  // Google One Tap, when Google sign-in is set up: the account picker slides in; the button below stays as the fallback
+  const meta = useQuery(metaQuery)
+  const [oneTapError, setOneTapError] = useState<unknown>(null)
+  useGoogleOneTap(
+    meta.data?.googleEnabled === true,
+    lang,
+    async () => {
+      await queryClient.fetchQuery({ ...meQuery, staleTime: 0 })
+      await navigate({ to: '/' })
+    },
+    setOneTapError,
+  )
+
+  const message = demo.isError
+    ? t('login.error.demo')
+    : oneTapError
+      ? errorText(oneTapError, lang, t('login.error.failed'))
+      : error
+        ? t(ERRORS[error] ?? 'login.error.failed')
+        : ''
 
   return (
     // Desktop: a dark brand panel on the left, sign-in on the right

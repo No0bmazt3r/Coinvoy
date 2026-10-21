@@ -126,19 +126,20 @@ body {
 
 /* Motion: design-system §8, 150–250 ms ease-out. All of it is switched off under reduced motion below. */
 :root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-in-out: cubic-bezier(0.45, 0, 0.2, 1); }
-/* Fades up by default; tab changes set --page-dx/--page-dy so it slides in from the side instead */
+/* Fades up by default; tab changes set --page-dx/--page-dy so it slides in from the side instead. Never on a <dialog>:
+   a sheet sitting directly in the page would replay the page's slide-in each time it opens (it restarts on display). */
 @keyframes page-in { from { opacity: 0; transform: translate(var(--page-dx, 0px), var(--page-dy, 8px)); } to { opacity: 1; transform: none; } }
 @keyframes nav-pop { 0% { transform: scale(0.8) translateY(2px); } 60% { transform: scale(1.12) translateY(-1px); } 100% { transform: none; } }
-.page-in > * { animation: page-in 240ms var(--ease-out) both; }
+.page-in > :not(dialog) { animation: page-in 240ms var(--ease-out) both; }
 .page-in > :nth-child(2) { animation-delay: 40ms; }
 .page-in > :nth-child(3) { animation-delay: 80ms; }
 .page-in > :nth-child(n + 4) { animation-delay: 120ms; }
 .nav-pop { animation: nav-pop 320ms var(--ease-out); }
 /* Tab changes: the whole screen glides in as one piece (no stagger), slower and even. */
-.tab-in > *, .tab-in .col > * { animation-duration: 360ms !important; animation-delay: 0ms !important; animation-timing-function: var(--ease-in-out) !important; }
+.tab-in > :not(dialog), .tab-in .col > :not(dialog) { animation-duration: 360ms !important; animation-delay: 0ms !important; animation-timing-function: var(--ease-in-out) !important; }
 /* Swipe: each piece follows --drag-x (on the children, so fixed bars like Tanya's composer stay fixed), springing back when let go */
-.page-in > *, .page-in .col > * { translate: var(--drag-x, 0px) 0; transition: translate 320ms var(--ease-out); }
-.page-in.dragging > *, .page-in.dragging .col > * { transition: none; }
+.page-in > :not(dialog), .page-in .col > :not(dialog) { translate: var(--drag-x, 0px) 0; transition: translate 320ms var(--ease-out); }
+.page-in.dragging > :not(dialog), .page-in.dragging .col > :not(dialog) { transition: none; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes sheet-down { to { transform: translateY(100%); } }
 @keyframes fade-in { from { opacity: 0; } }
@@ -157,11 +158,11 @@ body {
 /* Two-column screens (Home, Tabung, Rekod): on phones a .col is display:contents, so its cards join the single
    column (reordered with max-lg:order-*) and animate in like direct children; from lg it's a real column. */
 .col { display: contents; }
-.page-in .col > * { animation: page-in 240ms var(--ease-out) both; }
+.page-in .col > :not(dialog) { animation: page-in 240ms var(--ease-out) both; }
 @media (width >= 64rem) {
   .col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
   /* The sidebar is vertical, so tab changes fade up instead of sliding sideways; the sheet is a centred dialog */
-  .page-in > *, .page-in .col > * { --page-dx: 0px; --page-dy: 8px; }
+  .page-in > :not(dialog), .page-in .col > :not(dialog) { --page-dx: 0px; --page-dy: 8px; }
   .sheet[open] > div { animation: rise 250ms var(--ease-out); }
   .sheet.closing > div { animation: fade-out 160ms ease-in forwards; }
 }

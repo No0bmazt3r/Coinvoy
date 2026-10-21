@@ -8,6 +8,7 @@ import {
   FileText,
   Landmark,
   MessageCircle,
+  MessageSquareWarning,
   Palmtree,
   PiggyBank,
   Wallet,
@@ -20,7 +21,7 @@ import { Logo } from './Logo'
 import { useI18n, type Key } from '../i18n/t'
 import { meQuery } from '../lib/api'
 
-type To = '/' | '/tabung' | '/tanya' | '/rekod' | '/bil' | '/cuti' | '/pocket' | '/layak' | '/pemberi' | '/pencapaian' | '/admin'
+type To = '/' | '/tabung' | '/tanya' | '/rekod' | '/bil' | '/cuti' | '/pocket' | '/layak' | '/pemberi' | '/semak' | '/pencapaian' | '/admin'
 
 const MAIN: [To, Key, LucideIcon][] = [
   ['/', 'nav.gaji', Wallet],
@@ -34,6 +35,7 @@ const MORE: [To, Key, LucideIcon][] = [
   ['/pocket', 'settings.pocket', Landmark],
   ['/layak', 'layak.title', Calculator],
   ['/pemberi', 'lender.title', BadgeAlert],
+  ['/semak', 'scam.title', MessageSquareWarning],
   ['/pencapaian', 'ach.title', Award],
 ]
 
