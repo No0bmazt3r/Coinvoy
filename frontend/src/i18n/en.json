@@ -695,5 +695,8 @@
   "term.incentives": "Extra bonuses for hitting targets, like quests, streaks or peak-hour rewards.",
   "term.tips": "Money customers give you on top of the fare. All of it is yours.",
   "term.net": "What you actually take home: gross minus commission, plus incentives and tips.",
-  "term.flatRate": "The rate the shop quotes. It's charged on the full price for the whole loan, even as you pay it down, so the real yearly rate is much higher. We show both."
+  "term.flatRate": "The rate the shop quotes. It's charged on the full price for the whole loan, even as you pay it down, so the real yearly rate is much higher. We show both.",
+  "snap.reviewTitle": "Check before saving",
+  "snap.reviewTotal": "Total net",
+  "snap.reviewNote": "Nothing is saved until you confirm."
 }

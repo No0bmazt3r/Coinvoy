@@ -695,5 +695,8 @@
   "term.incentives": "Bonus tambahan bila capai sasaran, macam quest, streak atau ganjaran waktu sibuk.",
   "term.tips": "Duit yang pelanggan beri atas tambang. Semuanya milik anda.",
   "term.net": "Yang anda betul-betul bawa balik: kasar tolak komisen, tambah insentif dan tip.",
-  "term.flatRate": "Kadar yang kedai sebut. Ia dikira atas harga penuh sepanjang pinjaman walaupun hutang makin kurang, jadi kadar sebenar setahun jauh lebih tinggi. Kami tunjuk kedua-duanya."
+  "term.flatRate": "Kadar yang kedai sebut. Ia dikira atas harga penuh sepanjang pinjaman walaupun hutang makin kurang, jadi kadar sebenar setahun jauh lebih tinggi. Kami tunjuk kedua-duanya.",
+  "snap.reviewTitle": "Semak sebelum simpan",
+  "snap.reviewTotal": "Jumlah bersih",
+  "snap.reviewNote": "Tiada apa disimpan sehingga anda sahkan."
 }

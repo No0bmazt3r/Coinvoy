@@ -104,7 +104,7 @@ function Snap() {
     <>
       <ScreenHeader title={t(mode === 'history' ? 'snap.historyTitle' : 'snap.title')} back action={<GuideButton screen="snap" />} />
       <GuideHint screen="snap" />
-      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+      <div className={`contents lg:grid lg:items-start lg:gap-4 ${drafts.length ? 'lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-6' : 'lg:grid-cols-2'}`}>
         {drafts.length === 0 && !read.isPending && (
           <section className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-5">
             <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
@@ -159,18 +159,24 @@ function Snap() {
             {read.isError ? errorText(read.error, lang, t('snap.failed')) : notice}
           </p>
         )}
-        {drafts.map((d, i) => (
-          <DraftCard key={d.key} draft={d} onChange={(p) => update(i, p)} onRemove={() => setDrafts((cur) => cur.filter((_, j) => j !== i))} />
-        ))}
         {drafts.length > 0 && (
-          <div className="flex flex-col gap-4 lg:col-span-full">
+          <div className="col">
+            {drafts.map((d, i) => (
+              <DraftCard key={d.key} draft={d} onChange={(p) => update(i, p)} onRemove={() => setDrafts((cur) => cur.filter((_, j) => j !== i))} />
+            ))}
+          </div>
+        )}
+        {drafts.length > 0 && (
+          // Desktop: a review panel beside the cards that stays in view, with the actions
+          <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+            <Review drafts={drafts} />
             <div className="grid grid-cols-2 gap-2">
-              <button type="button" className="btn btn-secondary" onClick={() => setDrafts((cur) => [...cur, blank(cur.at(-1)?.weekStart)])}>
+              <button type="button" className="btn btn-secondary px-3 whitespace-nowrap" onClick={() => setDrafts((cur) => [...cur, blank(cur.at(-1)?.weekStart)])}>
                 <Plus size={18} aria-hidden />
                 {t('snap.addPlatform')}
               </button>
               {aiAllowed && (
-                <button type="button" className="btn btn-secondary" onClick={() => pick('any')} disabled={read.isPending}>
+                <button type="button" className="btn btn-secondary px-3 whitespace-nowrap" onClick={() => pick('any')} disabled={read.isPending}>
                   <ImagePlus size={18} aria-hidden />
                   {t('snap.addScreenshot')}
                 </button>
@@ -203,7 +209,7 @@ const WARNINGS: Record<string, Key> = {
 function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (p: Partial<Draft>) => void; onRemove: () => void }) {
   const { t, lang } = useI18n()
   const weeks = Array.from({ length: 26 }, (_, i) => addDays(weekStart(todayKL()), -7 * i))
-  const net = d.grossSen - d.commissionSen + d.incentivesSen + d.tipsSen
+  const net = netOf(d)
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
       <div className="flex items-center gap-2">
@@ -229,8 +235,8 @@ function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (
           {t(WARNINGS[w] ?? 'snap.warn.generic')}
         </p>
       ))}
-      <MoneyField label={t('snap.gross')} info={t('term.gross')} valueSen={d.grossSen || null} onChange={(v) => onChange({ grossSen: v ?? 0 })} required />
       <div className="grid grid-cols-2 gap-3">
+        <MoneyField label={t('snap.gross')} info={t('term.gross')} valueSen={d.grossSen || null} onChange={(v) => onChange({ grossSen: v ?? 0 })} required />
         <MoneyField label={t('snap.commission')} info={t('term.commission')} valueSen={d.commissionSen || null} onChange={(v) => onChange({ commissionSen: v ?? 0 })} />
         <MoneyField label={t('snap.incentives')} info={t('term.incentives')} valueSen={d.incentivesSen || null} onChange={(v) => onChange({ incentivesSen: v ?? 0 })} />
         <MoneyField label={t('snap.tips')} info={t('term.tips')} valueSen={d.tipsSen || null} onChange={(v) => onChange({ tipsSen: v ?? 0 })} />
@@ -246,9 +252,34 @@ function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (
   )
 }
 
+const netOf = (d: Draft) => d.grossSen - d.commissionSen + d.incentivesSen + d.tipsSen
+
+// Every draft's net in one list, and the total, so the rider sees what they're about to save
+function Review({ drafts }: { drafts: Row[] }) {
+  const { t, lang } = useI18n()
+  return (
+    <section aria-labelledby="review" className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4 max-lg:hidden">
+      <h2 id="review" className="font-semibold">{t('snap.reviewTitle')}</h2>
+      <ul className="flex flex-col text-sm">
+        {drafts.map((d) => (
+          <li key={d.key} className="flex justify-between gap-3 py-1">
+            <span className="min-w-0 truncate text-muted">{t(`platform.${d.platform}` as Key)} · {weekLabel(d.weekStart, lang)}</span>
+            <span className="tabular-nums">{formatRM(netOf(d))}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="flex justify-between gap-3 border-t border-line pt-2 font-semibold">
+        <span>{t('snap.reviewTotal')}</span>
+        <span className="tabular-nums">{formatRM(drafts.reduce((a, d) => a + netOf(d), 0))}</span>
+      </p>
+      <p className="text-[0.8125rem] text-muted">{t('snap.reviewNote')}</p>
+    </section>
+  )
+}
+
 function NumberField({ label, value, onChange, max, step }: { label: string; value: number | null; onChange: (v: number | null) => void; max: number; step: number }) {
   return (
-    <label className="flex flex-col gap-1 text-sm font-semibold">
+    <label className="flex flex-col gap-2 text-sm font-semibold">
       {label}
       <input
         type="number"
