@@ -1,5 +1,8 @@
-# Checks the Supabase database and runs its migrations, only when the repository owner starts it by hand:
-# Actions → "Database (Supabase)" → Run workflow (branch: main), then choose "check" or "migrate".
+# Checks the Supabase database on every push to main and runs its migrations only when the repository owner starts
+# it by hand:
+#   push to main       checks reachability and reports whether migration is needed
+#   manual "check"     checks reachability and pending migrations without changing anything
+#   manual "migrate"   checks, then applies pending migrations
 #   check    is the database reachable? which migrations are pending? (changes nothing)
 #   migrate  the same, then applies the pending ones
 # Run "migrate" before deploying backend code that changes the database (Render builds and deploys the backend).
@@ -9,6 +12,8 @@
 name: Database (Supabase)
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       action:
@@ -24,9 +29,13 @@ concurrency:
 permissions:
   contents: read
 
+run-name: Database ${{ inputs.action || 'check' }} for ${{ github.sha }}
+
 jobs:
   database:
     name: ${{ inputs.action == 'migrate' && 'Check and migrate' || 'Check' }} database
+    outputs:
+      migration_needed: ${{ steps.migration-status.outputs.migration_needed }}
     runs-on: ubuntu-latest
     if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
     environment: production
@@ -50,6 +59,18 @@ jobs:
       - name: Is the database reachable, and what's pending?
         id: check
         run: node scripts/migrate.ts --check
+      - name: Report whether migration is needed
+        id: migration-status
+        run: |
+          if [ "${{ steps.check.outputs.pending }}" = "0" ]; then
+            echo "migration_needed=false" >> "$GITHUB_OUTPUT"
+            echo "migration_needed=false" >> "$GITHUB_STEP_SUMMARY"
+            echo "No migration is needed."
+          else
+            echo "migration_needed=true" >> "$GITHUB_OUTPUT"
+            echo "migration_needed=true" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ steps.check.outputs.pending }} migration(s) need to be applied."
+          fi
       - name: Apply pending migrations
-        if: inputs.action == 'migrate' && steps.check.outputs.pending != '0'
+        if: github.event_name == 'workflow_dispatch' && inputs.action == 'migrate' && steps.check.outputs.pending != '0'
         run: node scripts/migrate.ts

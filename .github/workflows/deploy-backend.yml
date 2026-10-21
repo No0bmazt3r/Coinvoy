@@ -1,0 +1,76 @@
+# Deploys the backend container to Render only when the repository owner starts it by hand.
+# The checks workflow and a manual database migration for the exact commit must already have passed.
+name: Deploy backend (Render)
+
+on:
+  workflow_dispatch:
+
+run-name: Deploy backend for ${{ github.sha }}
+
+concurrency:
+  group: deploy-backend
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  verify-checks:
+    name: Verify Coinvoy checks
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
+    steps:
+      - name: Require successful checks for this commit
+        run: |
+          conclusion=$(gh run list \
+            --workflow checks.yml \
+            --commit "$GITHUB_SHA" \
+            --status completed \
+            --limit 1 \
+            --json conclusion \
+            --jq '.[0].conclusion // empty')
+          if [ "$conclusion" != "success" ]; then
+            echo "Coinvoy checks has not passed for commit $GITHUB_SHA (result: ${conclusion:-not found})." >&2
+            echo "Push the commit to main, wait for Coinvoy checks to finish, then run this workflow again." >&2
+            exit 1
+          fi
+          echo "Coinvoy checks passed for commit $GITHUB_SHA."
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  verify-database:
+    name: Verify database migration
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
+    steps:
+      - name: Require successful migration for this commit
+        run: |
+          conclusion=$(gh run list \
+            --workflow database.yml \
+            --commit "$GITHUB_SHA" \
+            --status completed \
+            --limit 20 \
+            --json conclusion,displayTitle \
+            --jq '[.[] | select(.displayTitle | startswith("Database migrate")) | .conclusion] | .[0] // empty')
+          if [ "$conclusion" != "success" ]; then
+            echo "A successful database migration for commit $GITHUB_SHA was not found (result: ${conclusion:-not found})." >&2
+            echo "Run Database (Supabase) with action=migrate, wait for it to pass, then run this workflow again." >&2
+            exit 1
+          fi
+          echo "Database migration passed for commit $GITHUB_SHA."
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  deploy:
+    name: Deploy to Render
+    needs: [verify-checks, verify-database]
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Render deploy for this commit
+        run: |
+          curl --fail-with-body --silent --show-error --request POST \
+            "${RENDER_DEPLOY_HOOK_URL}?ref=${GITHUB_SHA}"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}

@@ -598,7 +598,7 @@ All deploy secrets live in one GitHub **Environment** called `production`, which
 
 ### 2. Migrate the database
 
-Run the standalone **Actions → Database (Supabase)** workflow first: choose **check** to see pending migrations without changing anything, then choose **migrate** to apply them. The **Deploy app (Vercel)** workflow does not run migrations; it verifies that the separate **Coinvoy checks** workflow passed for the exact commit before deploying.
+The **Database (Supabase)** workflow runs a read-only check automatically on every push to `main`. Its summary reports `migration_needed=true` or `migration_needed=false`; it never migrates automatically. Before a deployment, run it manually with **migrate**. That performs the check and applies pending migrations. The deployment workflows require a successful manual migration run for the exact commit.
 
 ### 3. The backend on Render
 
@@ -637,8 +637,9 @@ Run the standalone **Actions → Database (Supabase)** workflow first: choose **
 
 </div>
 
-4. Deploy. When it's live, `https://<your-service>.onrender.com/api/health?db=1` should answer `{"ok":true,…}` with the deployed commit as `version`.
-5. In GitHub **Settings → Secrets and variables → Actions → Variables**, add the repository variable `BACKEND_URL` = the service's address (e.g. `https://coinvoy-backend.onrender.com`, no trailing slash). The keep-alive pings it.
+4. Add the Render service's secret deploy hook as `RENDER_DEPLOY_HOOK_URL` in the GitHub `production` environment. Render documents this under [Deploy hooks](https://render.com/docs/deploy-hooks).
+5. Deploy. When it's live, `https://<your-service>.onrender.com/api/health?db=1` should answer `{"ok":true,…}` with the deployed commit as `version`.
+6. In GitHub **Settings → Secrets and variables → Actions → Variables**, add the repository variable `BACKEND_URL` = the service's address (e.g. `https://coinvoy-backend.onrender.com`, no trailing slash). The keep-alive pings it.
 
 ### 4. The app on Vercel
 
@@ -647,7 +648,8 @@ Run the standalone **Actions → Database (Supabase)** workflow first: choose **
 3. Create a token at **vercel.com → Account Settings → Tokens**, and add `VERCEL_TOKEN`, `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` to the GitHub `production` environment.
 4. Set the backend's address in `frontend/vercel.json` (the two `rewrites`) if it isn't `https://coinvoy-backend.onrender.com`.
 5. In **Settings → Environments → production**, configure a required reviewer if the Vercel deployment must wait for your manual approval.
-6. Run **Actions → Deploy app (Vercel) → Run workflow** on `main` after the database workflow and **Coinvoy checks** have passed. It verifies the checks result for that exact commit, then waits for the `production` approval before deploying. The run's summary shows the live URL.
+6. Run **Actions → Deploy backend (Render) → Run workflow** on `main` after **Coinvoy checks** has passed and the database has been manually migrated. It verifies both results for the exact commit and triggers Render to deploy that commit.
+7. Run **Actions → Deploy app (Vercel) → Run workflow** on `main` after the same checks and migration have passed. It verifies both results for the exact commit, then waits for the `production` approval before deploying. The run's summary shows the live URL.
 
 ### 5. Google sign-in
 
