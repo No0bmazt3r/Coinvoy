@@ -23,8 +23,8 @@ Only the maintainers can see the report. We aim to acknowledge it within 7 days,
 In scope, for example:
 - Seeing or changing another rider's data
 - Getting around sign-in, sessions, the Origin check or rate limits
-- Making Tanya show a number that didn't come from the engine (getting around the number guard)
-- Prompt injection that makes Snap, Tanya or the lender check act on instructions hidden in an image or message
+- Making Odah Bot show a number that didn't come from the engine (getting around the number guard)
+- Prompt injection that makes Snap, Odah Bot or the lender check act on instructions hidden in an image or message
 - Officer links that can be guessed, reused after revoking, or indexed
 - Leaked secrets in the code or its history
 

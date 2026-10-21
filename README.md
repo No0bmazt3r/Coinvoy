@@ -113,7 +113,7 @@ The problem has two parts. **Uneven income:** good weeks get spent and bad weeks
 | **Slip Gaji** (payslip) | Weekly payslips and a Penyata income statement PDF, every figure labelled *Dilapor sendiri* or *Disemak silang* (self-reported or cross-checked against a bank statement), plus a revocable read-only link for a loans officer. |
 | **Caruman** (contributions) | i-Saraan set-asides with a "government money claimed" counter; PERKESO shown as deducted at source. |
 | **Cuti Berbayar** (paid leave) | Plan Raya leave, set a little aside each week, and the week off still pays. Sick days are covered too. |
-| **Penasihat** (advisor) | **Tanya** (a chatbot where every number must come from the engine), **Semak Layak** (can I afford this instalment?), **Semak Pemberi Pinjaman** (a lender check against BNM's alert list), **Semak Mesej** (a scam message check), **Jurang** (an honest view when income is too low) and **Celik** lessons. |
+| **Penasihat** (advisor) | **Odah Bot** (a chatbot where every number must come from the engine), **Semak Layak** (can I afford this instalment?), **Semak Pemberi Pinjaman** (a lender check against BNM's alert list), **Semak Mesej** (a scam message check), **Jurang** (an honest view when income is too low) and **Celik** lessons. |
 
 </div>
 
@@ -137,7 +137,7 @@ The problem has two parts. **Uneven income:** good weeks get spent and bad weeks
 
 </div>
 
-**Track 5 fit:** easier money management (Gaji Tetap, Tabung, Snap), financial literacy (Tanya, Celik, the ⓘ explanations of commission and flat rates), access to financial services (the Penyata for loans and rentals, Semak Layak before borrowing) and protection from online financial risk (the lender and scam message checks). **BM NLP bonus:** our own BM cost parser and classifier.
+**Track 5 fit:** easier money management (Gaji Tetap, Tabung, Snap), financial literacy (Odah Bot, Celik, the ⓘ explanations of commission and flat rates), access to financial services (the Penyata for loans and rentals, Semak Layak before borrowing) and protection from online financial risk (the lender and scam message checks). **BM NLP bonus:** our own BM cost parser and classifier.
 
 **Permanent boundaries (by design, not cuts):** Coinvoy never moves or holds money, never lends or gives advances, never builds a credit score or sells data, and never reads SMS or other apps.
 
@@ -184,7 +184,7 @@ cp .env.example .env    # optional: AI keys and Google sign-in (the demo works w
 pnpm dev                # API :8000 · ML service :8001 · app http://localhost:5173
 ```
 
-Open http://localhost:5173 and tap **Cuba demo**. You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Tanya need an AI key; everything else works without one.
+Open http://localhost:5173 and tap **Cuba demo**. You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Odah Bot need an AI key; everything else works without one.
 
 ### 3. Configuration (`.env`)
 
@@ -194,7 +194,7 @@ Every setting is documented in [`.env.example`](.env.example). Only the API read
 
 | Variable | Needed for |
 |---|---|
-| `LLM_API_KEY` (or `LLM_API_KEY_SNAP` / `_TANYA` / `_RECO` with `LLM_SPLIT_KEYS=true`) | Snap (OCR), Tanya (chatbot), pot suggestions |
+| `LLM_API_KEY` (or `LLM_API_KEY_SNAP` / `_TANYA` / `_RECO` with `LLM_SPLIT_KEYS=true`) | Snap (OCR), Odah Bot (chatbot), pot suggestions |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in (the demo login works without it) |
 | `ADMIN_EMAILS` | The `/admin` usage page |
 
@@ -231,7 +231,7 @@ Coinvoy/
 ├── api/
 │   ├── src/routes/           HTTP: zod validation, auth, status codes
 │   ├── src/services/         rules and orchestration (salary, pots, penyata, reco, scam, …)
-│   ├── src/llm/              AI client, Snap, Tanya, the number guard, prompts/*.md
+│   ├── src/llm/              AI client, Snap, Odah Bot (`tanya.ts`), the number guard, prompts/*.md
 │   ├── src/db/               Drizzle schema (every table), Postgres or PGlite
 │   ├── drizzle/              SQL migrations, applied at startup
 │   └── test/                 vitest suites (fake AI provider, real ML service)
@@ -262,7 +262,7 @@ flowchart LR
       direction TB
       pwa["Built PWA<br/>(same origin, offline shell)"]
       routes["/api/* routes<br/>zod · sessions · rate limits"]
-      llm["src/llm/<br/>Snap · Tanya · number guard"]
+      llm["src/llm/<br/>Snap · Odah Bot · number guard"]
     end
     ml["Private service: ml/ (Python + FastAPI)<br/>salary engine · BM classifier · Penyata PDF"]
     db[("Postgres<br/>(PGlite locally)")]
@@ -304,7 +304,7 @@ sequenceDiagram
   A-->>R: "Gaji anda minggu ini: RM620"
 ```
 
-### Tanya and the number guard
+### Odah Bot and the number guard
 
 ```mermaid
 flowchart LR
@@ -432,14 +432,14 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 </details>
 
 <details>
-<summary><b>Advisor: Tanya and the checks</b></summary>
+<summary><b>Advisor: Odah Bot and the checks</b></summary>
 
 <div align="center">
 
 | Method | Path | What it does |
 |---|---|---|
 | GET | `/api/tanya/messages` | Chat history (kept 90 days) |
-| POST | `/api/tanya/messages` | Ask Tanya; `?stream=1` streams one JSON event per line (`text`, `reset`, `done`, `error`) |
+| POST | `/api/tanya/messages` | Ask Odah Bot; `?stream=1` streams one JSON event per line (`text`, `reset`, `done`, `error`) |
 | DELETE | `/api/tanya/messages` | Clear the chat |
 | POST | `/api/layak` | Semak Layak: can I afford this instalment? |
 | POST | `/api/lender-check` | Check a loan offer (red flags, rate cap, BNM alert list) |
@@ -501,7 +501,7 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 
 **The Malaysian calendar.** Ramadan, public holidays and school holidays (`ml/app/engine/data/calendar_my.json`) are features of every week: past weeks have their season effect taken out before fitting, and future weeks get theirs put back, so a Raya week isn't mistaken for a slump. A pooled gradient-boosted rate model can replace the shrinkage mean, but stays off until it beats it on real histories.
 
-**The AI is fenced in.** Every number Tanya says is checked by plain code against the tool results and the rider's own message (`api/src/llm/guard.ts`). Snap and the lender check have no tools and must answer in a schema; text inside a screenshot is data, never instructions.
+**The AI is fenced in.** Every number Odah Bot says is checked by plain code against the tool results and the rider's own message (`api/src/llm/guard.ts`). Snap and the lender check have no tools and must answer in a schema; text inside a screenshot is data, never instructions.
 
 **BM NLP, our own.** Cost phrases go through rules (BM number words like "dua ratus lima puluh", "rm40", "1.5k"), then our TF-IDF + logistic regression classifier (`ml/app/nlp/`), and only reach the AI when both are unsure. A number the rules found always wins.
 
@@ -543,7 +543,7 @@ Found a vulnerability? Please report it privately: see [SECURITY.md](SECURITY.md
 
 ## Privacy (PDPA)
 
-Screenshots and statement PDFs are read in memory and **never stored**; EXIF is stripped first. Riders consent to the privacy notice and, separately, to AI processing, which they can switch off in Profil. The privacy page is a layered notice in BM and English that names the AI providers and where they process data. Tanya messages are deleted after 90 days and demo accounts after 24 hours. Riders can download all their data or delete their account (every row cascades) from Profil. The Rider Index is opt-in, stores no user ID, and shows nothing for groups under 20.
+Screenshots and statement PDFs are read in memory and **never stored**; EXIF is stripped first. Riders consent to the privacy notice and, separately, to AI processing, which they can switch off in Profil. The privacy page is a layered notice in BM and English that names the AI providers and where they process data. Odah Bot messages are deleted after 90 days and demo accounts after 24 hours. Riders can download all their data or delete their account (every row cascades) from Profil. The Rider Index is opt-in, stores no user ID, and shows nothing for groups under 20.
 
 ## Legal positioning
 
