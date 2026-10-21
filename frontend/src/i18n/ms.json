@@ -193,6 +193,8 @@
   "onb.hoursBody": "Anggaran jam online biasa anda. Boleh ubah bila-bila masa.",
   "onb.hoursLabel": "Jam seminggu",
   "onb.hoursValue": "{n} jam",
+  "hours.less": "Kurang sejam",
+  "hours.more": "Tambah sejam",
   "onb.fatigue": "Lebih 60 jam seminggu memenatkan dan berbahaya di jalan raya. Jaga diri.",
   "onb.payday": "Hari gaji anda (bila anda nak dapat gaji mingguan)",
   "onb.essentialsTitle": "Kos asas seminggu",

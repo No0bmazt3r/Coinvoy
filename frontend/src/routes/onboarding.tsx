@@ -3,6 +3,7 @@ import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-ro
 import { ArrowLeft, Camera, Check, Loader2, PencilLine } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Logo } from '../components/Logo'
+import { HoursField } from '../components/HoursField'
 import { MoneyField } from '../components/MoneyField'
 import { PlatformPicker } from '../components/PlatformPicker'
 import { Select } from '../components/Select'
@@ -111,13 +112,7 @@ function Onboarding() {
       body: 'onb.hoursBody',
       content: (
         <>
-          <label className="flex flex-col gap-2 text-sm font-semibold">
-            <span className="flex justify-between">
-              {t('onb.hoursLabel')}
-              <span className="text-2xl font-extrabold tabular-nums">{t('onb.hoursValue', { n: hours })}</span>
-            </span>
-            <input type="range" min={0} max={84} step={1} value={hours} onChange={(e) => setHours(Number(e.target.value))} className="accent-[var(--brand-text)]" data-no-swipe />
-          </label>
+          <HoursField label={t('onb.hoursLabel')} value={hours} onChange={setHours} />
           {hours > 60 && <p className="rounded-[var(--radius-sm)] bg-[var(--careful-bg)] p-3 text-sm text-[var(--careful)]">{t('onb.fatigue')}</p>}
           <p className="mt-2 text-sm font-semibold">{t('onb.payday')}</p>
           <div className="flex flex-wrap gap-2" role="group" aria-label={t('onb.payday')}>

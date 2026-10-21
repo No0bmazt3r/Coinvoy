@@ -7,12 +7,12 @@ import { MoneyField } from '../../components/MoneyField'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { useI18n } from '../../i18n/t'
-import { api, errorText, penyataQuery, type Risk } from '../../lib/api'
+import { api, errorText, penyataQuery, prefetch, type Risk } from '../../lib/api'
 import { formatRM } from '../../lib/money'
 
 type Layak = { item: string; loanSen: number; interestSen: number; monthlySen: number; totalSen: number; effectivePctYear: number; salarySen: number; newSalarySen: number; pSafe: number; risk: Risk }
 
-export const Route = createFileRoute('/_app/layak')({ component: SemakLayak })
+export const Route = createFileRoute('/_app/layak')({ loader: prefetch(penyataQuery), component: SemakLayak })
 
 // Semak Layak (FR-ADV-5): what an instalment does to the rider's own future weeks. A risky answer is shown as
 // plainly as a safe one, and Coinvoy earns the same either way.

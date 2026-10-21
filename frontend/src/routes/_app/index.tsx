@@ -12,9 +12,9 @@ import { Skeleton } from '../../components/Skeleton'
 import { StreakChip } from '../../components/StreakChip'
 import { StreakRow } from '../../components/StreakRow'
 import { useI18n, type Key } from '../../i18n/t'
-import { billsQuery, homeQuery, weeksQuery } from '../../lib/api'
+import { billsQuery, homeQuery, prefetch, weeksQuery } from '../../lib/api'
 
-export const Route = createFileRoute('/_app/')({ component: Gaji })
+export const Route = createFileRoute('/_app/')({ loader: prefetch(homeQuery, billsQuery, weeksQuery), component: Gaji })
 
 const STEPS: { icon: LucideIcon; title: Key; body: Key }[] = [
   { icon: Camera, title: 'gaji.step1Title', body: 'gaji.step1Body' },

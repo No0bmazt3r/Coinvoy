@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { type QueryClient, queryOptions } from '@tanstack/react-query'
 
 export type Platform = 'grab' | 'foodpanda' | 'shopeefood' | 'lalamove' | 'other'
 export const PLATFORMS: Platform[] = ['grab', 'foodpanda', 'shopeefood', 'lalamove', 'other']
@@ -196,3 +196,14 @@ export const clearOfflineData = () => navigator.serviceWorker?.controller?.postM
 export async function post(path: string): Promise<void> {
   await api(path, { method: 'POST' })
 }
+
+/**
+ * A route loader that starts its screen's queries without waiting for them (TanStack Router + Query): the screen still
+ * renders at once with its skeletons, but the data is already on the way. Preloading a route (on touch, or the tabs
+ * when the app is idle) runs it too, so the next screen usually opens with its data cached.
+ */
+export const prefetch =
+  (...queries: { queryKey: readonly unknown[] }[]) =>
+  ({ context }: { context: { queryClient: QueryClient } }) => {
+    for (const q of queries) void context.queryClient.prefetchQuery(q as Parameters<QueryClient['prefetchQuery']>[0])
+  }

@@ -12,7 +12,9 @@ import { routeTree } from './routeTree.gen'
 import './index.css'
 
 restoreAppearance()
-const queryClient = new QueryClient()
+// Data counts as fresh for 30 s: moving between screens shows the cached data without refetching every query again.
+// Saves still update at once, because every mutation invalidates what it changed.
+const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } })
 // Routes are code-split; a screen whose chunk is slow to arrive shows a skeleton after 150 ms (not the default 1 s of
 // a frozen previous screen), held 200 ms so it doesn't flicker. Screens never wait on data: they render at once and
 // show their own skeletons while their queries load.
@@ -20,6 +22,7 @@ const router = createRouter({
   routeTree,
   context: { queryClient },
   defaultPreload: 'intent',
+  defaultPreloadStaleTime: 0, // TanStack Query owns caching; let every preload reach the loader (TanStack's advice)
   defaultPendingComponent: RouteSkeleton,
   defaultPendingMs: 150,
   defaultPendingMinMs: 200,

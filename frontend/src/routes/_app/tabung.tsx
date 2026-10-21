@@ -11,10 +11,10 @@ import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, carumanQuery, errorText, homeQuery, type Pot, type PotSuggestion, potsQuery } from '../../lib/api'
+import { api, carumanQuery, errorText, homeQuery, type Pot, type PotSuggestion, potsQuery, prefetch } from '../../lib/api'
 import { formatRM } from '../../lib/money'
 
-export const Route = createFileRoute('/_app/tabung')({ component: Tabung })
+export const Route = createFileRoute('/_app/tabung')({ loader: prefetch(potsQuery, carumanQuery, homeQuery), component: Tabung })
 
 const KIND_ICON: Record<string, LucideIcon> = { penampan: Shield, cuti: Palmtree, kecemasan: Siren, motor: Bike, raya: Moon, isaraan: Landmark, perkeso: HeartPulse }
 const CUSTOM_ICON: Record<string, LucideIcon> = { briefcase: Briefcase, users: Users, bike: Bike, gift: Gift, home: House, phone: Smartphone, graduation: GraduationCap, heart: Heart, plane: Plane, piggy: PiggyBank }

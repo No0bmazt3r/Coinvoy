@@ -8,12 +8,12 @@ import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
 import { Select } from '../../components/Select'
 import { useI18n } from '../../i18n/t'
-import { api, errorText, type LeavePreview, leaveQuery } from '../../lib/api'
+import { api, errorText, type LeavePreview, leaveQuery, prefetch } from '../../lib/api'
 import { addDays, thisWeekStart, weekLabel } from '../../lib/dates'
 import { formatRM } from '../../lib/money'
 import { Chip } from '../onboarding'
 
-export const Route = createFileRoute('/_app/cuti')({ component: Cuti })
+export const Route = createFileRoute('/_app/cuti')({ loader: prefetch(leaveQuery), component: Cuti })
 
 // Cuti Berbayar (FR-CUTI-1..4): set a little aside every week, and the week off still pays, paid for by the
 // rider's own good weeks.

@@ -82,7 +82,10 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* In the base layer so a component can replace it (a field whose wrapper shows the ring hides the inner input's own) */
+@layer base {
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+}
 
 /* Splash (FR-SHELL-1): the logo springs in over a lime glow, a light sweeps across it, then the words rise. */
 @keyframes splash-bar { from { transform: translateX(-100%); } to { transform: translateX(250%); } }

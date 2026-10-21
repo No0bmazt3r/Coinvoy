@@ -9,11 +9,11 @@ import { Skeleton } from '../../components/Skeleton'
 import { Select } from '../../components/Select'
 import { StatementCheck } from '../../components/StatementCheck'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, errorText, expensesQuery, linksQuery, penyataQuery, type Week, weeksQuery } from '../../lib/api'
+import { api, errorText, expensesQuery, linksQuery, penyataQuery, prefetch, type Week, weeksQuery } from '../../lib/api'
 import { thisWeekStart, weekLabel } from '../../lib/dates'
 import { formatRM } from '../../lib/money'
 
-export const Route = createFileRoute('/_app/rekod')({ component: Rekod })
+export const Route = createFileRoute('/_app/rekod')({ loader: prefetch(weeksQuery, penyataQuery), component: Rekod })
 
 type Parsed = { amountSen: number | null; category: string | null; tier: string; confidence: number }
 type Payslip = {

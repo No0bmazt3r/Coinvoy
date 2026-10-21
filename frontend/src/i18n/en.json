@@ -193,6 +193,8 @@
   "onb.hoursBody": "Your usual hours online. You can change it any time.",
   "onb.hoursLabel": "Hours a week",
   "onb.hoursValue": "{n} hrs",
+  "hours.less": "One hour less",
+  "hours.more": "One hour more",
   "onb.fatigue": "More than 60 hours a week is tiring and risky on the road. Look after yourself.",
   "onb.payday": "Your payday (when you want your weekly salary)",
   "onb.essentialsTitle": "Basic costs a week",

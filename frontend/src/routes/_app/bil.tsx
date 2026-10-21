@@ -10,10 +10,10 @@ import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
 import { Select } from '../../components/Select'
 import { useI18n, type Key } from '../../i18n/t'
-import { api, type Bill, billsQuery, errorText } from '../../lib/api'
+import { api, type Bill, billsQuery, errorText, prefetch } from '../../lib/api'
 import { formatRM } from '../../lib/money'
 
-export const Route = createFileRoute('/_app/bil')({ component: Bills })
+export const Route = createFileRoute('/_app/bil')({ loader: prefetch(billsQuery), component: Bills })
 
 const FREQS: Bill['frequency'][] = ['monthly', 'weekly', 'yearly', 'once']
 const DAYS: Key[] = ['day.0', 'day.1', 'day.2', 'day.3', 'day.4', 'day.5', 'day.6']

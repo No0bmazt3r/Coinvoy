@@ -7,12 +7,12 @@ import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
-import { type Accent, api, errorText, meQuery, streakQuery, type User } from '../../lib/api'
+import { type Accent, api, errorText, meQuery, prefetch, streakQuery, type User } from '../../lib/api'
 import { applyAppearance } from '../../lib/appearance'
 import { thisWeekStart } from '../../lib/dates'
 import { shareImage, streakCard } from '../../lib/shareCard'
 
-export const Route = createFileRoute('/_app/pencapaian')({ component: Achievements })
+export const Route = createFileRoute('/_app/pencapaian')({ loader: prefetch(streakQuery), component: Achievements })
 
 const ACCENTS: { id: Accent; color: string }[] = [
   { id: 'lime', color: '#B5FC04' },

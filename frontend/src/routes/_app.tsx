@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type TouchEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Outlet, createFileRoute, redirect, useNavigate, useRouterState } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect, useNavigate, useRouter, useRouterState } from '@tanstack/react-router'
 import { BottomNav } from '../components/BottomNav'
 import { SideNav } from '../components/SideNav'
 import { meQuery } from '../lib/api'
@@ -31,6 +31,14 @@ function AppShell() {
   useEffect(() => {
     if (user) applyAppearance(user.theme, user.accent)
   }, [user])
+  // Once the first screen is up, warm the other tabs (their code and data) while the phone is idle, so moving forward
+  // is as quick as moving back.
+  const router = useRouter()
+  useEffect(() => {
+    const warm = () => TABS.forEach((to) => void router.preloadRoute({ to }).catch(() => {}))
+    const id = 'requestIdleCallback' in window ? requestIdleCallback(warm, { timeout: 2000 }) : setTimeout(warm, 1000)
+    return () => ('cancelIdleCallback' in window ? cancelIdleCallback(id) : clearTimeout(id))
+  }, [router])
   const start = useRef<{ x: number; y: number; at: number; dragging: boolean } | null>(null)
   const page = useRef<HTMLDivElement>(null)
 

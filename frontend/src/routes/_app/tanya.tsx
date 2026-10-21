@@ -6,9 +6,9 @@ import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
-import { ApiError, api, celikQuery, errorText, type Message, messagesQuery, metaQuery } from '../../lib/api'
+import { ApiError, api, celikQuery, errorText, type Message, messagesQuery, metaQuery, prefetch } from '../../lib/api'
 
-export const Route = createFileRoute('/_app/tanya')({ component: Tanya })
+export const Route = createFileRoute('/_app/tanya')({ loader: prefetch(metaQuery, messagesQuery, celikQuery), component: Tanya })
 
 const SUGGESTED: Key[] = ['tanya.s1', 'tanya.s2', 'tanya.s3', 'tanya.s4']
 
