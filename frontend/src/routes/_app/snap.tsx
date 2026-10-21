@@ -229,11 +229,11 @@ function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (
           {t(WARNINGS[w] ?? 'snap.warn.generic')}
         </p>
       ))}
-      <MoneyField label={t('snap.gross')} valueSen={d.grossSen || null} onChange={(v) => onChange({ grossSen: v ?? 0 })} required />
+      <MoneyField label={t('snap.gross')} info={t('term.gross')} valueSen={d.grossSen || null} onChange={(v) => onChange({ grossSen: v ?? 0 })} required />
       <div className="grid grid-cols-2 gap-3">
-        <MoneyField label={t('snap.commission')} valueSen={d.commissionSen || null} onChange={(v) => onChange({ commissionSen: v ?? 0 })} />
-        <MoneyField label={t('snap.incentives')} valueSen={d.incentivesSen || null} onChange={(v) => onChange({ incentivesSen: v ?? 0 })} />
-        <MoneyField label={t('snap.tips')} valueSen={d.tipsSen || null} onChange={(v) => onChange({ tipsSen: v ?? 0 })} />
+        <MoneyField label={t('snap.commission')} info={t('term.commission')} valueSen={d.commissionSen || null} onChange={(v) => onChange({ commissionSen: v ?? 0 })} />
+        <MoneyField label={t('snap.incentives')} info={t('term.incentives')} valueSen={d.incentivesSen || null} onChange={(v) => onChange({ incentivesSen: v ?? 0 })} />
+        <MoneyField label={t('snap.tips')} info={t('term.tips')} valueSen={d.tipsSen || null} onChange={(v) => onChange({ tipsSen: v ?? 0 })} />
         <NumberField label={t('snap.hours')} value={d.hoursOnline} max={168} step={0.5} onChange={(v) => onChange({ hoursOnline: v })} />
         <NumberField label={t('snap.trips')} value={d.trips} max={2000} step={1} onChange={(v) => onChange({ trips: v })} />
       </div>

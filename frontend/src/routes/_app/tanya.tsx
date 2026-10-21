@@ -48,6 +48,7 @@ function Tanya() {
       setClearing(false)
     },
   })
+  const lastReply = history.data?.findLastIndex((m) => m.role === 'assistant') ?? -1
   const started = (history.data?.length ?? 0) > 0 || pending !== null || failed !== null
   useEffect(() => {
     if (started) end.current?.scrollIntoView({ block: 'end' }) // braces: newer browsers return a Promise, which React would call as cleanup
@@ -167,17 +168,20 @@ function Tanya() {
             </div>
           </>
         ) : null}
-        {history.data?.map((m, i) => <Bubble key={m.id ?? i} m={m} />)}
+        {history.data?.map((m, i) => <Bubble key={m.id ?? i} m={m} avatar={!pending && !failed && m.role === 'assistant' && i === lastReply ? 'idle' : undefined} />)}
         {pending && (
           <>
             <Bubble m={{ role: 'user', content: pending, risk: null, at: '' }} />
             {streamed ? (
               // The reply as it is written; the finished answer replaces it when it is saved
-              <Bubble m={{ role: 'assistant', content: streamed, risk: null, at: '' }} />
+              <Bubble m={{ role: 'assistant', content: streamed, risk: null, at: '' }} avatar="busy" />
             ) : (
-              <div role="status" className="flex items-center gap-2.5 self-start rounded-[var(--radius-lg)] rounded-bl-md bg-surface py-2 pr-4 pl-2 text-sm text-muted">
-                <ThinkingOrb state="composing" size={32} aria-hidden />
-                {t('tanya.thinking')}
+              <div className="flex items-end gap-2 self-start">
+                <TanyaAvatar size={AVATAR} busy />
+                <div role="status" className="flex items-center gap-2.5 rounded-[var(--radius-lg)] rounded-bl-md bg-surface py-2 pr-4 pl-2 text-sm text-muted">
+                  <ThinkingOrb state="composing" size={32} aria-hidden />
+                  {t('tanya.thinking')}
+                </div>
               </div>
             )}
           </>
@@ -207,10 +211,6 @@ function Tanya() {
             className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 mx-auto w-full max-w-[480px] bg-bg px-4 pt-2 pb-8 lg:static lg:max-w-none lg:px-1 lg:pt-3 lg:pb-1"
             onSubmit={submit}
           >
-            <div className="mb-2 flex items-center gap-2 px-1 text-[0.8125rem] text-muted max-lg:hidden">
-              <TanyaAvatar size={24} busy={busy} />
-              Tanya
-            </div>
             {composer}
           </form>
         </>
@@ -269,12 +269,19 @@ function ToolRow({ to, icon, title, sub }: { to: '/layak' | '/pemberi' | '/semak
   )
 }
 
-function Bubble({ m }: { m: Message }) {
+const AVATAR = 30
+
+// Tanya's replies sit beside its avatar. Only the latest reply (or the one being written) shows it, hopping while
+// Tanya works; older replies keep the space so they line up. One live canvas, not one per message.
+function Bubble({ m, avatar }: { m: Message; avatar?: 'idle' | 'busy' }) {
   if (m.role === 'user') return <p className="max-w-[85%] self-end whitespace-pre-wrap rounded-[var(--radius-lg)] rounded-br-md bg-brand px-4 py-2.5 text-on-brand">{m.content}</p>
   return (
-    <div className="flex max-w-[88%] flex-col items-start gap-2 self-start rounded-[var(--radius-lg)] rounded-bl-md bg-surface px-4 py-3 leading-relaxed">
-      {m.risk && <RiskBadge risk={m.risk} size="sm" />}
-      <p className="whitespace-pre-wrap">{withBoldNumbers(m.content)}</p>
+    <div className="flex max-w-[92%] items-end gap-2 self-start">
+      {avatar ? <TanyaAvatar size={AVATAR} busy={avatar === 'busy'} /> : <span aria-hidden className="shrink-0" style={{ width: AVATAR }} />}
+      <div className="flex min-w-0 flex-col items-start gap-2 rounded-[var(--radius-lg)] rounded-bl-md bg-surface px-4 py-3 leading-relaxed">
+        {m.risk && <RiskBadge risk={m.risk} size="sm" />}
+        <p className="whitespace-pre-wrap">{withBoldNumbers(m.content)}</p>
+      </div>
     </div>
   )
 }

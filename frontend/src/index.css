@@ -256,3 +256,19 @@ body {
   :root:not([data-theme='light']) .tooltip[data-side='right']::before { border-right-color: var(--text); }
   :root:not([data-theme='light']) .tooltip[data-side='bottom']::before { border-bottom-color: var(--text); }
 }
+
+/* AI-made content (pot suggestions written by the AI): a slow rainbow ring round the card and a soft glow behind it.
+   The card needs a background and a border radius; the glow sits outside it. Still for people who turn off motion. */
+@property --ai-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes ai-spin { to { --ai-angle: 360deg; } }
+.ai-glow { position: relative; isolation: isolate; border-color: transparent !important; }
+.ai-glow::before, .ai-glow::after {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  background: conic-gradient(from var(--ai-angle), #8b5cf6, #38bdf8, #b5fc04, #f472b6, #8b5cf6);
+  animation: ai-spin 6s linear infinite;
+}
+/* the ring: the gradient with the middle cut out */
+.ai-glow::before { padding: 1.5px; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+/* the glow: the same gradient, blurred, behind the card */
+.ai-glow::after { z-index: -1; filter: blur(14px); opacity: 0.28; }
+@media (prefers-reduced-motion: reduce) { .ai-glow::before, .ai-glow::after { animation: none; } }

@@ -688,5 +688,12 @@
   "privacy.contactTitle": "Questions or complaints",
   "privacy.contact": "Email {email} about your data or this notice.",
   "privacy.noContact": "A contact email hasn't been set yet.",
-  "privacy.bilingual": "This notice is in Bahasa Melayu and English; switch with the button at the top."
+  "privacy.bilingual": "This notice is in Bahasa Melayu and English; switch with the button at the top.",
+  "term.whatIs": "What is {term}?",
+  "term.gross": "The full amount you earned before the app takes its cut.",
+  "term.commission": "The cut the app keeps from each job, like Grab's service fee. It comes off your gross.",
+  "term.incentives": "Extra bonuses for hitting targets, like quests, streaks or peak-hour rewards.",
+  "term.tips": "Money customers give you on top of the fare. All of it is yours.",
+  "term.net": "What you actually take home: gross minus commission, plus incentives and tips.",
+  "term.flatRate": "The rate the shop quotes. It's charged on the full price for the whole loan, even as you pay it down, so the real yearly rate is much higher. We show both."
 }

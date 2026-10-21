@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Copy, Download, FileText, Link2, Lock, Mic, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { BarChart, HBars, Legend } from '../../components/Chart'
+import { InfoTip } from '../../components/InfoTip'
 import { ErrorState } from '../../components/ErrorState'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
@@ -127,21 +128,21 @@ function PayslipView({ week, onDone }: { week: Week; onDone: () => void }) {
   })
   if (!slip.data) return <Skeleton className="h-48" />
   const s = slip.data
-  const row = (label: string, sen: number, strong = false) => (
-    <div className="flex justify-between gap-3 py-1 text-sm"><span className="text-muted">{label}</span><span className={`tabular-nums ${strong ? 'font-bold' : ''}`}>{formatRM(sen)}</span></div>
+  const row = (label: string, sen: number, strong = false, info?: string) => (
+    <div className="flex justify-between gap-3 py-1 text-sm"><span className="flex items-center gap-1 text-muted">{label}{info && <InfoTip term={label} text={info} />}</span><span className={`tabular-nums ${strong ? 'font-bold' : ''}`}>{formatRM(sen)}</span></div>
   )
   return (
     <div className="flex max-h-[70dvh] flex-col gap-3 overflow-y-auto">
       {s.platforms.map((p) => (
         <div key={p.platform} className="rounded-[var(--radius-sm)] bg-surface-2 p-3">
           <p className="font-semibold">{t(`platform.${p.platform}` as Key)} <span className="text-[0.8125rem] font-normal text-muted">· {t(p.verification === 'checked' ? 'source.checked' : 'source.self')}</span></p>
-          {row(t('snap.gross'), p.grossSen)}
-          {p.commissionSen > 0 && row(t('snap.commission'), -p.commissionSen)}
-          {p.incentivesSen > 0 && row(t('snap.incentives'), p.incentivesSen)}
-          {p.tipsSen > 0 && row(t('snap.tips'), p.tipsSen)}
+          {row(t('snap.gross'), p.grossSen, false, t('term.gross'))}
+          {p.commissionSen > 0 && row(t('snap.commission'), -p.commissionSen, false, t('term.commission'))}
+          {p.incentivesSen > 0 && row(t('snap.incentives'), p.incentivesSen, false, t('term.incentives'))}
+          {p.tipsSen > 0 && row(t('snap.tips'), p.tipsSen, false, t('term.tips'))}
         </div>
       ))}
-      {row(t('slip.net'), s.netSen, true)}
+      {row(t('slip.net'), s.netSen, true, t('term.net'))}
       {Object.entries(s.costs).map(([c, sen]) => <div key={c}>{row(t(`cost.${c}` as Key), -sen)}</div>)}
       {s.salarySen !== null && row(t('slip.salary'), s.salarySen, true)}
       {s.transfer && row(t(s.transfer.direction === 'in' ? 'slip.toPocket' : 'slip.fromPocket'), s.transfer.amountSen)}

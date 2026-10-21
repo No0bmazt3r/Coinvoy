@@ -272,12 +272,12 @@ function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => voi
         <ul className="grid grid-cols-3 gap-3">
           {s.data.suggestions.length === 0 && <li className="col-span-full rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('tabung.noSuggestions')}</li>}
           {s.data.suggestions.map((x) => (
-            <li key={x.kind}>
+            <li key={x.kind} className={s.data.source === 'ai' ? 'ai-glow rounded-lg' : undefined}>
               <button type="button" onClick={() => onPick(x)} className="pressable flex h-full w-full items-start gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
                 <PotIcon kind={x.kind} className="mt-0.5 shrink-0 text-muted" />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline justify-between gap-2">
-                    <span className="font-semibold">{t(`pot.${x.kind}` as Key)}</span>
+                    <span className="flex items-center gap-1.5 font-semibold">{t(`pot.${x.kind}` as Key)}{s.data.source === 'ai' && <AiBadge />}</span>
                     <span className="text-[0.8125rem] font-semibold tabular-nums">{t('tabung.perWeek', { amount: rm(x.weeklySen) })}</span>
                   </span>
                   <span className="block text-sm text-muted">{x.reason}</span>
@@ -293,7 +293,18 @@ function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => voi
           </li>
         </ul>
       )}
+      {s.data?.source === 'ai' && <p className="flex items-start gap-1.5 px-1 text-[0.8125rem] text-muted"><Sparkles size={14} aria-hidden className="mt-0.5 shrink-0" />{t('tabung.byAi')}</p>}
     </section>
+  )
+}
+
+/** Marks a suggestion the AI picked and worded (the rules still set every amount). */
+function AiBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 rounded-full bg-[linear-gradient(90deg,#8b5cf6,#38bdf8)] px-1.5 py-px text-[0.6875rem] font-bold text-white">
+      <Sparkles size={10} aria-hidden />
+      AI
+    </span>
   )
 }
 
@@ -314,7 +325,8 @@ function AddPot({ onDone, initial }: { onDone: () => void; initial?: PotSuggesti
       ) : (
         <>
           {s.data.suggestions.length === 0 && <p className="text-sm text-muted">{t('tabung.noSuggestions')}</p>}
-          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line">
+          <div className={s.data.source === 'ai' ? 'ai-glow rounded-lg' : undefined}>
+          <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
             {s.data.suggestions.map((x) => {
               const Icon = iconOf({ kind: x.kind, icon: null })
               return (
@@ -323,7 +335,7 @@ function AddPot({ onDone, initial }: { onDone: () => void; initial?: PotSuggesti
                     <Icon size={20} aria-hidden className="mt-0.5 shrink-0 text-muted" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold">{t(`pot.${x.kind}` as Key)}</span>
+                        <span className="flex items-center gap-1.5 font-semibold">{t(`pot.${x.kind}` as Key)}{s.data.source === 'ai' && <AiBadge />}</span>
                         <span className="text-[0.8125rem] font-semibold tabular-nums">{t('tabung.perWeek', { amount: rm(x.weeklySen) })}</span>
                       </span>
                       <span className="block text-sm text-muted">{x.reason}</span>
@@ -343,6 +355,7 @@ function AddPot({ onDone, initial }: { onDone: () => void; initial?: PotSuggesti
               </button>
             </li>
           </ul>
+          </div>
           {s.data.source === 'ai' && <p className="flex items-start gap-1.5 text-[0.8125rem] text-muted"><Sparkles size={14} aria-hidden className="mt-0.5 shrink-0" />{t('tabung.byAi')}</p>}
         </>
       )}

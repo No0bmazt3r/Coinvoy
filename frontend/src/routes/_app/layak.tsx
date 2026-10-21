@@ -3,6 +3,7 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Calculator, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { ResultPlaceholder } from '../../components/EmptyState'
+import { InfoTip } from '../../components/InfoTip'
 import { MoneyField } from '../../components/MoneyField'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -46,7 +47,7 @@ function SemakLayak() {
               <input type="number" inputMode="numeric" min={1} max={120} value={months} onChange={(e) => setMonths(Math.min(120, Math.max(1, Number(e.target.value) || 1)))} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal tabular-nums" />
             </label>
             <label className="flex flex-col gap-1 text-sm font-semibold">
-              {t('layak.rate')}
+              <span className="flex items-center gap-1">{t('layak.rate')}<InfoTip term={t('layak.rate')} text={t('term.flatRate')} /></span>
               <input inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value.replace(/[^\d.]/g, ''))} className="h-12 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3 text-base font-normal tabular-nums" />
             </label>
           </div>

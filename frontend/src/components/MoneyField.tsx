@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { formatRM, parseRM } from '../lib/money'
 import { useI18n } from '../i18n/t'
+import { InfoTip } from './InfoTip'
 
 // RM prefix, decimal keypad, tabular figures, error as text under the field.
 export function MoneyField({
@@ -8,6 +9,7 @@ export function MoneyField({
   valueSen,
   onChange,
   hint,
+  info,
   required = false,
   autoFocus = false,
 }: {
@@ -15,6 +17,7 @@ export function MoneyField({
   valueSen: number | null
   onChange: (sen: number | null) => void
   hint?: string
+  info?: string // a plain-words explanation of the label, behind an ⓘ
   required?: boolean
   autoFocus?: boolean
 }) {
@@ -25,9 +28,12 @@ export function MoneyField({
   const error = text && parsed === null ? t('form.badAmount') : required && !text ? t('form.required') : null
   return (
     <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm font-semibold">
-        {label}
-      </label>
+      <span className="flex items-center gap-1">
+        <label htmlFor={id} className="text-sm font-semibold">
+          {label}
+        </label>
+        {info && <InfoTip term={label} text={info} />}
+      </span>
       {/* One ring around the whole field (RM and the number), not a second one around the input inside it */}
       <div className={`flex h-12 items-center rounded-[var(--radius-md)] border bg-surface-2 transition-colors focus-within:border-text focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus ${error ? 'border-[var(--risky)]' : 'border-line-strong hover:border-text'}`}>
         <span className="pl-3.5 text-sm font-semibold text-muted">RM</span>
