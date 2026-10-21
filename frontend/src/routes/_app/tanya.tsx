@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowUp, ArrowUpRight, BadgeAlert, Calculator, ChevronRight, Lightbulb, MessageSquareWarning, Sparkles } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
+import { GuideButton, GuideHint } from '../../components/Guide'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
@@ -52,8 +53,10 @@ function Tanya() {
       <ScreenHeader
         title={t('tanya.title')}
         action={
-          started && (
-            <div className="flex gap-1">
+          <div className="flex gap-1">
+            <GuideButton screen="tanya" />
+            {started && (
+              <>
               <Link to="/layak" aria-label={t('layak.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <Calculator size={20} aria-hidden />
               </Link>
@@ -63,13 +66,15 @@ function Tanya() {
               <Link to="/semak" aria-label={t('scam.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <MessageSquareWarning size={20} aria-hidden />
               </Link>
-            </div>
-          )
+            </>
+            )}
+          </div>
         }
       />
+      <GuideHint screen="tanya" />
 
       {(!started || aiOff) && (
-        <section aria-labelledby="tools" className="flex flex-col gap-2">
+        <section aria-labelledby="tools" data-tour="tools" className="flex flex-col gap-2">
           <h2 id="tools" className="px-1 text-sm font-semibold text-muted">{t('tanya.tools')}</h2>
           <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface">
             <ToolRow to="/layak" icon={<Calculator size={20} aria-hidden />} title={t('layak.title')} sub={t('layak.entry')} />
@@ -145,6 +150,7 @@ function Tanya() {
           <div aria-hidden className="h-24 lg:hidden" />
           {/* Pinned above the bottom nav on phones; sticks to the bottom of the column on desktop */}
           <form
+            data-tour="ask"
             className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-10 mx-auto w-full max-w-[480px] bg-bg px-4 pt-2 pb-8 lg:sticky lg:bottom-0 lg:max-w-none lg:px-0 lg:pb-4"
             onSubmit={(e) => { e.preventDefault(); send(text) }}
           >

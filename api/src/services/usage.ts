@@ -55,6 +55,20 @@ export async function retention(db: Db) {
   return { cohort: cohort.length, week2: share(2), week3: share(3), week4: share(4) }
 }
 
+/** Screen guides, real riders only: how many started, finished or skipped each screen's tour. */
+export async function guideStats(db: Db) {
+  const e = schema.events
+  const rows = await db
+    .select({ screen: sql<string>`${e.props}->>'screen'`, name: e.name, n: sql<number>`count(DISTINCT ${e.userId})::int` })
+    .from(e)
+    .innerJoin(schema.users, sql`${schema.users.id} = ${e.userId} AND NOT ${schema.users.isDemo}`)
+    .where(sql`${e.name} IN ('tour_started', 'tour_completed', 'tour_skipped')`)
+    .groupBy(sql`1`, e.name)
+  const out: Record<string, { started: number; completed: number; skipped: number }> = {}
+  for (const r of rows) (out[r.screen] ??= { started: 0, completed: 0, skipped: 0 })[r.name.slice(5) as 'started'] = r.n
+  return out
+}
+
 export async function riderCounts(db: Db) {
   const u = schema.users
   const [r] = await db

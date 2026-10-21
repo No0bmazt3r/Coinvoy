@@ -4,6 +4,7 @@ import { Camera, FileText, ImagePlus, Loader2, PencilLine, Plus, ScanLine, Shiel
 import { useRef, useState } from 'react'
 import { MoneyField } from '../../components/MoneyField'
 import { ResultPlaceholder } from '../../components/EmptyState'
+import { GuideButton, GuideHint } from '../../components/Guide'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Select } from '../../components/Select'
 import { useI18n, type Key } from '../../i18n/t'
@@ -101,18 +102,19 @@ function Snap() {
 
   return (
     <>
-      <ScreenHeader title={t(mode === 'history' ? 'snap.historyTitle' : 'snap.title')} back />
+      <ScreenHeader title={t(mode === 'history' ? 'snap.historyTitle' : 'snap.title')} back action={<GuideButton screen="snap" />} />
+      <GuideHint screen="snap" />
       <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
         {drafts.length === 0 && !read.isPending && (
           <section className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-5">
             <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
             {aiAllowed ? (
               <>
-                <button type="button" className="btn btn-brand" onClick={() => pick('camera')}>
+                <button type="button" data-tour="camera" className="btn btn-brand" onClick={() => pick('camera')}>
                   <Camera size={20} aria-hidden />
                   {t('snap.camera')}
                 </button>
-                <div className="grid grid-cols-2 gap-2">
+                <div data-tour="files" className="grid grid-cols-2 gap-2">
                   <button type="button" className="btn btn-secondary px-3" onClick={() => pick('gallery')}>
                     <ImagePlus size={20} aria-hidden />
                     {t('snap.gallery')}
@@ -127,7 +129,7 @@ function Snap() {
             ) : (
               <p className="text-sm">{t('snap.aiOff')}</p>
             )}
-            <button type="button" className="btn btn-secondary" onClick={() => setDrafts([blank()])}>
+            <button type="button" data-tour="manual" className="btn btn-secondary" onClick={() => setDrafts([blank()])}>
               <PencilLine size={20} aria-hidden />
               {t('snap.manual')}
             </button>

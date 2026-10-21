@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import { createElement, useEffect, useState } from 'react'
 import { ErrorState } from '../../components/ErrorState'
+import { GuideButton, GuideHint } from '../../components/Guide'
 import { MoneyField } from '../../components/MoneyField'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
@@ -44,15 +45,16 @@ function Tabung() {
 
   return (
     <>
-      <ScreenHeader title={t('tabung.title')} />
+      <ScreenHeader title={t('tabung.title')} action={<GuideButton screen="tabung" />} />
       <div className="flex flex-col gap-4 lg:mx-auto lg:w-full lg:max-w-2xl">
-        <section className="flex flex-col gap-1 px-1">
+        <GuideHint screen="tabung" />
+        <section data-tour="total" className="flex flex-col gap-1 px-1">
           <p className="text-sm font-semibold text-muted">{t('tabung.total')}</p>
           <p className="text-[2.25rem] leading-[2.5rem] font-extrabold tracking-tight tabular-nums">{rm(total)}</p>
           <p className="text-sm text-muted">{t('tabung.onePocket')}</p>
         </section>
 
-        <button type="button" onClick={() => setOpen(pen)} className="pressable flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
+        <button type="button" data-tour="penampan" onClick={() => setOpen(pen)} className="pressable flex flex-col gap-3 rounded-lg border border-line bg-surface p-4 text-left hover:bg-surface-2">
           <span className="flex items-center gap-3">
             <Shield size={22} aria-hidden className="shrink-0" />
             <span className="min-w-0 flex-1">
@@ -93,7 +95,7 @@ function Tabung() {
                 )
               })}
             </ul>
-            <button type="button" onClick={() => setAdding(true)} className="pressable flex w-full items-center gap-3 border-t border-line px-4 py-3.5 text-left font-semibold hover:bg-surface-2">
+            <button type="button" data-tour="add-pot" onClick={() => setAdding(true)} className="pressable flex w-full items-center gap-3 border-t border-line px-4 py-3.5 text-left font-semibold hover:bg-surface-2">
               <Plus size={20} aria-hidden className="shrink-0" />
               {t('tabung.add')}
             </button>

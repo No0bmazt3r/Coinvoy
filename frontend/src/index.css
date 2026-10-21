@@ -198,3 +198,35 @@ body {
 @layer components {
   .btn-ghost { background: transparent; color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
 }
+
+/* Screen guides (components/Guide.tsx): driver.js's card in Coinvoy's tokens. On phones it docks to the top or bottom
+   edge, whichever is away from the highlighted item, at full width, so it never covers what it points at. */
+.driver-popover.coinvoy-guide {
+  background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 1rem 1rem 0.875rem; min-width: 0; max-width: min(22rem, calc(100vw - 2rem)); box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+}
+.driver-popover.coinvoy-guide * { font-family: var(--font-sans); }
+.coinvoy-guide .driver-popover-title { font-size: 1.0625rem; font-weight: 700; line-height: 1.35; padding-right: 2rem; }
+.coinvoy-guide .driver-popover-description { font-size: 0.9375rem; line-height: 1.5; color: var(--text-muted); }
+.coinvoy-guide .driver-popover-close-btn { width: 44px; height: 44px; color: var(--text-muted); font-size: 1.625rem; line-height: 44px; top: 0.25rem; right: 0.25rem; border-radius: 999px; }
+.coinvoy-guide .driver-popover-close-btn:hover, .coinvoy-guide .driver-popover-close-btn:focus-visible { color: var(--text); background: var(--surface-2); }
+.coinvoy-guide .driver-popover-footer { margin-top: 0.875rem; gap: 0.5rem; }
+.coinvoy-guide .driver-popover-progress-text { color: var(--text-muted); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.coinvoy-guide .driver-popover-footer button {
+  min-height: 44px; padding: 0 1rem; border-radius: var(--radius-md); font-size: 0.875rem; font-weight: 600; text-shadow: none;
+  background: var(--surface-2); color: var(--text); border: 1px solid var(--border-strong);
+}
+.coinvoy-guide .driver-popover-footer .driver-popover-next-btn { background: var(--text); color: var(--bg); border-color: var(--text); }
+.coinvoy-guide .driver-popover-footer button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.coinvoy-guide .driver-popover-navigation-btns button + button { margin-left: 0.5rem; }
+.coinvoy-guide .driver-popover-arrow { border-color: var(--surface); }
+.coinvoy-guide .driver-popover-arrow-side-left { border-right-color: transparent; border-bottom-color: transparent; border-top-color: transparent; }
+.coinvoy-guide .driver-popover-arrow-side-right { border-left-color: transparent; border-bottom-color: transparent; border-top-color: transparent; }
+.coinvoy-guide .driver-popover-arrow-side-top { border-right-color: transparent; border-bottom-color: transparent; border-left-color: transparent; }
+.coinvoy-guide .driver-popover-arrow-side-bottom { border-left-color: transparent; border-top-color: transparent; border-right-color: transparent; }
+.driver-popover.coinvoy-guide.guide-dock-top, .driver-popover.coinvoy-guide.guide-dock-bottom {
+  left: 1rem !important; right: 1rem !important; max-width: none; width: auto !important;
+}
+.driver-popover.coinvoy-guide.guide-dock-top { top: calc(1rem + env(safe-area-inset-top)) !important; bottom: auto !important; }
+.driver-popover.coinvoy-guide.guide-dock-bottom { top: auto !important; bottom: calc(1rem + env(safe-area-inset-bottom)) !important; }
+.coinvoy-guide.guide-dock-top .driver-popover-arrow, .coinvoy-guide.guide-dock-bottom .driver-popover-arrow { display: none; }

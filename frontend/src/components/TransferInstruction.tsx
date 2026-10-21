@@ -34,7 +34,7 @@ export function TransferInstruction({ transfer: tr }: { transfer: Transfer }) {
     : ''
 
   return (
-    <div className={`m-2 mt-0 flex flex-col gap-3 rounded-[var(--radius-md)] bg-surface p-4 text-text ${done ? '' : 'border-2 border-dashed border-line-strong'}`}>
+    <div data-tour="transfer" className={`m-2 mt-0 flex flex-col gap-3 rounded-[var(--radius-md)] bg-surface p-4 text-text ${done ? '' : 'border-2 border-dashed border-line-strong'}`}>
       <div className="flex items-start gap-3">
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-surface-2">
           <Icon size={20} aria-hidden />

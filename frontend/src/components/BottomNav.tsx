@@ -60,6 +60,7 @@ export function BottomNav() {
         <li className="relative grid place-items-center">
           <Link
             to="/snap"
+            data-tour="snap-nav"
             aria-label={t('snap.title')}
             aria-current={active === 2 ? 'page' : undefined}
             className={`pressable -mt-7 grid size-15 place-items-center rounded-full border-[5px] border-bg bg-brand text-on-brand hover:scale-105 ${

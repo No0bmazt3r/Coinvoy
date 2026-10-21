@@ -5,6 +5,7 @@ import { CheckinCard } from '../../components/CheckinCard'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { ForecastBand } from '../../components/ForecastBand'
+import { GuideButton, GuideHint } from '../../components/Guide'
 import { JurangCard } from '../../components/JurangCard'
 import { SalaryCard } from '../../components/SalaryCard'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -36,8 +37,14 @@ function Gaji() {
     <>
       <ScreenHeader
         title={t('gaji.greeting', { name: user.displayName.split(' ')[0] })}
-        action={home.data && home.data.weeksLogged > 0 ? <StreakChip streak={home.data.streak} /> : undefined}
+        action={
+          <div className="flex items-center gap-1">
+            <GuideButton screen="gaji" />
+            {home.data && home.data.weeksLogged > 0 && <StreakChip streak={home.data.streak} />}
+          </div>
+        }
       />
+      <GuideHint screen="gaji" />
       {home.isPending ? (
         <Skeleton className="h-72" />
       ) : home.isError ? (
@@ -91,13 +98,13 @@ function Gaji() {
         <div className="col lg:mx-auto lg:w-full lg:max-w-[640px]">
           <section className="rounded-lg border-2 border-outline bg-surface">
             <EmptyState icon={Wallet} title={t('gaji.emptyTitle')} body={t('gaji.emptyBody')}>
-              <Link to="/snap" className="btn btn-brand mt-2">
+              <Link to="/snap" data-tour="snap-start" className="btn btn-brand mt-2">
                 <Camera size={20} aria-hidden />
                 {t('gaji.snapCta')}
               </Link>
             </EmptyState>
           </section>
-          <section aria-labelledby="how" className="flex flex-col gap-3">
+          <section aria-labelledby="how" data-tour="how" className="flex flex-col gap-3">
             <h2 id="how" className="px-1 text-sm font-semibold text-muted">
               {t('gaji.howTitle')}
             </h2>

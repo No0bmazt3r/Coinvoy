@@ -11,6 +11,7 @@ export const Route = createFileRoute('/_app/admin')({ component: Admin })
 type Usage = {
   riders: { riders: number; onboarded: number; active7d: number; demos: number; pushReminders: number }
   retention: { cohort: number; week2: number | null; week3: number | null; week4: number | null }
+  guides: Record<string, { started: number; completed: number; skipped: number }>
   llm: {
     days: number
     rows: { route: string; model: string; calls: number; riders: number; inputTokens: number; outputTokens: number; myr: number | null }[]
@@ -28,7 +29,7 @@ function Admin() {
   const q = useQuery({ queryKey: ['admin'], queryFn: () => api<Usage>('/api/admin/usage') })
   if (q.isPending) return <Skeleton className="h-80" />
   if (q.isError) return <ErrorState error={q.error} onRetry={() => q.refetch()} />
-  const { riders, retention, llm } = q.data
+  const { riders, retention, guides, llm } = q.data
   const stats: [string, number | string][] = [
     [t('admin.riders'), riders.riders],
     [t('admin.onboarded'), riders.onboarded],
@@ -49,6 +50,26 @@ function Admin() {
         ))}
       </dl>
       <p className="text-sm text-muted">{t('admin.cohort', { n: retention.cohort })}</p>
+      <section className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4">
+        <h2 className="font-semibold">{t('admin.guides')}</h2>
+        {Object.keys(guides).length === 0 ? (
+          <p className="text-sm text-muted">{t('admin.none')}</p>
+        ) : (
+          <table className="w-full text-sm tabular-nums">
+            <thead className="text-left text-muted">
+              <tr><th className="py-1 pr-2" /><th className="text-right">{t('admin.guidesHead')}</th></tr>
+            </thead>
+            <tbody>
+              {Object.entries(guides).map(([screen, g]) => (
+                <tr key={screen} className="border-t border-line">
+                  <td className="py-1 pr-2 capitalize">{screen}</td>
+                  <td className="text-right">{g.started} / {g.completed} / {g.skipped}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
       <section className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4">
         <h2 className="font-semibold">{t('admin.llm', { n: llm.days })}</h2>
         {llm.rows.length === 0 ? (

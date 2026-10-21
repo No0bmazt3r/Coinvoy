@@ -31,6 +31,7 @@ export const users = pgTable('users', {
   sickDaysCovered: integer('sick_days_covered').notNull().default(3),
   accent: text().notNull().default('lime'), // cosmetic, unlocked by streak level (FR-STRK-4)
   onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
+  seenTips: jsonb('seen_tips').$type<string[]>().notNull().default([]), // screens whose first-visit guide hint is done
 })
 
 export const sessions = pgTable(

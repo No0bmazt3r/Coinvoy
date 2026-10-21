@@ -46,12 +46,12 @@ export function SalaryCard({ salary, transfer }: { salary: Salary; transfer: Tra
   const b = salary.buildUp
   return (
     <section aria-labelledby="salary-label" className="overflow-hidden rounded-[var(--radius-lg)] border-2 border-outline bg-brand text-on-brand">
-      <div className="flex flex-col gap-2 p-5">
+      <div data-tour="salary" className="flex flex-col gap-2 p-5">
         <div className="flex items-start justify-between gap-3">
           <h2 id="salary-label" className="text-base font-semibold">
             {t('gaji.cardLabel')}
           </h2>
-          <span className="rounded-full bg-surface">
+          <span data-tour="risk" className="rounded-full bg-surface">
             <RiskBadge risk={salary.risk} />
           </span>
         </div>

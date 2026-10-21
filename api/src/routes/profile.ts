@@ -51,6 +51,27 @@ profileRouter.patch('/me', async (req, res) => {
   res.json({ user: await userJson(user) })
 })
 
+// Screen guides: a first-visit hint per screen, and on-demand tours (docs/todo.md, Oct 2026 grilling). "seen" and a
+// finished or skipped tour retire the hint for this account; started/completed/skipped are logged for the usage view.
+export const GUIDE_SCREENS = ['gaji', 'tabung', 'snap', 'tanya', 'profil'] as const
+const TipIn = z.strictObject({ screen: z.enum(GUIDE_SCREENS), action: z.enum(['seen', 'started', 'completed', 'skipped']) })
+
+profileRouter.post('/tips', async (req, res) => {
+  const { screen, action } = TipIn.parse(req.body)
+  let user = userOf(res)
+  if (action !== 'seen') await db.insert(schema.events).values({ userId: user.id, name: `tour_${action}`, props: { screen } })
+  if (action !== 'started' && !user.seenTips.includes(screen)) {
+    ;[user] = (await db.update(schema.users).set({ seenTips: [...user.seenTips, screen] }).where(eq(schema.users.id, user.id)).returning()) as [typeof user]
+  }
+  res.json({ user: await userJson(user) })
+})
+
+// "Tunjuk semula panduan": every hint comes back
+profileRouter.delete('/tips', async (_req, res) => {
+  const [user] = await db.update(schema.users).set({ seenTips: [] }).where(eq(schema.users.id, userOf(res).id)).returning()
+  res.json({ user: await userJson(user!) })
+})
+
 profileRouter.post('/consents', async (req, res) => {
   const c = ConsentIn.parse(req.body)
   const user = userOf(res)

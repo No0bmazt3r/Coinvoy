@@ -18,6 +18,7 @@ export type User = {
   defaultHours: number | null
   essentialsWeekSen: number | null
   pocketReady: boolean
+  seenTips: string[]
   sickDaysCovered: number
   accent: Accent
   platforms: Platform[]

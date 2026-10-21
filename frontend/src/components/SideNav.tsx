@@ -71,7 +71,7 @@ export function SideNav() {
         <Logo className="h-9 w-auto" />
         <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
       </Link>
-      <Link to="/snap" className="btn btn-brand">
+      <Link to="/snap" data-tour="snap-nav" className="btn btn-brand">
         <Camera size={20} aria-hidden />
         {t('snap.title')}
       </Link>

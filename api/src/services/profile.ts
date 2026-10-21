@@ -23,6 +23,7 @@ export async function userJson(user: User) {
     defaultHours: user.defaultHours,
     essentialsWeekSen: user.essentialsWeekSen,
     pocketReady: user.pocketReady,
+    seenTips: user.seenTips,
     sickDaysCovered: user.sickDaysCovered,
     accent: user.accent,
     platforms: await platformsOf(db, user.id),
