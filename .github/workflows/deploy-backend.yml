@@ -90,6 +90,11 @@ jobs:
       - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile --prod --filter coinvoy-api
+      - name: Secrets present?
+        run: |
+          # Without DATABASE_URL the API falls back to its built-in local database, so this would "migrate" a
+          # throwaway copy on GitHub's machine and pass without touching Supabase. Stop instead.
+          case "$DATABASE_URL" in postgres://*|postgresql://*) ;; *) echo "DATABASE_URL is missing or isn't a postgres:// address (GitHub → Settings → Environments → production)." >&2; exit 1 ;; esac
       - name: Is the database reachable, and what's pending?
         id: check
         run: node scripts/migrate.ts --check
