@@ -13,3 +13,12 @@ export function EmptyState({ icon: Icon, title, body, children }: { icon: Lucide
     </div>
   )
 }
+
+// Desktop only: holds the second column of a form screen until there's a result to show.
+export function ResultPlaceholder({ icon, body }: { icon: LucideIcon; body: string }) {
+  return (
+    <div className="hidden min-h-64 place-items-center rounded-lg border-2 border-dashed border-line lg:grid">
+      <EmptyState icon={icon} body={body} />
+    </div>
+  )
+}

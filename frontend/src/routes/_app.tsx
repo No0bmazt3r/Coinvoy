@@ -21,7 +21,7 @@ export const Route = createFileRoute('/_app')({
 
 // Desktop uses the full window. Screens with their own two-column layout keep it; Tanya stays one chat column;
 // every other screen flows its cards into as many columns as fit, with the header and intro text across the top.
-const OWN_LAYOUT = ['/', '/tabung', '/rekod', '/tanya']
+const OWN_LAYOUT = ['/', '/tabung', '/rekod', '/tanya', '/layak', '/pemberi', '/snap']
 const TILES = 'lg:grid lg:grid-cols-[repeat(auto-fill,minmax(min(100%,26rem),1fr))] lg:items-start lg:[&>header]:col-span-full lg:[&>p]:col-span-full'
 
 function AppShell() {

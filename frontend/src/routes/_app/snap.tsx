@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Camera, ImagePlus, Loader2, PencilLine, Plus, ShieldAlert, Trash2, TriangleAlert } from 'lucide-react'
+import { Camera, ImagePlus, Loader2, PencilLine, Plus, ScanLine, ShieldAlert, Trash2, TriangleAlert } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { MoneyField } from '../../components/MoneyField'
+import { ResultPlaceholder } from '../../components/EmptyState'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { useI18n, type Key } from '../../i18n/t'
 import { ApiError, api, errorText, type Draft, type Platform } from '../../lib/api'
@@ -84,77 +85,80 @@ function Snap() {
   return (
     <>
       <ScreenHeader title={t(mode === 'history' ? 'snap.historyTitle' : 'snap.title')} back />
-      {drafts.length === 0 && !read.isPending && (
-        <section className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-5">
-          <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
-          {aiAllowed ? (
-            <>
-              <button type="button" className="btn btn-primary" onClick={() => fileRef.current?.click()}>
-                {mode === 'history' ? <ImagePlus size={20} aria-hidden /> : <Camera size={20} aria-hidden />}
-                {t(mode === 'history' ? 'snap.pickMany' : 'snap.pick')}
-              </button>
-              <p className="text-[0.8125rem] text-muted">{t('snap.privacy')}</p>
-            </>
-          ) : (
-            <p className="text-sm">{t('snap.aiOff')}</p>
-          )}
-          <button type="button" className="btn btn-secondary" onClick={() => setDrafts([blank()])}>
-            <PencilLine size={20} aria-hidden />
-            {t('snap.manual')}
-          </button>
-        </section>
-      )}
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        multiple
-        hidden
-        onChange={(e) => {
-          const files = [...(e.target.files ?? [])]
-          e.target.value = ''
-          if (files.length) read.mutate(files)
-        }}
-      />
-      {read.isPending && (
-        <section aria-live="polite" className="flex items-center gap-3 rounded-lg border border-line bg-surface p-5">
-          <Loader2 size={22} className="spin" aria-hidden />
-          <span className="font-semibold">{t('snap.reading')}</span>
-        </section>
-      )}
-      {(read.isError || notice) && (
-        <p role="alert" className="rounded-[var(--radius-sm)] bg-[var(--careful-bg)] p-3 text-sm text-[var(--careful)]">
-          {read.isError ? errorText(read.error, lang, t('snap.failed')) : notice}
-        </p>
-      )}
-      {drafts.map((d, i) => (
-        <DraftCard key={d.key} draft={d} onChange={(p) => update(i, p)} onRemove={() => setDrafts((cur) => cur.filter((_, j) => j !== i))} />
-      ))}
-      {drafts.length > 0 && (
-        <>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" className="btn btn-secondary" onClick={() => setDrafts((cur) => [...cur, blank(cur.at(-1)?.weekStart)])}>
-              <Plus size={18} aria-hidden />
-              {t('snap.addPlatform')}
-            </button>
-            {aiAllowed && (
-              <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()} disabled={read.isPending}>
-                <ImagePlus size={18} aria-hidden />
-                {t('snap.addScreenshot')}
-              </button>
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
+        {drafts.length === 0 && !read.isPending && (
+          <section className="flex flex-col gap-3 rounded-lg border-2 border-outline bg-surface p-5">
+            <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
+            {aiAllowed ? (
+              <>
+                <button type="button" className="btn btn-primary" onClick={() => fileRef.current?.click()}>
+                  {mode === 'history' ? <ImagePlus size={20} aria-hidden /> : <Camera size={20} aria-hidden />}
+                  {t(mode === 'history' ? 'snap.pickMany' : 'snap.pick')}
+                </button>
+                <p className="text-[0.8125rem] text-muted">{t('snap.privacy')}</p>
+              </>
+            ) : (
+              <p className="text-sm">{t('snap.aiOff')}</p>
             )}
+            <button type="button" className="btn btn-secondary" onClick={() => setDrafts([blank()])}>
+              <PencilLine size={20} aria-hidden />
+              {t('snap.manual')}
+            </button>
+          </section>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          multiple
+          hidden
+          onChange={(e) => {
+            const files = [...(e.target.files ?? [])]
+            e.target.value = ''
+            if (files.length) read.mutate(files)
+          }}
+        />
+        {drafts.length === 0 && <ResultPlaceholder icon={ScanLine} body={t('snap.draftsHere')} />}
+        {read.isPending && (
+          <section aria-live="polite" className="flex items-center gap-3 rounded-lg border border-line bg-surface p-5">
+            <Loader2 size={22} className="spin" aria-hidden />
+            <span className="font-semibold">{t('snap.reading')}</span>
+          </section>
+        )}
+        {(read.isError || notice) && (
+          <p role="alert" className="rounded-[var(--radius-sm)] bg-[var(--careful-bg)] p-3 text-sm text-[var(--careful)] lg:col-span-full">
+            {read.isError ? errorText(read.error, lang, t('snap.failed')) : notice}
+          </p>
+        )}
+        {drafts.map((d, i) => (
+          <DraftCard key={d.key} draft={d} onChange={(p) => update(i, p)} onRemove={() => setDrafts((cur) => cur.filter((_, j) => j !== i))} />
+        ))}
+        {drafts.length > 0 && (
+          <div className="flex flex-col gap-4 lg:col-span-full">
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" className="btn btn-secondary" onClick={() => setDrafts((cur) => [...cur, blank(cur.at(-1)?.weekStart)])}>
+                <Plus size={18} aria-hidden />
+                {t('snap.addPlatform')}
+              </button>
+              {aiAllowed && (
+                <button type="button" className="btn btn-secondary" onClick={() => fileRef.current?.click()} disabled={read.isPending}>
+                  <ImagePlus size={18} aria-hidden />
+                  {t('snap.addScreenshot')}
+                </button>
+              )}
+            </div>
+            {dupes && <p className="text-sm font-semibold text-[var(--risky)]">{t('snap.duplicate')}</p>}
+            {confirm.isError && (
+              <p role="alert" className="text-sm font-semibold text-[var(--risky)]">
+                {errorText(confirm.error, lang, t('common.tryAgain'))}
+              </p>
+            )}
+            <button type="button" className="btn btn-primary" disabled={!valid || confirm.isPending} onClick={() => confirm.mutate()}>
+              {t('snap.confirm', { n: new Set(drafts.map((d) => d.weekStart)).size })}
+            </button>
           </div>
-          {dupes && <p className="text-sm font-semibold text-[var(--risky)]">{t('snap.duplicate')}</p>}
-          {confirm.isError && (
-            <p role="alert" className="text-sm font-semibold text-[var(--risky)]">
-              {errorText(confirm.error, lang, t('common.tryAgain'))}
-            </p>
-          )}
-          <button type="button" className="btn btn-primary" disabled={!valid || confirm.isPending} onClick={() => confirm.mutate()}>
-            {t('snap.confirm', { n: new Set(drafts.map((d) => d.weekStart)).size })}
-          </button>
-        </>
-      )}
+        )}
+      </div>
     </>
   )
 }
