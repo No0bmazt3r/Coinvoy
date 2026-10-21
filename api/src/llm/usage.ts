@@ -6,7 +6,7 @@ import { ApiError } from '../errors.ts'
 import { klMidnight, todayKL } from '../lib/weeks.ts'
 import type { ChatResult, Route } from './client.ts'
 
-const DAILY: Record<Route, () => number> = { snap: () => env.LLM_DAILY_SNAP, tanya: () => env.LLM_DAILY_TANYA, lender: () => env.LLM_DAILY_LENDER, bm: () => env.LLM_DAILY_BM }
+const DAILY: Record<Route, () => number> = { snap: () => env.LLM_DAILY_SNAP, tanya: () => env.LLM_DAILY_TANYA, lender: () => env.LLM_DAILY_LENDER, bm: () => env.LLM_DAILY_BM, reco: () => env.LLM_DAILY_RECO }
 
 export async function checkQuota(userId: number, route: Route, calls = 1) {
   const today = todayKL()

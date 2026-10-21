@@ -62,7 +62,7 @@ export function TransferInstruction({ transfer: tr }: { transfer: Transfer }) {
       </div>
       {tr.status !== 'confirmed' && (
         <div className="grid grid-cols-2 gap-2">
-          <button type="button" className="btn btn-primary px-3" disabled={confirm.isPending} onClick={() => confirm.mutate(null)}>
+          <button type="button" className="btn btn-brand px-3" disabled={confirm.isPending} onClick={() => confirm.mutate(null)}>
             {t(into ? 'transfer.confirm' : 'transfer.confirmOut')}
           </button>
           <button type="button" className="btn btn-secondary px-3" onClick={() => setPartialOpen(true)}>

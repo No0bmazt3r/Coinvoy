@@ -5,7 +5,7 @@ import { BottomNav } from '../components/BottomNav'
 import { SideNav } from '../components/SideNav'
 import { meQuery } from '../lib/api'
 import { applyAppearance } from '../lib/appearance'
-import { swipeTarget, tabDirection } from '../lib/tabs'
+import { TABS, dragOffset, swipeTarget, tabDirection } from '../lib/tabs'
 
 // Every signed-in screen lives under this pathless layout: it guards the session (FR-SHELL-4), adds the bottom nav (sidebar on desktop),
 // and swipes between tabs.
@@ -31,29 +31,56 @@ function AppShell() {
   useEffect(() => {
     if (user) applyAppearance(user.theme, user.accent)
   }, [user])
-  const start = useRef<{ x: number; y: number } | null>(null)
+  const start = useRef<{ x: number; y: number; at: number; dragging: boolean } | null>(null)
+  const page = useRef<HTMLDivElement>(null)
 
-  // Tab changes (tap or swipe) slide in from the side they sit on; other screens fade up.
+  // Tab changes (tap or swipe) slide the whole screen in from the side it sits on; other screens fade up.
   const [shown, setShown] = useState({ path: pathname, dir: 0 })
   if (shown.path !== pathname) setShown({ path: pathname, dir: tabDirection(shown.path, pathname) })
 
+  // The screen follows the finger (written straight to a CSS variable, no re-render per move), then commits or springs back.
+  const setDrag = (px: number, live: boolean) => {
+    const el = page.current
+    if (!el) return
+    el.classList.toggle('dragging', live)
+    el.style.setProperty('--drag-x', `${px}px`)
+  }
   const onTouchStart = (e: TouchEvent) => {
     // Inputs and anything marked data-no-swipe (sliders, horizontal carousels) keep their own gestures
-    const ignore = e.touches.length > 1 || (e.target as Element).closest('input, textarea, select, [data-no-swipe]')
-    start.current = ignore ? null : { x: e.touches[0].clientX, y: e.touches[0].clientY }
+    const ignore = e.touches.length > 1 || !(TABS as readonly string[]).includes(pathname) || (e.target as Element).closest('input, textarea, select, [data-no-swipe]')
+    start.current = ignore ? null : { x: e.touches[0].clientX, y: e.touches[0].clientY, at: e.timeStamp, dragging: false }
+  }
+  const onTouchMove = (e: TouchEvent) => {
+    const s = start.current
+    if (!s) return
+    const dx = e.touches[0].clientX - s.x
+    const dy = e.touches[0].clientY - s.y
+    if (!s.dragging) {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) start.current = null // a scroll: let it be
+      else if (Math.abs(dx) > 10) s.dragging = true
+      if (!s.dragging) return
+    }
+    setDrag(dragOffset(pathname, dx), true)
   }
   const onTouchEnd = (e: TouchEvent) => {
-    if (!start.current) return
-    const t = e.changedTouches[0]
-    const to = swipeTarget(pathname, start.current.x, t.clientX - start.current.x, t.clientY - start.current.y, window.innerWidth)
+    const s = start.current
     start.current = null
-    if (to) navigate({ to })
+    if (!s) return
+    const t = e.changedTouches[0]
+    const to = swipeTarget(pathname, s.x, t.clientX - s.x, t.clientY - s.y, window.innerWidth, e.timeStamp - s.at)
+    if (to) {
+      setDrag(0, true) // the new screen takes over where this one was; no spring back
+      navigate({ to })
+      requestAnimationFrame(() => page.current?.classList.remove('dragging'))
+    } else setDrag(0, false)
   }
 
   return (
     <div
       onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={() => { start.current = null; setDrag(0, false) }}
       // clip, not hidden: the slide-in from the right must not widen the page (the fixed nav jumped), and sticky headers keep working
       className="min-h-dvh overflow-x-clip lg:pl-60"
     >
@@ -63,8 +90,9 @@ function AppShell() {
         {/* Keyed by path so each screen's sections animate in turn on arrival */}
         <div
           key={pathname}
-          className={`page-in flex flex-col gap-4 ${pathname === '/tanya' ? 'lg:mx-auto lg:max-w-3xl' : OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
-          style={shown.dir ? ({ '--page-dx': `${shown.dir * 24}px`, '--page-dy': '0px' } as CSSProperties) : undefined}
+          ref={page}
+          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 ${pathname === '/tanya' ? 'lg:mx-auto lg:max-w-3xl' : OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
+          style={shown.dir ? ({ '--page-dx': `${shown.dir * 30}vw`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />
         </div>

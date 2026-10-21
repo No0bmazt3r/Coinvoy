@@ -73,7 +73,7 @@ export async function runTool(user: User, name: string, args: Record<string, unk
     }
   }
   if (name === 'get_pots') {
-    return { pots: Object.values(await ensurePots(db, user.id)).map((p) => ({ pot: p.kind, balance_rm: rm(p.balanceSen), target_rm: rm(p.targetSen), weekly_rm: rm(p.weeklySen) })) }
+    return { pots: Object.values(await ensurePots(db, user.id)).filter((p) => p.active || p.balanceSen).map((p) => ({ pot: p.name ?? p.kind, balance_rm: rm(p.balanceSen), target_rm: rm(p.targetSen), weekly_rm: rm(p.weeklySen) })) }
   }
   if (name === 'get_bills') {
     const rows = await db.select().from(schema.bills).where(and(eq(schema.bills.userId, user.id), eq(schema.bills.active, true)))

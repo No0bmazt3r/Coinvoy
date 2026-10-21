@@ -80,7 +80,7 @@ export async function seedDemo(user: User, key: PersonaKey = 'faiz') {
   const pots = await ensurePots(db, user.id)
   await db.update(schema.pots).set({ balanceSen: p.penampanSen }).where(eq(schema.pots.id, pots.penampan.id))
   if (p.isaraan) {
-    await db.update(schema.pots).set({ balanceSen: p.isaraan.balanceSen, weeklySen: p.isaraan.weeklySen }).where(eq(schema.pots.id, pots.isaraan.id))
+    await db.update(schema.pots).set({ active: true, balanceSen: p.isaraan.balanceSen, weeklySen: p.isaraan.weeklySen }).where(eq(schema.pots.id, pots.isaraan.id))
     await db.insert(schema.contributions).values({ userId: user.id, kind: 'isaraan', amountSen: p.isaraan.paidSen, matchSen: p.isaraan.matchSen, year: Number(todayKL().slice(0, 4)) })
   }
   if (p.leave) await db.insert(schema.leavePlans).values({ userId: user.id, kind: 'planned', label: p.leave.label, startWeek: addWeeks(now, p.leave.inWeeks), weeks: 1, setAsideWeekSen: p.leave.setAsideWeekSen })

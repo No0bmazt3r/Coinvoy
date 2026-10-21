@@ -10,8 +10,9 @@ import { SalaryCard } from '../../components/SalaryCard'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
 import { StreakChip } from '../../components/StreakChip'
+import { StreakRow } from '../../components/StreakRow'
 import { useI18n, type Key } from '../../i18n/t'
-import { billsQuery, homeQuery } from '../../lib/api'
+import { billsQuery, homeQuery, weeksQuery } from '../../lib/api'
 
 export const Route = createFileRoute('/_app/')({ component: Gaji })
 
@@ -28,6 +29,7 @@ function Gaji() {
   const { user } = Route.useRouteContext()
   const home = useQuery(homeQuery)
   const bills = useQuery(billsQuery)
+  const weeks = useQuery(weeksQuery)
   const s = home.data?.salary
 
   return (
@@ -44,6 +46,7 @@ function Gaji() {
         <div className="contents lg:grid lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-4">
           <div className="col">
             <SalaryCard salary={s} transfer={home.data.transfer} />
+            {home.data.weeksLogged > 0 && <StreakRow streak={home.data.streak} />}
             {s.jurang && <JurangCard essentialsSen={s.jurang.essentialsSen} salarySen={s.salarySen} gapSen={s.jurang.gapSen} />}
           </div>
           <div className="col">
@@ -81,14 +84,14 @@ function Gaji() {
                 </span>
               </Link>
             )}
-            <ForecastBand {...s.band} />
+            <ForecastBand {...s.band} last={weeks.data?.[0]?.netSen} />
           </div>
         </div>
       ) : (
         <div className="col lg:mx-auto lg:w-full lg:max-w-[640px]">
           <section className="rounded-lg border-2 border-outline bg-surface">
             <EmptyState icon={Wallet} title={t('gaji.emptyTitle')} body={t('gaji.emptyBody')}>
-              <Link to="/snap" className="btn btn-primary mt-2">
+              <Link to="/snap" className="btn btn-brand mt-2">
                 <Camera size={20} aria-hidden />
                 {t('gaji.snapCta')}
               </Link>

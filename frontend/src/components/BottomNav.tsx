@@ -23,11 +23,11 @@ export function BottomNav() {
       <li className="relative">
         <Link to={to} aria-current={on ? 'page' : undefined} className="pressable flex h-16 flex-col items-center gap-1 pt-2">
           <span
-            className={`grid h-8 w-14 place-items-center transition-colors duration-200 ${on ? 'text-on-brand' : 'text-muted'}`}
+            className={`grid h-8 w-14 place-items-center transition-colors duration-200 ${on ? 'text-text' : 'text-muted'}`}
           >
             <span key={String(on)} className={`grid ${on ? 'nav-pop' : ''}`}>
               {avatar && user ? (
-                <Avatar user={user} className={`size-6 text-[0.6875rem] ${on ? 'ring-2 ring-on-brand/80' : ''}`} />
+                <Avatar user={user} className={`size-6 text-[0.6875rem] ${on ? 'ring-2 ring-text/80' : ''}`} />
               ) : (
                 <Icon size={22} strokeWidth={on ? 2.4 : 2} aria-hidden />
               )}
@@ -47,13 +47,13 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-20 border-t lg:hidden border-line bg-surface/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl"
     >
       <ul className="relative mx-auto grid max-w-[480px] grid-cols-5">
-        {/* One lime pill that glides between tabs instead of each tab fading its own */}
+        {/* One neutral pill that glides between tabs instead of each tab fading its own */}
         <span
           aria-hidden
           className="pointer-events-none absolute top-2 left-0 flex w-1/5 justify-center transition-[transform,opacity] duration-300 ease-[var(--ease-out)]"
           style={{ transform: `translateX(${Math.max(pill, 0) * 100}%)`, opacity: pill < 0 ? 0 : 1 }}
         >
-          <span className="h-8 w-14 rounded-full bg-brand" />
+          <span className="h-8 w-14 rounded-full bg-surface-2" />
         </span>
         {tab(0, '/', 'nav.gaji', Wallet)}
         {tab(1, '/tabung', 'nav.tabung', PiggyBank)}

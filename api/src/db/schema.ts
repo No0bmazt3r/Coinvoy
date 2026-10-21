@@ -125,7 +125,10 @@ export const pots = pgTable(
   {
     id: id(),
     userId: owner(),
-    kind: text().notNull(), // penampan | cuti | kecemasan | motor | raya | isaraan | perkeso
+    kind: text().notNull(), // penampan | cuti | kecemasan | motor | raya | isaraan | perkeso, or c-<id> for the rider's own
+    name: text(), // the rider's own pots only; built-ins are named by i18n
+    icon: text(), // the rider's own pots only: one of CUSTOM_ICONS
+    active: boolean().notNull().default(true), // false = not added yet (built-ins) or closed (kept as history)
     targetSen: integer('target_sen').notNull().default(0),
     balanceSen: integer('balance_sen').notNull().default(0),
     weeklySen: integer('weekly_sen').notNull().default(0), // set aside every week; the engine counts it as an outflow

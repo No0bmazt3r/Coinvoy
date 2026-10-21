@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
+import '@fontsource-variable/plus-jakarta-sans/wght.css' // self-hosted, font-display: swap; only the subsets in use download
 import { RouteSkeleton } from './components/Skeleton'
 import { Splash } from './components/Splash'
 import { I18nProvider } from './i18n/I18nProvider'

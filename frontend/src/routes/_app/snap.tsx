@@ -91,7 +91,7 @@ function Snap() {
             <p className="text-muted">{t(mode === 'history' ? 'snap.historyBody' : 'snap.body')}</p>
             {aiAllowed ? (
               <>
-                <button type="button" className="btn btn-primary" onClick={() => fileRef.current?.click()}>
+                <button type="button" className="btn btn-brand" onClick={() => fileRef.current?.click()}>
                   {mode === 'history' ? <ImagePlus size={20} aria-hidden /> : <Camera size={20} aria-hidden />}
                   {t(mode === 'history' ? 'snap.pickMany' : 'snap.pick')}
                 </button>
@@ -153,7 +153,7 @@ function Snap() {
                 {errorText(confirm.error, lang, t('common.tryAgain'))}
               </p>
             )}
-            <button type="button" className="btn btn-primary" disabled={!valid || confirm.isPending} onClick={() => confirm.mutate()}>
+            <button type="button" className="btn btn-brand" disabled={!valid || confirm.isPending} onClick={() => confirm.mutate()}>
               {t('snap.confirm', { n: new Set(drafts.map((d) => d.weekStart)).size })}
             </button>
           </div>

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Award, BarChart3, Bell, Briefcase, CalendarClock, ChevronRight, Download, FileText, Landmark, Languages, LogOut, Moon, Shield, Trash2 } from 'lucide-react'
+import { Award, BarChart3, Bell, Briefcase, CalendarClock, ChevronRight, Download, FileText, Landmark, Languages, LogOut, Moon, Palmtree, Shield, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Avatar } from '../../components/Avatar'
 import { LangToggle } from '../../components/LangToggle'
@@ -19,7 +19,7 @@ const ROW = 'flex min-h-14 items-center gap-3 px-4 py-3'
 const THEMES: User['theme'][] = ['light', 'dark', 'system']
 const DAYS: Key[] = ['day.0', 'day.1', 'day.2', 'day.3', 'day.4', 'day.5', 'day.6']
 
-function NavRow({ to, icon, label }: { to: '/pencapaian' | '/rekod' | '/bil' | '/privacy' | '/pocket' | '/admin'; icon: ReactNode; label: string }) {
+function NavRow({ to, icon, label }: { to: '/pencapaian' | '/rekod' | '/bil' | '/cuti' | '/privacy' | '/pocket' | '/admin'; icon: ReactNode; label: string }) {
   return (
     <Link to={to} className={`${ROW} pressable hover:bg-surface-2`}>
       {icon}
@@ -80,6 +80,7 @@ function Settings() {
         <NavRow to="/pencapaian" icon={<Award size={22} aria-hidden />} label={t('ach.title')} />
         <NavRow to="/rekod" icon={<FileText size={22} aria-hidden />} label={t('rekod.title')} />
         <NavRow to="/bil" icon={<CalendarClock size={22} aria-hidden />} label={t('bills.title')} />
+        <NavRow to="/cuti" icon={<Palmtree size={22} aria-hidden />} label={t('cuti.entryTitle')} />
         <NavRow to="/pocket" icon={<Landmark size={22} aria-hidden />} label={t('settings.pocket')} />
         <button type="button" onClick={() => setProfileOpen(true)} className={`${ROW} pressable text-left hover:bg-surface-2`}>
           <Briefcase size={22} aria-hidden />

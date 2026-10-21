@@ -48,7 +48,7 @@ export function SideNav() {
       <Link
         to={to}
         activeOptions={{ exact: to === '/' }}
-        className="pressable flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] px-3 font-medium text-muted hover:bg-surface-2 hover:text-text data-[status=active]:bg-brand data-[status=active]:font-bold data-[status=active]:text-on-brand"
+        className="pressable flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] px-3 font-medium text-muted hover:bg-surface-2 hover:text-text data-[status=active]:bg-surface-2 data-[status=active]:font-bold data-[status=active]:text-text"
       >
         <Icon size={20} aria-hidden />
         {t(label)}
@@ -69,7 +69,7 @@ export function SideNav() {
         <Logo className="h-9 w-auto" />
         <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
       </Link>
-      <Link to="/snap" className="btn btn-primary">
+      <Link to="/snap" className="btn btn-brand">
         <Camera size={20} aria-hidden />
         {t('snap.title')}
       </Link>

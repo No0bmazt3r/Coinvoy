@@ -6,6 +6,7 @@ import { ErrorState } from '../../components/ErrorState'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
+import { StatementCheck } from '../../components/StatementCheck'
 import { useI18n, type Key } from '../../i18n/t'
 import { api, errorText, expensesQuery, linksQuery, penyataQuery, type Week, weeksQuery } from '../../lib/api'
 import { thisWeekStart, weekLabel } from '../../lib/dates'
@@ -37,6 +38,7 @@ function Rekod() {
         <div className="col">
           <Costs />
           <PenyataCard />
+          <StatementCheck />
         </div>
         <div className="col">
           <section aria-labelledby="weeks" className="flex flex-col gap-2">

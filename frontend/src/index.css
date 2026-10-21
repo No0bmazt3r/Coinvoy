@@ -3,11 +3,11 @@
 /* Design tokens: docs/design-system.md §2 and §12. Components use these, never raw hex. */
 :root {
   color-scheme: light;
-  --bg: #F6F7F2; --surface: #FFFFFF; --surface-2: #EEF0E8;
-  --border: #D9DCD3; --border-strong: #8A8E85;
-  --text: #1D1E1D; --text-muted: #5B5E57;
-  --brand: #B5FC04; --on-brand: #1D1E1D; --brand-text: #4E7A00; --focus: #1D1E1D;
-  --ink: #1D1E1D; --on-ink: #F2F3EE; --on-ink-muted: #A3A79E;
+  --bg: #F7F5F1; --surface: #FFFFFF; --surface-2: #EFECE6;
+  --border: #E2DED6; --border-strong: #8C867C;
+  --text: #1C1A17; --text-muted: #5E5850;
+  --brand: #B5FC04; --on-brand: #1C1A17; --brand-text: #4E7A00; --focus: #1C1A17;
+  --ink: #1C1A17; --on-ink: #F4F1EC; --on-ink-muted: #A8A196;
   --safe: #136C33; --safe-bg: #E4F4E8;
   --careful: #9A4A06; --careful-bg: #FDF0DC;
   --risky: #B91C1C; --risky-bg: #FBE4E2;
@@ -18,10 +18,10 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #121312; --surface: #1D1E1D; --surface-2: #2A2C29;
-    --border: #3A3D38; --border-strong: #6B6F67;
-    --text: #F2F3EE; --text-muted: #A3A79E;
-    --brand: #B5FC04; --on-brand: #1D1E1D; --brand-text: #B5FC04; --focus: #B5FC04;
+    --bg: #141210; --surface: #1F1C19; --surface-2: #2A2622;
+    --border: #38332D; --border-strong: #6E675E;
+    --text: #F4F1EC; --text-muted: #A8A196;
+    --brand: #B5FC04; --on-brand: #1C1A17; --brand-text: #B5FC04; --focus: #B5FC04;
     --safe: #4ADE80; --safe-bg: #14301E;
     --careful: #FBBF24; --careful-bg: #33280D;
     --risky: #F87171; --risky-bg: #3A1A19;
@@ -32,10 +32,10 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #121312; --surface: #1D1E1D; --surface-2: #2A2C29;
-  --border: #3A3D38; --border-strong: #6B6F67;
-  --text: #F2F3EE; --text-muted: #A3A79E;
-  --brand: #B5FC04; --on-brand: #1D1E1D; --brand-text: #B5FC04; --focus: #B5FC04;
+  --bg: #141210; --surface: #1F1C19; --surface-2: #2A2622;
+  --border: #38332D; --border-strong: #6E675E;
+  --text: #F4F1EC; --text-muted: #A8A196;
+  --brand: #B5FC04; --on-brand: #1C1A17; --brand-text: #B5FC04; --focus: #B5FC04;
   --safe: #4ADE80; --safe-bg: #14301E;
   --careful: #FBBF24; --careful-bg: #33280D;
   --risky: #F87171; --risky-bg: #3A1A19;
@@ -65,10 +65,10 @@
   --color-on-ink-muted: var(--on-ink-muted);
   --color-outline: var(--outline);
   --color-focus: var(--focus);
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-sans: "Plus Jakarta Sans Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
 }
 
 html, body, #root { height: 100%; }
@@ -122,7 +122,7 @@ body {
 }
 
 /* Motion: design-system §8, 150–250 ms ease-out. All of it is switched off under reduced motion below. */
-:root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); }
+:root { --ease-out: cubic-bezier(0.22, 1, 0.36, 1); --ease-in-out: cubic-bezier(0.45, 0, 0.2, 1); }
 /* Fades up by default; tab changes set --page-dx/--page-dy so it slides in from the side instead */
 @keyframes page-in { from { opacity: 0; transform: translate(var(--page-dx, 0px), var(--page-dy, 8px)); } to { opacity: 1; transform: none; } }
 @keyframes nav-pop { 0% { transform: scale(0.8) translateY(2px); } 60% { transform: scale(1.12) translateY(-1px); } 100% { transform: none; } }
@@ -131,6 +131,11 @@ body {
 .page-in > :nth-child(3) { animation-delay: 80ms; }
 .page-in > :nth-child(n + 4) { animation-delay: 120ms; }
 .nav-pop { animation: nav-pop 320ms var(--ease-out); }
+/* Tab changes: the whole screen glides in as one piece (no stagger), slower and even. */
+.tab-in > *, .tab-in .col > * { animation-duration: 360ms !important; animation-delay: 0ms !important; animation-timing-function: var(--ease-in-out) !important; }
+/* Swipe: each piece follows --drag-x (on the children, so fixed bars like Tanya's composer stay fixed), springing back when let go */
+.page-in > *, .page-in .col > * { translate: var(--drag-x, 0px) 0; transition: translate 320ms var(--ease-out); }
+.page-in.dragging > *, .page-in.dragging .col > * { transition: none; }
 @keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes pulse { 50% { opacity: 0.55; } }
@@ -166,7 +171,9 @@ body {
   }
   .btn:active { transform: scale(0.98); }
   .btn:disabled { opacity: 0.5; pointer-events: none; }
-  .btn-primary { background: var(--brand); color: var(--on-brand); border: 2px solid var(--outline); }
+  /* Ink for everyday primary actions; lime (.btn-brand) only for Snap and confirming the weekly transfer */
+  .btn-primary { background: var(--text); color: var(--bg); }
+  .btn-brand { background: var(--brand); color: var(--on-brand); border: 2px solid var(--outline); }
   .btn-secondary { background: var(--surface); color: var(--text); border: 2px solid var(--text); }
   :root[data-theme="dark"] .btn-secondary { background: var(--surface-2); border: 1px solid var(--border-strong); }
   @media (prefers-color-scheme: dark) {

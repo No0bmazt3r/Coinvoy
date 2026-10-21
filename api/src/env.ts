@@ -32,11 +32,20 @@ const schema = z.object({
   LLM_MODEL_TANYA: z.string().default(''),
   LLM_MODEL_LENDER: z.string().default(''),
   LLM_MODEL_BM: z.string().default(''),
+  LLM_MODEL_RECO: z.string().default(''),
+  // Optional key per job: OCR (snap), chatbot (tanya + lender) and recommendations (reco + bm). Empty = the shared key/URL.
+  LLM_API_KEY_SNAP: z.string().default(''),
+  LLM_API_KEY_TANYA: z.string().default(''),
+  LLM_API_KEY_RECO: z.string().default(''),
+  LLM_BASE_URL_SNAP: z.string().default(''),
+  LLM_BASE_URL_TANYA: z.string().default(''),
+  LLM_BASE_URL_RECO: z.string().default(''),
   LLM_TIMEOUT_S: z.coerce.number().default(60),
   LLM_DAILY_SNAP: z.coerce.number().default(15),
   LLM_DAILY_TANYA: z.coerce.number().default(20),
   LLM_DAILY_LENDER: z.coerce.number().default(5),
   LLM_DAILY_BM: z.coerce.number().default(30),
+  LLM_DAILY_RECO: z.coerce.number().default(10),
   LLM_MONTHLY_CALL_CAP: z.coerce.number().default(20_000),
   LLM_PROVIDER_NAME: z.string().default(''),
   LLM_REGION_NOTE: z.string().default(''),
@@ -58,4 +67,4 @@ if (!parsed.success) {
 export const env = parsed.data
 export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 export const pushConfigured = () => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)
-export const llmConfigured = () => Boolean(env.LLM_API_KEY && env.LLM_MODEL)
+export const llmConfigured = () => Boolean((env.LLM_API_KEY || env.LLM_API_KEY_SNAP || env.LLM_API_KEY_TANYA || env.LLM_API_KEY_RECO) && env.LLM_MODEL)

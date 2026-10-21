@@ -3,25 +3,42 @@
 import OpenAI from 'openai'
 import type { ChatCompletionMessage, ChatCompletionMessageParam, ChatCompletionTool } from 'openai/resources/chat/completions'
 import { z } from 'zod'
-import { env, llmConfigured } from '../env.ts'
+import { env } from '../env.ts'
 import { ApiError } from '../errors.ts'
 import { log } from '../log.ts'
 
-export type Route = 'snap' | 'tanya' | 'lender' | 'bm'
+export type Route = 'snap' | 'tanya' | 'lender' | 'bm' | 'reco'
 
-// Tests swap in a client pointed at a fake provider.
+// Tests swap in a client pointed at a fake provider (used for every route).
 export const provider: { client: OpenAI | null } = { client: null }
+const clients = new Map<string, OpenAI>()
 
-function client(): OpenAI {
+/** Three keys, one per job: OCR, the chatbot (Tanya and the lender check) and recommendations (and BM text). Each falls back to the shared key. */
+export function keyFor(route: Route): { apiKey: string; baseURL: string } {
+  const [key, url] = {
+    snap: [env.LLM_API_KEY_SNAP, env.LLM_BASE_URL_SNAP],
+    tanya: [env.LLM_API_KEY_TANYA, env.LLM_BASE_URL_TANYA],
+    lender: [env.LLM_API_KEY_TANYA, env.LLM_BASE_URL_TANYA],
+    reco: [env.LLM_API_KEY_RECO, env.LLM_BASE_URL_RECO],
+    bm: [env.LLM_API_KEY_RECO, env.LLM_BASE_URL_RECO],
+  }[route]
+  return { apiKey: key || env.LLM_API_KEY, baseURL: url || env.LLM_BASE_URL }
+}
+
+export const routeConfigured = (route: Route) => Boolean(provider.client || (keyFor(route).apiKey && modelFor(route)))
+
+function client(route: Route): OpenAI {
   if (provider.client) return provider.client
-  if (!llmConfigured()) throw new ApiError(503, 'llm_unconfigured', 'Ciri AI belum disediakan. Sila isi secara manual.', "AI features aren't set up. Please enter it manually.")
-  provider.client = new OpenAI({ baseURL: env.LLM_BASE_URL, apiKey: env.LLM_API_KEY, timeout: env.LLM_TIMEOUT_S * 1000, maxRetries: 2 })
-  return provider.client
+  if (!routeConfigured(route)) throw new ApiError(503, 'llm_unconfigured', 'Ciri AI belum disediakan. Sila isi secara manual.', "AI features aren't set up. Please enter it manually.")
+  const { apiKey, baseURL } = keyFor(route)
+  const id = `${baseURL} ${apiKey}`
+  if (!clients.has(id)) clients.set(id, new OpenAI({ baseURL, apiKey, timeout: env.LLM_TIMEOUT_S * 1000, maxRetries: 2 }))
+  return clients.get(id)!
 }
 
 /** Per-route override (LLM_MODEL_SNAP, …) or the shared LLM_MODEL. */
 export function modelFor(route: Route): string {
-  const perRoute = { snap: env.LLM_MODEL_SNAP, tanya: env.LLM_MODEL_TANYA, lender: env.LLM_MODEL_LENDER, bm: env.LLM_MODEL_BM }[route]
+  const perRoute = { snap: env.LLM_MODEL_SNAP, tanya: env.LLM_MODEL_TANYA, lender: env.LLM_MODEL_LENDER, bm: env.LLM_MODEL_BM, reco: env.LLM_MODEL_RECO }[route]
   return perRoute || env.LLM_MODEL
 }
 
@@ -42,12 +59,12 @@ export async function chat<T = undefined>(
   let res: OpenAI.Chat.ChatCompletion
   try {
     try {
-      res = await client().chat.completions.create(body)
+      res = await client(route).chat.completions.create(body)
     } catch (err) {
       if (!(err instanceof OpenAI.BadRequestError) || !opts.schema) throw err
       // Some providers reject json_schema; the prompt asks for JSON and zod still validates.
       delete body.response_format
-      res = await client().chat.completions.create(body)
+      res = await client(route).chat.completions.create(body)
     }
   } catch (err) {
     if (err instanceof ApiError) throw err

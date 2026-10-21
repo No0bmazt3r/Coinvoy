@@ -7,7 +7,8 @@ import { db, schema } from '../db/index.ts'
 import { notFound } from '../errors.ts'
 import { addWeeks, thisWeek } from '../lib/weeks.ts'
 import { checkinDue, streak } from '../services/benefits.ts'
-import { confirmTransfer, ensurePots, POT_KINDS, type Pot, type PotKind } from '../services/pots.ts'
+import { addPot, closePot, confirmTransfer, CUSTOM_ICONS, ensurePots, POT_KINDS, type Pot } from '../services/pots.ts'
+import { classify, preview, suggestions } from '../services/reco.ts'
 import { currentWeek, recompute, weeklyHistory } from '../services/salary.ts'
 import { MAX_SEN } from '../lib/limits.ts'
 
@@ -19,7 +20,7 @@ export const transferJson = (t: Transfer | undefined) =>
         confirmedAmountSen: t.confirmedAmountSen, confirmedAt: t.confirmedAt?.toISOString() ?? null, verification: t.verification,
       }
     : null
-export const potJson = (p: Pot) => ({ kind: p.kind, balanceSen: p.balanceSen, targetSen: p.targetSen, weeklySen: p.weeklySen })
+export const potJson = (p: Pot) => ({ kind: p.kind, name: p.name, icon: p.icon, active: p.active, balanceSen: p.balanceSen, targetSen: p.targetSen, weeklySen: p.weeklySen })
 
 export const homeRouter = Router()
 homeRouter.use(requireUser)
@@ -64,16 +65,54 @@ homeRouter.post('/transfers/:id/confirm', async (req, res) => {
 
 homeRouter.get('/pots', async (_req, res) => {
   const pots = await ensurePots(db, userOf(res).id)
-  res.json({ pots: POT_KINDS.map((k) => potJson(pots[k])) })
+  const order = (k: string) => { const i = (POT_KINDS as readonly string[]).indexOf(k); return i < 0 ? POT_KINDS.length : i }
+  res.json({ pots: Object.values(pots).sort((a, b) => order(a.kind) - order(b.kind) || a.id - b.id).map(potJson) })
+})
+
+const Money = z.number().int().min(0).max(MAX_SEN)
+
+// The "+" sheet: rule-based suggestions (AI-ordered and worded when allowed), a custom pot's category, and the salary preview.
+homeRouter.get('/pots/suggestions', async (_req, res) => {
+  res.json(await suggestions(db, userOf(res)))
+})
+
+homeRouter.post('/pots/classify', async (req, res) => {
+  const { name } = z.strictObject({ name: z.string().trim().min(1).max(40) }).parse(req.body)
+  res.json(await classify(db, userOf(res), name))
+})
+
+homeRouter.post('/pots/preview', async (req, res) => {
+  const { weeklySen } = z.strictObject({ weeklySen: Money }).parse(req.body)
+  res.json({ preview: await preview(db, userOf(res), weeklySen) })
+})
+
+homeRouter.post('/pots', async (req, res) => {
+  const user = userOf(res)
+  const body = z
+    .strictObject({ kind: z.string().max(20).optional(), name: z.string().trim().min(1).max(40).optional(), icon: z.enum(CUSTOM_ICONS).optional(), targetSen: Money, weeklySen: Money })
+    .refine((b) => Boolean(b.kind) !== Boolean(b.name), 'either kind or name')
+    .parse(req.body)
+  const pot = await addPot(db, user.id, body)
+  await recompute(db, user)
+  res.status(201).json({ pot: potJson(pot) })
 })
 
 homeRouter.patch('/pots/:kind', async (req, res) => {
   const user = userOf(res)
-  const kind = req.params.kind as PotKind
-  if (!POT_KINDS.includes(kind)) throw notFound()
-  const body = z.strictObject({ targetSen: z.number().int().min(0).max(MAX_SEN).optional(), weeklySen: z.number().int().min(0).max(MAX_SEN).optional() }).parse(req.body)
-  const pot = (await ensurePots(db, user.id))[kind]
+  const pot = (await ensurePots(db, user.id))[req.params.kind]
+  if (!pot) throw notFound()
+  const body = z
+    .strictObject({ targetSen: Money.optional(), weeklySen: Money.optional(), name: z.string().trim().min(1).max(40).optional(), icon: z.enum(CUSTOM_ICONS).optional() })
+    .parse(req.body)
+  if ((body.name || body.icon) && !pot.kind.startsWith('c-')) throw notFound()
   const [updated] = await db.update(schema.pots).set(body).where(eq(schema.pots.id, pot.id)).returning()
   if (body.weeklySen !== undefined) await recompute(db, user)
   res.json({ pot: potJson(updated!) })
+})
+
+homeRouter.post('/pots/:kind/close', async (req, res) => {
+  const user = userOf(res)
+  const result = await closePot(db, user.id, req.params.kind)
+  await recompute(db, user)
+  res.json(result)
 })

@@ -56,7 +56,8 @@ export type Transfer = {
   verification: 'self' | 'checked'
 }
 
-export type Pot = { kind: string; balanceSen: number; targetSen: number; weeklySen: number }
+export type Pot = { kind: string; name: string | null; icon: string | null; active: boolean; balanceSen: number; targetSen: number; weeklySen: number }
+export type PotSuggestion = { kind: string; targetSen: number; weeklySen: number; weeks: number; reason: string }
 
 export type Streak = {
   weeks: number

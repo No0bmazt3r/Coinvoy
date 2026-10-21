@@ -15,6 +15,13 @@
       "when": 1792371431417,
       "tag": "0001_push_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792559866771,
+      "tag": "0002_small_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }
