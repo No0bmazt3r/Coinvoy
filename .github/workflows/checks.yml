@@ -1,7 +1,8 @@
-# Runs on every push and pull request: lint, types, tests, bundle size and a secret scan.
+# Runs on every push to main and every pull request: lint, types, tests, bundle size and a secret scan.
 name: Coinvoy checks
 on:
   push:
+    branches: [main] # other branches are checked through their pull request, so nothing runs twice
   pull_request:
 
 jobs:
@@ -9,8 +10,8 @@ jobs:
     name: ML engine
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
       - run: uv sync --directory ml
       - run: uv run --directory ml ruff check .
@@ -29,11 +30,11 @@ jobs:
         ports: ["5432:5432"]
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with: { version: "0.13.1" }
       - run: pnpm install --frozen-lockfile
       - run: uv sync --directory ml # the API tests talk to the real ML service
@@ -47,9 +48,9 @@ jobs:
     name: Web app
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with: { node-version: 24, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter coinvoy-frontend typecheck
@@ -66,8 +67,8 @@ jobs:
     name: Secret scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with: { fetch-depth: 0 }
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

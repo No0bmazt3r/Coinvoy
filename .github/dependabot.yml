@@ -6,6 +6,10 @@ updates:
     schedule: { interval: weekly }
     groups:
       minor-and-patch: { update-types: [minor, patch] }
+    ignore:
+      # @types/node follows the Node we run (24, set in package.json "engines"); bump it with Node itself
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
   - package-ecosystem: uv # the ML service
     directory: /ml
     schedule: { interval: weekly }
@@ -14,3 +18,5 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
+    groups:
+      actions: { patterns: ["*"] } # one pull request for all CI action updates
