@@ -15,8 +15,8 @@ import { allowedValues, check } from './guard.ts'
 
 const PROMPT = readFileSync(new URL('./prompts/tanya.md', import.meta.url), 'utf8')
 
-// How Tanya talks, by the language set in Profil: casual Manglish in English, casual spoken Malay in BM.
-const VOICE = {
+// Tanya's writing style (a text chatbot), by the language set in Profil: casual Manglish in English, casual Malay in BM.
+const STYLE = {
   en: `- Reply in casual Malaysian English (Manglish), the way riders text each other: short sentences, a particle like "lah", "lor", "ah", "can", "ok what" here and there (one or two per reply, not every sentence), and common Malay words riders use anyway: gaji, duit, tabung, bil, cuti, minggu ni.
 - Call the rider "you". Never switch to formal English or to full Malay unless the rider writes in Malay.
 - Example: "Safe. Your gaji this week can cover it lah. Just don't spend the whole thing at once ah, keep some for your bil."`,
@@ -115,7 +115,7 @@ export type TanyaAnswer = { reply: string; risk: Risk | null; tools: string[]; g
 
 export async function answer(user: User, history: ChatCompletionMessageParam[], message: string, onCall: (r: ChatResult<undefined>) => Promise<void>): Promise<TanyaAnswer> {
   const lang = user.lang === 'en' ? 'en' : 'ms'
-  const system = PROMPT.replace('{voice}', VOICE[lang])
+  const system = PROMPT.replace('{style}', STYLE[lang])
   const messages: ChatCompletionMessageParam[] = [{ role: 'system', content: system }, ...history, { role: 'user', content: `<rider_message>${message}</rider_message>` }]
   const results: Record<string, unknown>[] = []
   const tools: string[] = []
