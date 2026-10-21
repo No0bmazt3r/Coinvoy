@@ -19,10 +19,9 @@ export const Route = createFileRoute('/_app')({
   component: AppShell,
 })
 
-// Desktop: every screen sits in one centred container. Wide (1120 px) for screens with two columns (Gaji with a
-// salary, Rekod, and the tools with an input beside its result); narrow (720 px) for the rest. A screen can ask for
-// narrow at times by marking an element data-narrow (Gaji before its first salary) — see .page-wide in index.css.
-const WIDE = ['/', '/rekod', '/layak', '/pemberi', '/semak', '/snap']
+// Desktop: every screen sits in one centred container, wide (1400 px), using a side column of related content
+// (components/Columns) so big screens aren't left empty. A few short single-purpose screens stay narrow (720 px).
+const NARROW = ['/pocket', '/jurang', '/admin']
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -99,7 +98,7 @@ function AppShell() {
         <div
           key={pathname}
           ref={page}
-          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 lg:mx-auto lg:w-full ${WIDE.includes(pathname) ? 'page-wide' : 'lg:max-w-[45rem]'}`}
+          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 lg:mx-auto lg:w-full ${NARROW.includes(pathname) ? 'lg:max-w-[45rem]' : 'page-wide'}`}
           style={shown.dir ? ({ '--page-dx': `${shown.dir * 12}vw`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />

@@ -5,6 +5,7 @@ import {
   Siren, Smartphone, Sparkles, Users, type LucideIcon,
 } from 'lucide-react'
 import { createElement, useEffect, useState } from 'react'
+import { Columns } from '../../components/Columns'
 import { ErrorState } from '../../components/ErrorState'
 import { GuideButton, GuideHint } from '../../components/Guide'
 import { MoneyField } from '../../components/MoneyField'
@@ -31,7 +32,8 @@ function Tabung() {
   const caruman = useQuery(carumanQuery)
   const home = useQuery(homeQuery)
   const [open, setOpen] = useState<Pot | null>(null)
-  const [adding, setAdding] = useState(false)
+  // false = closed; true = the + sheet from its list; a suggestion = straight to planning that pot
+  const [adding, setAdding] = useState<boolean | PotSuggestion>(false)
   const name = (p: Pot) => p.name ?? t(`pot.${p.kind}` as Key)
 
   if (pots.isPending || caruman.isPending) return <><ScreenHeader title={t('tabung.title')} /><Skeleton className="h-96" /></>
@@ -46,8 +48,9 @@ function Tabung() {
   return (
     <>
       <ScreenHeader title={t('tabung.title')} action={<GuideButton screen="tabung" />} />
-      <div className="flex flex-col gap-4">
-        <GuideHint screen="tabung" />
+      <GuideHint screen="tabung" />
+      <Columns>
+      <div className="col">
         <section data-tour="total" className="flex flex-col gap-1 px-1">
           <p className="text-sm font-semibold text-muted">{t('tabung.total')}</p>
           <p className="text-[2.25rem] leading-[2.5rem] font-extrabold tracking-tight tabular-nums">{rm(total)}</p>
@@ -108,12 +111,19 @@ function Tabung() {
           )}
         </section>
       </div>
+      <div className="col">
+        {/* desktop only (phones use the + sheet); hidden here because .col's display rule outranks a class on it */}
+        <div className="max-lg:hidden">
+          <SuggestionsPanel onPick={setAdding} />
+        </div>
+      </div>
+      </Columns>
 
       <Sheet open={open !== null} onClose={() => setOpen(null)} title={open ? name(open) : ''}>
         {open && <PotDetail pot={open} onDone={() => setOpen(null)} />}
       </Sheet>
-      <Sheet open={adding} onClose={() => setAdding(false)} title={t('tabung.add')}>
-        {adding && <AddPot onDone={() => setAdding(false)} />}
+      <Sheet open={adding !== false} onClose={() => setAdding(false)} title={t('tabung.add')}>
+        {adding !== false && <AddPot initial={adding === true ? undefined : adding} onDone={() => setAdding(false)} />}
       </Sheet>
     </>
   )
@@ -216,10 +226,52 @@ function Isaraan() {
 type Draft = { kind?: string; name: string; icon: string; reason?: string; targetSen: number | null; weeklySen: number | null }
 
 // The "+" sheet: suggestions with reasons → a plan with the live salary preview → add.
-function AddPot({ onDone }: { onDone: () => void }) {
+const suggestionsQuery = { queryKey: ['pot-suggestions'], queryFn: () => api<{ suggestions: PotSuggestion[]; source: 'ai' | 'rules' }>('/api/pots/suggestions') }
+
+// Desktop side panel: the suggested pots, always in view; one tap opens its plan with the live salary preview
+function SuggestionsPanel({ onPick }: { onPick: (s: PotSuggestion | true) => void }) {
   const { t } = useI18n()
-  const s = useQuery({ queryKey: ['pot-suggestions'], queryFn: () => api<{ suggestions: PotSuggestion[]; source: 'ai' | 'rules' }>('/api/pots/suggestions') })
-  const [draft, setDraft] = useState<Draft | null>(null)
+  const s = useQuery(suggestionsQuery)
+  return (
+    <section aria-labelledby="suggested" className="flex flex-col gap-2">
+      <h2 id="suggested" className="px-1 text-sm font-semibold text-muted">{t('tabung.suggested')}</h2>
+      {s.isPending ? (
+        <Skeleton className="h-48" />
+      ) : s.isError ? null : (
+        <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          {s.data.suggestions.length === 0 && <li className="p-4 text-sm text-muted">{t('tabung.noSuggestions')}</li>}
+          {s.data.suggestions.map((x) => (
+            <li key={x.kind}>
+              <button type="button" onClick={() => onPick(x)} className="pressable flex w-full items-start gap-3 p-4 text-left hover:bg-surface-2">
+                <PotIcon kind={x.kind} className="mt-0.5 shrink-0 text-muted" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="font-semibold">{t(`pot.${x.kind}` as Key)}</span>
+                    <span className="text-[0.8125rem] font-semibold tabular-nums">{t('tabung.perWeek', { amount: rm(x.weeklySen) })}</span>
+                  </span>
+                  <span className="block text-sm text-muted">{x.reason}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+          <li>
+            <button type="button" onClick={() => onPick(true)} className="pressable flex w-full items-center gap-3 p-4 text-left font-semibold hover:bg-surface-2">
+              <Plus size={20} aria-hidden className="shrink-0" />
+              {t('tabung.custom')}
+            </button>
+          </li>
+        </ul>
+      )}
+    </section>
+  )
+}
+
+const draftOf = (x: PotSuggestion, name: string): Draft => ({ kind: x.kind, name, icon: '', reason: x.reason, targetSen: x.targetSen, weeklySen: x.weeklySen })
+
+function AddPot({ onDone, initial }: { onDone: () => void; initial?: PotSuggestion }) {
+  const { t } = useI18n()
+  const s = useQuery(suggestionsQuery)
+  const [draft, setDraft] = useState<Draft | null>(initial ? draftOf(initial, t(`pot.${initial.kind}` as Key)) : null)
   if (draft) return <PlanPot draft={draft} setDraft={setDraft} onDone={onDone} />
   return (
     <div className="flex flex-col gap-3">
@@ -236,7 +288,7 @@ function AddPot({ onDone }: { onDone: () => void }) {
               const Icon = iconOf({ kind: x.kind, icon: null })
               return (
                 <li key={x.kind}>
-                  <button type="button" onClick={() => setDraft({ kind: x.kind, name: t(`pot.${x.kind}` as Key), icon: '', reason: x.reason, targetSen: x.targetSen, weeklySen: x.weeklySen })} className="pressable flex w-full items-start gap-3 p-3 text-left hover:bg-surface-2">
+                  <button type="button" onClick={() => setDraft(draftOf(x, t(`pot.${x.kind}` as Key)))} className="pressable flex w-full items-start gap-3 p-3 text-left hover:bg-surface-2">
                     <Icon size={20} aria-hidden className="mt-0.5 shrink-0 text-muted" />
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-2">

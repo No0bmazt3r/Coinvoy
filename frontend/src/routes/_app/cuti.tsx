@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Palmtree, Thermometer, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { Columns } from '../../components/Columns'
 import { ErrorState } from '../../components/ErrorState'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -46,6 +47,8 @@ function Cuti() {
   return (
     <>
       <ScreenHeader title={t('cuti.title')} back />
+      <Columns>
+      <div className="col">
       <section className="flex flex-col gap-4 rounded-lg border-2 border-outline bg-surface p-5">
         <h2 className="flex items-center gap-2 text-xl font-bold"><Palmtree size={22} aria-hidden /> {t('cuti.planTitle')}</h2>
         <label className="flex flex-col gap-1 text-sm font-semibold">
@@ -75,6 +78,8 @@ function Cuti() {
         )}
         {(ask.isError || plan.isError) && <p role="alert" className="text-sm font-semibold text-[var(--risky)]">{errorText(ask.error ?? plan.error, lang, t('common.tryAgain'))}</p>}
       </section>
+      </div>
+      <div className="col">
 
       {q.isPending ? <Skeleton className="h-24" /> : q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : (
         <>
@@ -107,6 +112,8 @@ function Cuti() {
           </section>
         </>
       )}
+      </div>
+      </Columns>
     </>
   )
 }

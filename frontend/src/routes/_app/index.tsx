@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { CalendarPlus, Camera, Landmark, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Camera, Check, ChevronRight, Landmark, PiggyBank, Wallet, type LucideIcon } from 'lucide-react'
 import { CheckinCard } from '../../components/CheckinCard'
+import { Columns } from '../../components/Columns'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { ForecastBand } from '../../components/ForecastBand'
@@ -95,7 +96,8 @@ function Gaji() {
           </div>
         </div>
       ) : (
-        <div data-narrow className="col">
+        <Columns>
+        <div className="col">
           <section className="rounded-lg border-2 border-outline bg-surface">
             <EmptyState icon={Wallet} title={t('gaji.emptyTitle')} body={t('gaji.emptyBody')}>
               <Link to="/snap" data-tour="snap-start" className="btn btn-brand mt-2">
@@ -126,7 +128,55 @@ function Gaji() {
             </ol>
           </section>
         </div>
+        <div className="col">
+          <SetupChecklist pocketReady={user.pocketReady} billsAdded={(bills.data?.length ?? 0) > 0} />
+        </div>
+        </Columns>
       )}
     </>
   )
 }
+
+// Before the first salary, the side column is a short setup checklist: what's done, and one tap to each next step
+function SetupChecklist({ pocketReady, billsAdded }: { pocketReady: boolean; billsAdded: boolean }) {
+  const { t } = useI18n()
+  const items: { done: boolean; label: Key; to?: '/pocket' | '/bil' | '/snap' }[] = [
+    { done: true, label: 'setup.profile' },
+    { done: pocketReady, label: 'setup.pocket', to: '/pocket' },
+    { done: billsAdded, label: 'setup.bills', to: '/bil' },
+    { done: false, label: 'setup.snap', to: '/snap' },
+  ]
+  const doneCount = items.filter((i) => i.done).length
+  return (
+    <section aria-labelledby="setup" className="flex flex-col gap-3 rounded-lg border border-line bg-surface p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 id="setup" className="font-semibold">{t('setup.title')}</h2>
+        <span className="text-sm text-muted tabular-nums">{t('setup.progress', { done: doneCount, total: items.length })}</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+        <div className="h-full rounded-full bg-text" style={{ width: `${(doneCount / items.length) * 100}%` }} />
+      </div>
+      <ul className="flex flex-col">
+        {items.map((it) => {
+          const row = (
+            <>
+              <span className={`grid size-6 shrink-0 place-items-center rounded-full border ${it.done ? 'border-text bg-text text-bg' : 'border-line-strong'}`}>{it.done && <Check size={14} strokeWidth={3} aria-hidden />}</span>
+              <span className={`min-w-0 flex-1 ${it.done ? 'text-muted line-through' : 'font-semibold'}`}>{t(it.label)}</span>
+              {!it.done && it.to && <ChevronRight size={18} aria-hidden className="shrink-0 text-muted" />}
+            </>
+          )
+          return (
+            <li key={it.label}>
+              {!it.done && it.to ? (
+                <Link to={it.to} className="pressable -mx-2 flex min-h-11 items-center gap-3 rounded-[var(--radius-md)] px-2 hover:bg-surface-2">{row}</Link>
+              ) : (
+                <span className="flex min-h-11 items-center gap-3">{row}</span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+    </section>
+  )
+}
+

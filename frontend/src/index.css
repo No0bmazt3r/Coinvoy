@@ -199,10 +199,9 @@ body {
   .btn-ghost { background: transparent; color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
 }
 
-/* Desktop page widths (routes/_app.tsx): wide screens go narrow while they show something marked data-narrow */
+/* Desktop page width (routes/_app.tsx): one wide container; screens fill it with a main and a side column */
 @media (width >= 64rem) {
-  .page-wide { max-width: 70rem; }
-  .page-wide:has([data-narrow]) { max-width: 45rem; }
+  .page-wide { max-width: 87.5rem; }
 }
 
 /* Screen guides (components/Guide.tsx): driver.js's card in Coinvoy's tokens. On phones it docks to the top or bottom

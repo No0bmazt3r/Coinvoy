@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { CalendarClock, Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { Columns } from '../../components/Columns'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { MoneyField } from '../../components/MoneyField'
@@ -35,6 +36,8 @@ function Bills() {
     <>
       <ScreenHeader title={t('bills.title')} back />
       <p className="text-muted">{t('bills.body')}</p>
+      <Columns>
+      <div className="col">
       {q.isPending ? (
         <Skeleton className="h-40" />
       ) : q.isError ? (
@@ -63,10 +66,29 @@ function Bills() {
         <Plus size={20} aria-hidden />
         {t('bills.add')}
       </button>
+      </div>
+      <div className="col">{q.data && q.data.length > 0 && <BillsTotal bills={q.data} />}</div>
+      </Columns>
       <Sheet open={open} onClose={() => setOpen(false)} title={t('bills.add')}>
         <BillForm onDone={() => setOpen(false)} />
       </Sheet>
     </>
+  )
+}
+
+// A month of bills at a glance: weekly ones ×52÷12, yearly ones ÷12; one-off bills aren't a monthly cost.
+function BillsTotal({ bills }: { bills: Bill[] }) {
+  const { t } = useI18n()
+  const monthly = (b: Bill) => (b.frequency === 'monthly' ? b.amountSen : b.frequency === 'weekly' ? (b.amountSen * 52) / 12 : b.frequency === 'yearly' ? b.amountSen / 12 : 0)
+  const total = Math.round(bills.reduce((a, b) => a + monthly(b), 0))
+  const counts = FREQS.map((f) => [f, bills.filter((b) => b.frequency === f).length] as const).filter(([, n]) => n)
+  return (
+    <section aria-labelledby="bills-total" className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-5">
+      <h2 id="bills-total" className="text-sm font-semibold text-muted">{t('bills.totalTitle')}</h2>
+      <p className="text-[2rem] leading-tight font-extrabold tabular-nums">{formatRM(total, { whole: true })}</p>
+      <p className="text-sm text-muted">{counts.map(([f, n]) => `${n} ${t(`bills.freq.${f}` as Key).toLowerCase()}`).join(' · ')}</p>
+      <p className="text-[0.8125rem] text-muted">{t('bills.totalHow')}</p>
+    </section>
   )
 }
 

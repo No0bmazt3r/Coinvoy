@@ -3,6 +3,7 @@ import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Award, BarChart3, Bell, Briefcase, CalendarClock, ChevronRight, CircleHelp, Download, FileText, Landmark, Languages, LogOut, Moon, Palmtree, Shield, Trash2 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { Avatar } from '../../components/Avatar'
+import { Columns } from '../../components/Columns'
 import { GuideButton, GuideHint } from '../../components/Guide'
 import { LangToggle } from '../../components/LangToggle'
 import { MoneyField } from '../../components/MoneyField'
@@ -78,6 +79,8 @@ function Settings() {
     <>
       <ScreenHeader title={t('settings.title')} action={<GuideButton screen="profil" />} />
       <GuideHint screen="profil" />
+      <Columns>
+      <div className="col">
       <section className="flex flex-col items-center gap-3 rounded-lg border border-line bg-surface px-4 py-6 text-center">
         <Avatar user={user} className="size-20 text-3xl ring-4 ring-brand" />
         <div className="min-w-0">
@@ -99,6 +102,8 @@ function Settings() {
         </button>
       </div>
 
+      </div>
+      <div className="col">
       <div className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
         <div className={ROW}>
           <Languages size={22} aria-hidden />
@@ -148,6 +153,8 @@ function Settings() {
         {t('settings.logout')}
       </button>
       {update.isError && <p role="alert" className="text-sm text-[var(--risky)]">{errorText(update.error, lang, t('common.tryAgain'))}</p>}
+      </div>
+      </Columns>
 
       <Sheet open={profileOpen} onClose={() => setProfileOpen(false)} title={t('settings.work')}>
         <WorkProfile user={user} onSave={(body) => update.mutate(body, { onSuccess: () => setProfileOpen(false) })} saving={update.isPending} />

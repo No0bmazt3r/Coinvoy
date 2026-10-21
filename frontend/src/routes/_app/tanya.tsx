@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { ArrowUp, ArrowUpRight, BadgeAlert, Calculator, ChevronRight, Lightbulb, MessageSquareWarning, Sparkles } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Columns } from '../../components/Columns'
 import { GuideButton, GuideHint } from '../../components/Guide'
 import { RiskBadge } from '../../components/RiskBadge'
 import { ScreenHeader } from '../../components/ScreenHeader'
@@ -74,8 +75,10 @@ function Tanya() {
       />
       <GuideHint screen="tanya" />
 
-      {(!started || aiOff) && (
-        <section aria-labelledby="tools" data-tour="tools" className="flex flex-col gap-2">
+      {/* Desktop: tools and Celik are a side panel, always there; phones: above the chat, until it starts */}
+      <Columns>
+      <div className="col lg:col-start-2 lg:row-start-1">
+        <section aria-labelledby="tools" data-tour="tools" className={`flex flex-col gap-2 ${started && !aiOff ? 'max-lg:hidden' : ''}`}>
           <h2 id="tools" className="px-1 text-sm font-semibold text-muted">{t('tanya.tools')}</h2>
           <div className="divide-y divide-line overflow-hidden rounded-[var(--radius-md)] border border-line bg-surface">
             <ToolRow to="/layak" icon={<Calculator size={20} aria-hidden />} title={t('layak.title')} sub={t('layak.entry')} />
@@ -83,15 +86,15 @@ function Tanya() {
             <ToolRow to="/semak" icon={<MessageSquareWarning size={20} aria-hidden />} title={t('scam.title')} sub={t('scam.entry')} />
           </div>
         </section>
-      )}
 
-      {!started && celik.data && celik.data.length > 0 && (
-        <section aria-labelledby="celik" className="flex flex-col gap-2">
+      {celik.data && celik.data.length > 0 && (
+        <section aria-labelledby="celik" className={`flex flex-col gap-2 ${started ? 'max-lg:hidden' : ''}`}>
           <h2 id="celik" className="flex items-center gap-1.5 px-1 text-sm font-semibold text-muted"><Lightbulb size={16} aria-hidden /> {t('celik.title')}</h2>
           {/* scroll-px keeps snapped cards on the page's left edge instead of flush to the screen */}
-          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 lg:mx-0 lg:scroll-px-0 lg:px-0" data-no-swipe>
+          {/* a swipeable row on phones; a stacked list in the desktop side panel */}
+          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0" data-no-swipe>
             {celik.data.map((l) => (
-              <article key={l.topic} className="flex w-[78%] max-w-72 shrink-0 snap-start flex-col gap-1 rounded-[var(--radius-md)] border border-line bg-surface p-4">
+              <article key={l.topic} className="flex w-[78%] max-w-72 shrink-0 snap-start flex-col gap-1 rounded-[var(--radius-md)] border border-line bg-surface p-4 lg:w-auto lg:max-w-none">
                 <h3 className="font-semibold leading-snug">{l.title}</h3>
                 <p className="text-sm leading-relaxed text-muted">{l.text}</p>
               </article>
@@ -99,7 +102,9 @@ function Tanya() {
           </div>
         </section>
       )}
+      </div>
 
+      <div className="col lg:col-start-1 lg:row-start-1">
       <section aria-label={t('tanya.chat')} aria-live="polite" className="flex flex-col gap-3">
         <p className="mx-auto max-w-sm text-center text-xs leading-relaxed text-muted">
           {t('common.disclaimer')}{' '}
@@ -164,6 +169,8 @@ function Tanya() {
           </form>
         </>
       )}
+      </div>
+      </Columns>
     </>
   )
 }

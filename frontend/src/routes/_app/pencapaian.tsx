@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Award, Check, Flame, Lock, Share2, Snowflake } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ErrorState } from '../../components/ErrorState'
+import { Columns } from '../../components/Columns'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { Sheet } from '../../components/Sheet'
 import { Skeleton } from '../../components/Skeleton'
@@ -49,6 +50,8 @@ function Achievements() {
   return (
     <>
       <ScreenHeader title={t('ach.title')} back />
+      <Columns>
+      <div className="col">
       <section className="flex flex-col items-center gap-2 rounded-lg border-2 border-outline bg-surface p-5 text-center">
         <span className="grid size-16 place-items-center rounded-full bg-brand text-on-brand">
           <Flame size={32} aria-hidden />
@@ -93,6 +96,8 @@ function Achievements() {
         </div>
         {accent.isError && <p className="text-sm text-[var(--risky)]">{errorText(accent.error, lang, t('common.tryAgain'))}</p>}
       </section>
+      </div>
+      <div className="col">
       <section aria-labelledby="badges" className="flex flex-col gap-3">
         <h2 id="badges" className="px-1 text-sm font-semibold text-muted">
           {t('ach.badges')}
@@ -117,6 +122,8 @@ function Achievements() {
         </button>
       </section>
       <p className="text-[0.8125rem] text-muted">{t('ach.noRanking')}</p>
+      </div>
+      </Columns>
     </>
   )
 }

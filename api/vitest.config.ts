@@ -3,7 +3,9 @@ import { defineConfig } from 'vitest/config'
 // Tests run against the real Python ML service (started once in test/global-setup.ts) and an in-memory
 // Postgres (PGlite) per worker, so the API and the engine can't drift apart. CI also runs them on real Postgres
 // (TEST_DATABASE_URL), one file at a time because they share that database (decisions.md T3).
-const realPostgres = process.env.TEST_DATABASE_URL
+// `||`, not `??`: CI passes TEST_DATABASE_URL='' for the PGlite job, and an empty DATABASE_URL would mean the on-disk
+// api/.pglite, opened by every parallel worker at once (it corrupted the files and failed every suite).
+const realPostgres = process.env.TEST_DATABASE_URL || undefined
 
 export default defineConfig({
   test: {
