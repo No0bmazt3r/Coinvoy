@@ -26,9 +26,9 @@ function PocketGuide() {
     <>
       <ScreenHeader title={t('pocket.title')} back />
       <p className="text-muted">{t('pocket.intro')}</p>
-      <ol className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface">
+      <ol className="flex flex-col divide-y divide-line rounded-lg border border-line bg-surface lg:grid lg:grid-cols-5 lg:divide-x lg:divide-y-0">
         {STEPS.map((n) => (
-          <li key={n} className="flex items-start gap-3 p-4">
+          <li key={n} className="flex items-start gap-3 p-4 lg:flex-col">
             <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand font-bold text-on-brand">{n}</span>
             <span className="min-w-0 flex-1">
               <span className="block font-semibold">{t(`pocket.step${n}.title` as Key)}</span>
@@ -42,7 +42,7 @@ function PocketGuide() {
           <Check size={20} aria-hidden /> {t('pocket.ready')}
         </p>
       ) : (
-        <button type="button" className="btn btn-primary" onClick={() => done.mutate()} disabled={done.isPending}>
+        <button type="button" className="btn btn-primary lg:w-80 lg:self-end" onClick={() => done.mutate()} disabled={done.isPending}>
           <Check size={20} aria-hidden /> {t('pocket.done')}
         </button>
       )}

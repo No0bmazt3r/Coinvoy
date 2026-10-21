@@ -45,7 +45,7 @@ function Admin() {
   return (
     <>
       <ScreenHeader title={t('admin.title')} back />
-      <dl className="grid grid-cols-2 gap-2">
+      <dl className="grid grid-cols-2 gap-2 lg:grid-cols-3">
         {stats.map(([label, value]) => (
           <div key={label} className="rounded-lg border border-line bg-surface p-3">
             <dt className="text-sm text-muted">{label}</dt>
@@ -54,6 +54,7 @@ function Admin() {
         ))}
       </dl>
       <p className="text-sm text-muted">{t('admin.cohort', { n: retention.cohort })}</p>
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
       <section className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4">
         <h2 className="font-semibold">{t('admin.activeDaily')}</h2>
         <LineChart
@@ -78,6 +79,8 @@ function Admin() {
           }))}
         />
       </section>
+      </div>
+      <div className="contents lg:grid lg:grid-cols-2 lg:items-start lg:gap-4">
       <section className="flex flex-col gap-2 rounded-lg border border-line bg-surface p-4">
         <h2 className="font-semibold">{t('admin.guides')}</h2>
         {Object.keys(guides).length === 0 ? (
@@ -126,6 +129,7 @@ function Admin() {
           {llm.myrPerRider === null ? t('admin.noPrices') : t('admin.perRider', { rm: llm.myrPerRider.toFixed(2), date: llm.pricesChecked ?? '' })}
         </p>
       </section>
+      </div>
     </>
   )
 }

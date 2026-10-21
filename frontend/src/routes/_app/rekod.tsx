@@ -43,15 +43,16 @@ function Rekod() {
           <PenyataCard />
           <StatementCheck />
         </div>
-        <div className="col">
-          <section aria-labelledby="weeks" className="flex flex-col gap-2">
+        <div className="col lg:sticky lg:top-6">
+          {/* Desktop: the weeks scroll on their own (no scrollbar) and the page stays put */}
+          <section aria-labelledby="weeks" className="flex flex-col gap-2 lg:max-h-[calc(100dvh-7.5rem)]">
             <h2 id="weeks" className="px-1 text-sm font-semibold text-muted">{t('rekod.weeks')}</h2>
             {weeks.isPending ? <Skeleton className="h-40" /> : weeks.isError ? <ErrorState error={weeks.error} onRetry={() => weeks.refetch()} /> : weeks.data.length === 0 ? (
               <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{t('rekod.noWeeks')}</p>
             ) : (
               <>
               <PlatformChart weeks={weeks.data} onOpen={setOpen} />
-              <ul className="flex flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+              <ul className="no-scrollbar flex min-h-0 shrink flex-col divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface lg:overflow-y-auto lg:overscroll-contain">
                 {weeks.data.map((w) => (
                   <li key={w.weekStart}>
                     <button type="button" onClick={() => setOpen(w)} className="pressable flex w-full items-center gap-3 p-4 text-left hover:bg-surface-2">

@@ -43,6 +43,7 @@ function JurangPage() {
             <p className="text-lg font-medium">{t('jurang.honest')}</p>
             <p className="text-sm text-muted">{t('jurang.line', { essentials: rm(q.data.essentialsSen), salary: rm(q.data.salarySen), gap: rm(q.data.gapSen) })}</p>
           </section>
+          <div className="contents lg:grid lg:grid-cols-3 lg:items-start lg:gap-4">
           <Option icon={<Clock size={20} aria-hidden />} title={t('jurang.hoursTitle')}>
             {q.data.hours.closesGap
               ? t('jurang.hoursBody', { extra: q.data.hours.extraHours, hours: q.data.hours.hours })
@@ -64,6 +65,7 @@ function JurangPage() {
             <span className="mt-1 block">{t(q.data.entitlements.perkesoDeductedAtSource ? 'jurang.perkesoDeducted' : 'jurang.perkeso')}</span>
             <span className="mt-1 block">{t('jurang.str')}</span>
           </Option>
+          </div>
           <p className="text-[0.8125rem] text-muted">{t('common.disclaimer')}</p>
         </>
       )}

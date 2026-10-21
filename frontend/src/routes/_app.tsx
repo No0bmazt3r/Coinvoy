@@ -19,7 +19,6 @@ export const Route = createFileRoute('/_app')({
 })
 
 // On desktop most screens use the full width with a side column. These short ones stay narrow.
-const NARROW = ['/pocket', '/jurang', '/admin']
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -96,7 +95,7 @@ function AppShell() {
         <div
           key={pathname}
           ref={page}
-          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 lg:mx-auto lg:w-full ${NARROW.includes(pathname) ? 'lg:max-w-[45rem]' : 'page-wide'}`}
+          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 lg:mx-auto lg:w-full page-wide`}
           style={shown.dir ? ({ '--page-dx': `${shown.dir * 12}vw`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />
