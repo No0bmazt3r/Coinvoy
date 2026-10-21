@@ -78,6 +78,7 @@ Without any keys, tap **Cuba demo**: you land on Abang Faiz's account (12 weeks 
 |---|---|
 | `pnpm dev` | Starts the API, the ML service and the web app together |
 | `pnpm check` | Lint, typecheck, all tests and the production build |
+| `pnpm preview:prod` | Builds the app and serves the **production build** at http://localhost:8000 (with the ML service): how fast it really is |
 | `pnpm test` | ML (pytest) + API (vitest, against the real ML service) + web tests |
 | `pnpm db:generate` | Writes a SQL migration from `api/src/db/schema.ts` (applied when the API starts) |
 | `pnpm train:bm` | Regenerates the seed phrases and retrains the BM cost classifier |
@@ -85,6 +86,10 @@ Without any keys, tap **Cuba demo**: you land on Abang Faiz's account (12 weeks 
 | `pnpm icons` | Regenerates the app icons from `public/Coinvoy.png` |
 
 **Any LLM provider.** Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` in `.env` for OpenRouter, Gemini, OpenAI, Anthropic or Ollama (all OpenAI-compatible; examples in `.env.example`). Switching provider is never a code change.
+
+**AI setup we use: Groq (free tier).** One Groq key in `LLM_API_KEY`, the models per job are already in `.env.example` (OCR `qwen/qwen3.8-27b`, chatbot `openai/gpt-oss-120b`, recommendations `openai/gpt-oss-20b`). Turn on **Zero Data Retention** in Groq's Data Controls. `LLM_SPLIT_KEYS=true` gives each job its own key instead (a job without one is off); the API logs which key and model each job uses when it starts. We don't use Gemini's free tier: its terms say not to send personal information to it.
+
+**Testing speed on a phone.** `pnpm dev` serves React's development build, which is several times slower (and renders twice in StrictMode), and Chrome's device mode with DevTools open adds its own overhead. Judge smoothness with `pnpm preview:prod`, or better, on a real phone against the Render deployment. (Google sign-in in `preview:prod` needs `http://localhost:8000` added to the OAuth client; the demo login works without it.)
 
 ## How it works
 

@@ -13,7 +13,11 @@ export type Route = 'snap' | 'tanya' | 'lender' | 'bm' | 'reco'
 export const provider: { client: OpenAI | null } = { client: null }
 const clients = new Map<string, OpenAI>()
 
-/** Three keys, one per job: OCR, the chatbot (Tanya and the lender check) and recommendations (and BM text). Each falls back to the shared key. */
+/**
+ * Which key and provider a job uses. Merge (LLM_SPLIT_KEYS=false): the shared key for every job, per-job keys ignored.
+ * Split: the job's own key (OCR, chatbot = Tanya + lender, recommendations = reco + BM); empty means that job is off,
+ * never a silent switch to the shared key. A job's URL may be left empty to use the shared one.
+ */
 export function keyFor(route: Route): { apiKey: string; baseURL: string } {
   const [key, url] = {
     snap: [env.LLM_API_KEY_SNAP, env.LLM_BASE_URL_SNAP],
@@ -22,7 +26,18 @@ export function keyFor(route: Route): { apiKey: string; baseURL: string } {
     reco: [env.LLM_API_KEY_RECO, env.LLM_BASE_URL_RECO],
     bm: [env.LLM_API_KEY_RECO, env.LLM_BASE_URL_RECO],
   }[route]
-  return { apiKey: key || env.LLM_API_KEY, baseURL: url || env.LLM_BASE_URL }
+  if (!env.LLM_SPLIT_KEYS) return { apiKey: env.LLM_API_KEY, baseURL: env.LLM_BASE_URL }
+  return { apiKey: key ?? '', baseURL: url || env.LLM_BASE_URL }
+}
+
+/** One line per job for the startup log: mode, the key's last 4 characters (never the key), host and model. */
+export function describeAi(): string[] {
+  const jobs: [string, Route][] = [['ocr (snap)', 'snap'], ['chatbot (tanya)', 'tanya'], ['chatbot (lender)', 'lender'], ['recommendations (reco)', 'reco'], ['recommendations (bm)', 'bm']]
+  return jobs.map(([name, route]) => {
+    const { apiKey, baseURL } = keyFor(route)
+    const where = apiKey ? `key …${apiKey.slice(-4)} @ ${new URL(baseURL).host}` : 'no key: off'
+    return `${name}: ${env.LLM_SPLIT_KEYS ? 'split' : 'merge'} · ${where} · model ${modelFor(route) || '(none: off)'}`
+  })
 }
 
 export const routeConfigured = (route: Route) => Boolean(provider.client || (keyFor(route).apiKey && modelFor(route)))

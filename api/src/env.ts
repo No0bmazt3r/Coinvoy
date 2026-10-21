@@ -35,7 +35,9 @@ const schema = z.object({
   LLM_MODEL_LENDER: z.string().default(''),
   LLM_MODEL_BM: z.string().default(''),
   LLM_MODEL_RECO: z.string().default(''),
-  // Optional key per job: OCR (snap), chatbot (tanya + lender) and recommendations (reco + bm). Empty = the shared key/URL.
+  // false (merge): every AI job uses LLM_API_KEY / LLM_BASE_URL. true (split): each job uses its own key below (OCR = snap,
+  // chatbot = tanya + lender, recommendations = reco + bm), and a job without a key is off.
+  LLM_SPLIT_KEYS: bool(false),
   LLM_API_KEY_SNAP: z.string().default(''),
   LLM_API_KEY_TANYA: z.string().default(''),
   LLM_API_KEY_RECO: z.string().default(''),
@@ -69,10 +71,12 @@ if (!parsed.success) {
 export const env = parsed.data
 export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET)
 export const pushConfigured = () => Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY)
-// AI is on if any job has a key and a model (its own or the shared one)
-export const llmConfigured = () =>
-  [
+// AI is on if any job can run: merge mode needs the shared key, split mode any job's own key; plus a model
+export const llmConfigured = () => {
+  const jobs: [string, string][] = [
     [env.LLM_API_KEY_SNAP, env.LLM_MODEL_SNAP],
     [env.LLM_API_KEY_TANYA, env.LLM_MODEL_TANYA],
     [env.LLM_API_KEY_RECO, env.LLM_MODEL_RECO],
-  ].some(([key, model]) => (key || env.LLM_API_KEY) && (model || env.LLM_MODEL))
+  ]
+  return jobs.some(([key, model]) => (env.LLM_SPLIT_KEYS ? key : env.LLM_API_KEY) && (model || env.LLM_MODEL))
+}

@@ -12,6 +12,7 @@ import { Select } from '../../components/Select'
 import { useI18n, type Key } from '../../i18n/t'
 import { api, type Bill, billsQuery, errorText, prefetch } from '../../lib/api'
 import { formatRM } from '../../lib/money'
+import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/bil')({ loader: prefetch(billsQuery), component: Bills })
 
@@ -51,9 +52,9 @@ function Bills() {
                 <p className="text-sm text-muted">{due(b)}</p>
               </div>
               <b className="tabular-nums">{formatRM(b.amountSen)}</b>
-              <button type="button" aria-label={t('common.delete')} onClick={() => remove.mutate(b.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
+              <Tooltip side="bottom" text={t('common.delete')}><button type="button" aria-label={t('common.delete')} onClick={() => remove.mutate(b.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
                 <Trash2 size={20} aria-hidden />
-              </button>
+              </button></Tooltip>
             </li>
           ))}
         </ul>

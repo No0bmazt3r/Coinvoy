@@ -8,6 +8,7 @@ import { ScreenHeader } from '../../components/ScreenHeader'
 import { Skeleton } from '../../components/Skeleton'
 import { useI18n, type Key } from '../../i18n/t'
 import { ApiError, api, celikQuery, errorText, type Message, messagesQuery, metaQuery, prefetch } from '../../lib/api'
+import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/tanya')({ loader: prefetch(metaQuery, messagesQuery, celikQuery), component: Tanya })
 
@@ -57,15 +58,15 @@ function Tanya() {
             <GuideButton screen="tanya" />
             {started && (
               <>
-              <Link to="/layak" aria-label={t('layak.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+              <Tooltip side="bottom" text={t('layak.title')}><Link to="/layak" aria-label={t('layak.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <Calculator size={20} aria-hidden />
-              </Link>
-              <Link to="/pemberi" aria-label={t('lender.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+              </Link></Tooltip>
+              <Tooltip side="bottom" text={t('lender.title')}><Link to="/pemberi" aria-label={t('lender.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <BadgeAlert size={20} aria-hidden />
-              </Link>
-              <Link to="/semak" aria-label={t('scam.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+              </Link></Tooltip>
+              <Tooltip side="bottom" text={t('scam.title')}><Link to="/semak" aria-label={t('scam.title')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
                 <MessageSquareWarning size={20} aria-hidden />
-              </Link>
+              </Link></Tooltip>
             </>
             )}
           </div>
@@ -156,9 +157,9 @@ function Tanya() {
           >
             <div className="flex items-center gap-2 rounded-full border border-line-strong bg-surface-2 p-1.5 pl-5 shadow-[0_8px_24px_rgb(0_0_0/0.18)] focus-within:border-text">
               <input value={text} onChange={(e) => setText(e.target.value)} maxLength={500} placeholder={t('tanya.placeholder')} aria-label={t('tanya.placeholder')} className="h-10 min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted" />
-              <button type="submit" aria-label={t('tanya.send')} disabled={!text.trim() || ask.isPending} className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand disabled:bg-line disabled:text-muted">
+              <Tooltip side="bottom" text={t('tanya.send')}><button type="submit" aria-label={t('tanya.send')} disabled={!text.trim() || ask.isPending} className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-brand text-on-brand disabled:bg-line disabled:text-muted">
                 <ArrowUp size={20} strokeWidth={2.5} aria-hidden />
-              </button>
+              </button></Tooltip>
             </div>
           </form>
         </>

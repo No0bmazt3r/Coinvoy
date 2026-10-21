@@ -12,6 +12,7 @@ import { useI18n, type Key } from '../../i18n/t'
 import { api, errorText, expensesQuery, linksQuery, penyataQuery, prefetch, type Week, weeksQuery } from '../../lib/api'
 import { thisWeekStart, weekLabel } from '../../lib/dates'
 import { formatRM } from '../../lib/money'
+import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/rekod')({ loader: prefetch(weeksQuery, penyataQuery), component: Rekod })
 
@@ -152,7 +153,7 @@ function PenyataCard() {
       {made && (
         <div className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-surface-2 p-3">
           <code className="min-w-0 flex-1 truncate text-sm">{made}</code>
-          <button type="button" aria-label={t('penyata.copy')} onClick={() => navigator.clipboard?.writeText(made)} className="pressable grid size-11 place-items-center rounded-full hover:bg-surface"><Copy size={18} aria-hidden /></button>
+          <Tooltip side="bottom" text={t('penyata.copy')}><button type="button" aria-label={t('penyata.copy')} onClick={() => navigator.clipboard?.writeText(made)} className="pressable grid size-11 place-items-center rounded-full hover:bg-surface"><Copy size={18} aria-hidden /></button></Tooltip>
         </div>
       )}
       {links.data?.filter((l) => !l.revoked).map((l) => (
@@ -212,7 +213,7 @@ function Costs() {
       </div>
       <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (text.trim()) parse.mutate(text.trim()) }}>
         <input value={text} onChange={(e) => { setText(e.target.value); setParsed(null) }} maxLength={120} placeholder={t('cost.placeholder')} aria-label={t('cost.placeholder')} className="h-12 min-w-0 flex-1 rounded-[var(--radius-sm)] border border-line-strong bg-surface-2 px-3" />
-        {Speech && <button type="button" onClick={listen} aria-label={t('cost.voice')} className="btn btn-secondary w-12 shrink-0 px-0"><Mic size={20} aria-hidden /></button>}
+        {Speech && <Tooltip side="bottom" text={t('cost.voice')}><button type="button" onClick={listen} aria-label={t('cost.voice')} className="btn btn-secondary w-12 shrink-0 px-0"><Mic size={20} aria-hidden /></button></Tooltip>}
         <button type="submit" className="btn btn-primary w-auto shrink-0" disabled={!text.trim() || parse.isPending}>{t('cost.read')}</button>
       </form>
       {parsed && (
@@ -234,7 +235,7 @@ function Costs() {
             <li key={x.id} className="flex items-center gap-2 py-2">
               <span className="min-w-0 flex-1 truncate">{t(`cost.${x.category}` as Key)}{x.note ? ` · ${x.note}` : ''}</span>
               <span className="tabular-nums">{formatRM(x.amountSen)}</span>
-              <button type="button" aria-label={t('common.delete')} onClick={() => remove.mutate(x.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2"><Trash2 size={18} aria-hidden /></button>
+              <Tooltip side="bottom" text={t('common.delete')}><button type="button" aria-label={t('common.delete')} onClick={() => remove.mutate(x.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2"><Trash2 size={18} aria-hidden /></button></Tooltip>
             </li>
           ))}
         </ul>

@@ -12,6 +12,7 @@ import { ApiError, PLATFORMS, api, errorText, type Draft, type Platform } from '
 import { addDays, todayKL, weekLabel, weekStart } from '../../lib/dates'
 import { shrink } from '../../lib/image'
 import { formatRM } from '../../lib/money'
+import { Tooltip } from '../../components/Tooltip'
 
 type Mode = 'snap' | 'history' | 'manual'
 
@@ -213,9 +214,9 @@ function DraftCard({ draft: d, onChange, onRemove }: { draft: Draft; onChange: (
         <div className="min-w-0 flex-1">
           <Select label={t('snap.week')} hideLabel compact value={d.weekStart} onChange={(v) => onChange({ weekStart: v })} options={(weeks.includes(d.weekStart) ? weeks : [d.weekStart, ...weeks]).map((w) => ({ value: w, label: weekLabel(w, lang) }))} />
         </div>
-        <button type="button" onClick={onRemove} aria-label={t('common.delete')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
+        <Tooltip side="bottom" text={t('common.delete')}><button type="button" onClick={onRemove} aria-label={t('common.delete')} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
           <Trash2 size={20} aria-hidden />
-        </button>
+        </button></Tooltip>
       </div>
       {d.injectionSuspected && (
         <p className="flex gap-2 rounded-[var(--radius-sm)] bg-[var(--risky-bg)] p-3 text-sm text-[var(--risky)]">

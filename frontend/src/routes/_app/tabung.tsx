@@ -46,7 +46,7 @@ function Tabung() {
   return (
     <>
       <ScreenHeader title={t('tabung.title')} action={<GuideButton screen="tabung" />} />
-      <div className="flex flex-col gap-4 lg:mx-auto lg:w-full lg:max-w-2xl">
+      <div className="flex flex-col gap-4">
         <GuideHint screen="tabung" />
         <section data-tour="total" className="flex flex-col gap-1 px-1">
           <p className="text-sm font-semibold text-muted">{t('tabung.total')}</p>

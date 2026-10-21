@@ -29,7 +29,9 @@ services:
         sync: false
       - key: LLM_MODEL
         sync: false
-      - key: LLM_API_KEY_SNAP # optional: one key per AI job (OCR / chatbot / recommendations); empty = LLM_API_KEY
+      - key: LLM_SPLIT_KEYS # false = every AI job uses LLM_API_KEY; true = each job uses its own key below
+        value: "false"
+      - key: LLM_API_KEY_SNAP # split mode: one key per AI job (OCR / chatbot / recommendations); a job without one is off
         sync: false
       - key: LLM_API_KEY_TANYA
         sync: false

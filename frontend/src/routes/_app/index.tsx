@@ -95,7 +95,7 @@ function Gaji() {
           </div>
         </div>
       ) : (
-        <div className="col lg:mx-auto lg:w-full lg:max-w-[640px]">
+        <div data-narrow className="col">
           <section className="rounded-lg border-2 border-outline bg-surface">
             <EmptyState icon={Wallet} title={t('gaji.emptyTitle')} body={t('gaji.emptyBody')}>
               <Link to="/snap" data-tour="snap-start" className="btn btn-brand mt-2">

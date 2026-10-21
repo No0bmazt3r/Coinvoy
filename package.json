@@ -8,6 +8,7 @@
     "dev": "concurrently -k -n api,ml,web -c cyan,magenta,green \"pnpm dev:api\" \"pnpm dev:ml\" \"pnpm dev:web\"",
     "dev:api": "pnpm --filter coinvoy-api dev",
     "dev:ml": "uv run --directory ml uvicorn app.service:app --reload --port 8001",
+    "preview:prod": "pnpm build && concurrently -k -n api,ml -c cyan,magenta \"cd api && APP_URL=http://localhost:8000 node --env-file-if-exists=../.env src/index.ts\" \"uv run --directory ml uvicorn app.service:app --port 8001\"",
     "dev:web": "pnpm --filter coinvoy-frontend dev",
     "db:generate": "pnpm --filter coinvoy-api db:generate",
     "test": "uv run --directory ml pytest -q && pnpm --filter coinvoy-api test && pnpm --filter coinvoy-frontend test",

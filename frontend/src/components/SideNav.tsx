@@ -17,6 +17,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Avatar } from './Avatar'
+import { Tooltip } from './Tooltip'
 import { Logo } from './Logo'
 import { useI18n, type Key } from '../i18n/t'
 import { meQuery } from '../lib/api'
@@ -45,8 +46,10 @@ export function SideNav() {
   const { data: user } = useQuery(meQuery)
   const more = user?.isAdmin ? [...MORE, ['/admin', 'settings.admin', BarChart3] as [To, Key, LucideIcon]] : MORE
 
+  // Each item's tooltip says what the page is for (the label is already visible)
   const item = ([to, label, Icon]: [To, Key, LucideIcon]) => (
     <li key={to}>
+      <Tooltip describes text={t(`tip.${to === '/' ? 'gaji' : to.slice(1)}` as Key)}>
       <Link
         to={to}
         activeOptions={{ exact: to === '/' }}
@@ -55,6 +58,7 @@ export function SideNav() {
         <Icon size={20} aria-hidden />
         {t(label)}
       </Link>
+      </Tooltip>
     </li>
   )
 
@@ -71,15 +75,18 @@ export function SideNav() {
         <Logo className="h-9 w-auto" />
         <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
       </Link>
-      <Link to="/snap" data-tour="snap-nav" className="btn btn-brand">
-        <Camera size={20} aria-hidden />
-        {t('snap.title')}
-      </Link>
+      <Tooltip describes text={t('tip.snap')}>
+        <Link to="/snap" data-tour="snap-nav" className="btn btn-brand">
+          <Camera size={20} aria-hidden />
+          {t('snap.title')}
+        </Link>
+      </Tooltip>
       <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
         {group('nav.main', MAIN)}
         {group('nav.more', more)}
       </div>
       {user && (
+        <Tooltip describes text={t('tip.settings')}>
         <Link
           to="/settings"
           className="pressable flex min-h-14 items-center gap-3 rounded-[var(--radius-md)] border border-line px-3 hover:bg-surface-2 data-[status=active]:border-text"
@@ -90,6 +97,7 @@ export function SideNav() {
             <span className="block text-[0.8125rem] text-muted">{t('nav.profil')}</span>
           </span>
         </Link>
+        </Tooltip>
       )}
     </nav>
   )

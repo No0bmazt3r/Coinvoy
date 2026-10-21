@@ -9,6 +9,7 @@ import { useRef } from 'react'
 import { useI18n, type Key } from '../i18n/t'
 import { api, meQuery, type User } from '../lib/api'
 import { type GuideScreen, STEPS, visibleTargets } from '../lib/guide'
+import { Tooltip } from './Tooltip'
 
 function useTips(screen: GuideScreen) {
   const queryClient = useQueryClient()
@@ -83,9 +84,9 @@ export function GuideButton({ screen }: { screen: GuideScreen }) {
   const start = useTour(screen)
   const ref = useRef<HTMLButtonElement>(null)
   return (
-    <button ref={ref} type="button" aria-label={t('guide.button')} onClick={() => start(ref.current)} className="pressable grid size-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
+    <Tooltip side="bottom" text={t('guide.button')}><button ref={ref} type="button" aria-label={t('guide.button')} onClick={() => start(ref.current)} className="pressable grid size-11 shrink-0 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-text">
       <CircleHelp size={22} aria-hidden />
-    </button>
+    </button></Tooltip>
   )
 }
 

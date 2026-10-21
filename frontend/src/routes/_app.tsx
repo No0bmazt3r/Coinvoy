@@ -19,10 +19,10 @@ export const Route = createFileRoute('/_app')({
   component: AppShell,
 })
 
-// Desktop uses the full window. Screens with their own two-column layout keep it; Tanya stays one chat column;
-// every other screen flows its cards into as many columns as fit, with the header and intro text across the top.
-const OWN_LAYOUT = ['/', '/tabung', '/rekod', '/tanya', '/layak', '/pemberi', '/semak', '/snap']
-const TILES = 'lg:grid lg:grid-cols-[repeat(auto-fill,minmax(min(100%,26rem),1fr))] lg:items-start lg:[&>header]:col-span-full lg:[&>p]:col-span-full'
+// Desktop: every screen sits in one centred container. Wide (1120 px) for screens with two columns (Gaji with a
+// salary, Rekod, and the tools with an input beside its result); narrow (720 px) for the rest. A screen can ask for
+// narrow at times by marking an element data-narrow (Gaji before its first salary) — see .page-wide in index.css.
+const WIDE = ['/', '/rekod', '/layak', '/pemberi', '/semak', '/snap']
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
@@ -99,8 +99,8 @@ function AppShell() {
         <div
           key={pathname}
           ref={page}
-          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 ${pathname === '/tanya' ? 'lg:mx-auto lg:max-w-3xl' : OWN_LAYOUT.includes(pathname) ? '' : TILES}`}
-          style={shown.dir ? ({ '--page-dx': `${shown.dir * 30}vw`, '--page-dy': '0px' } as CSSProperties) : undefined}
+          className={`page-in ${shown.dir ? 'tab-in' : ''} flex flex-col gap-4 lg:mx-auto lg:w-full ${WIDE.includes(pathname) ? 'page-wide' : 'lg:max-w-[45rem]'}`}
+          style={shown.dir ? ({ '--page-dx': `${shown.dir * 12}vw`, '--page-dy': '0px' } as CSSProperties) : undefined}
         >
           <Outlet />
         </div>

@@ -12,6 +12,7 @@ import { api, errorText, type LeavePreview, leaveQuery, prefetch } from '../../l
 import { addDays, thisWeekStart, weekLabel } from '../../lib/dates'
 import { formatRM } from '../../lib/money'
 import { Chip } from '../onboarding'
+import { Tooltip } from '../../components/Tooltip'
 
 export const Route = createFileRoute('/_app/cuti')({ loader: prefetch(leaveQuery), component: Cuti })
 
@@ -87,9 +88,9 @@ function Cuti() {
                       <p className="font-semibold">{l.label || t('cuti.untitled')}</p>
                       <p className="text-sm text-muted">{weekLabel(l.startWeek, lang)} · {t('cuti.weeksN', { n: l.weeks })} · {t('pot.weekly', { amount: rm(l.setAsideWeekSen) })}</p>
                     </div>
-                    <button type="button" aria-label={t('common.delete')} onClick={() => cancel.mutate(l.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
+                    <Tooltip side="bottom" text={t('common.delete')}><button type="button" aria-label={t('common.delete')} onClick={() => cancel.mutate(l.id)} className="pressable grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2">
                       <Trash2 size={20} aria-hidden />
-                    </button>
+                    </button></Tooltip>
                   </li>
                 ))}
               </ul>

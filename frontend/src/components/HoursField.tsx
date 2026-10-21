@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
 import { useI18n } from '../i18n/t'
+import { Tooltip } from './Tooltip'
 
 const PRESETS = [20, 30, 40, 50, 60]
 const MAX = 84
@@ -14,15 +15,15 @@ export function HoursField({ label, value, onChange }: { label: string; value: n
     <div className="flex flex-col gap-3" role="group" aria-label={label}>
       <span className="text-sm font-semibold">{label}</span>
       <div className="flex items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-line bg-surface p-3">
-        <button type="button" className={step} aria-label={t('hours.less')} disabled={value <= 0} onClick={() => set(value - 1)}>
+        <Tooltip side="bottom" text={t('hours.less')}><button type="button" className={step} aria-label={t('hours.less')} disabled={value <= 0} onClick={() => set(value - 1)}>
           <Minus size={26} aria-hidden />
-        </button>
+        </button></Tooltip>
         <output aria-live="polite" className="text-center text-[2rem] leading-none font-extrabold tabular-nums">
           {t('onb.hoursValue', { n: value })}
         </output>
-        <button type="button" className={step} aria-label={t('hours.more')} disabled={value >= MAX} onClick={() => set(value + 1)}>
+        <Tooltip side="bottom" text={t('hours.more')}><button type="button" className={step} aria-label={t('hours.more')} disabled={value >= MAX} onClick={() => set(value + 1)}>
           <Plus size={26} aria-hidden />
-        </button>
+        </button></Tooltip>
       </div>
       <div className="grid grid-cols-5 gap-2">
         {PRESETS.map((h) => (
