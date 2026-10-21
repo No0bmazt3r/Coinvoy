@@ -15,6 +15,7 @@ const ERRORS: Record<string, Key> = {
   cancelled: 'login.error.cancelled',
   state: 'login.error.state',
   not_configured: 'login.error.notConfigured',
+  demo: 'login.error.demo', // from /try when the demo can't start
 }
 
 export const Route = createFileRoute('/login')({

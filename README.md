@@ -184,7 +184,7 @@ cp .env.example .env    # optional: AI keys and Google sign-in (the demo works w
 pnpm dev                # API :8000 · ML service :8001 · app http://localhost:5173
 ```
 
-Open http://localhost:5173 and tap **Cuba demo**. You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Odah Bot need an AI key; everything else works without one.
+Open http://localhost:5173 and tap **Cuba demo**, or go straight to http://localhost:5173/try, which skips the intro and signs you into the demo in one step (the link the pitch deck's QR code uses). You land on Abang Faiz's account (12 weeks of labelled synthetic data) with a working salary. The second demo button opens Kak Lina, whose safe salary is below her essentials, so the app shows Jurang. Snap and Odah Bot need an AI key; everything else works without one.
 
 ### 3. Configuration (`.env`)
 
@@ -580,7 +580,7 @@ Coinvoy deploys as **one Render Blueprint** ([`render.yaml`](render.yaml)) in Si
 2. Fill in the secrets Render asks for (`APP_URL`, Google client, AI keys, `PRIVACY_CONTACT_EMAIL`, VAPID keys, `ADMIN_EMAILS`).
 3. In Google Cloud Console, add `https://<your-domain>` as an origin and `https://<your-domain>/api/auth/google/callback` as a redirect URI.
 
-There is no separate frontend deploy: the web service builds the app and serves it.
+There is no separate frontend deploy: the web service builds the app and serves it. Once it's live, `https://<your-domain>/try` is the one-scan demo link for a QR code.
 
 ---
 
