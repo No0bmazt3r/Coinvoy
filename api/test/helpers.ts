@@ -48,6 +48,18 @@ export function fakeLlm() {
     if (state.rejectSchema && body.response_format) return new Response(JSON.stringify({ error: { message: 'response_format not supported' } }), { status: 400 })
     const reply = state.replies.length ? state.replies.shift()! : state.reply
     const message = typeof reply === 'string' ? { role: 'assistant', content: reply } : reply
+    if (body.stream) {
+      // Server-sent chunks like a real provider: the text a word at a time, a tool call in one piece, then usage
+      const m = message as { content?: string; tool_calls?: unknown[] }
+      const chunk = (delta: object, extra: object = {}) => `data: ${JSON.stringify({ id: 'x', object: 'chat.completion.chunk', created: 0, model: 'm', choices: [{ index: 0, delta, finish_reason: null }], ...extra })}\n\n`
+      const parts = [
+        ...(m.content ?? '').split(/(?<=\s)/).filter(Boolean).map((w) => chunk({ content: w })),
+        ...(m.tool_calls ?? []).map((tc, index) => chunk({ tool_calls: [{ index, ...(tc as object) }] })),
+        `data: ${JSON.stringify({ id: 'x', object: 'chat.completion.chunk', created: 0, model: 'm', choices: [], usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 } })}\n\n`,
+        'data: [DONE]\n\n',
+      ]
+      return new Response(parts.join(''), { status: 200, headers: { 'content-type': 'text/event-stream' } })
+    }
     return new Response(
       JSON.stringify({ id: 'x', object: 'chat.completion', created: 0, model: 'm', choices: [{ index: 0, finish_reason: 'stop', message }], usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 } }),
       { status: 200, headers: { 'content-type': 'application/json' } },

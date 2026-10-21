@@ -5,7 +5,7 @@ import { db, schema } from '../src/db/index.ts'
 import { env } from '../src/env.ts'
 import { addWeeks } from '../src/lib/weeks.ts'
 import { chat, imagePart, modelFor } from '../src/llm/client.ts'
-import { cleanImage, MAX_BYTES } from '../src/llm/snap.ts'
+import { cleanImage, grabStatement, MAX_BYTES } from '../src/llm/snap.ts'
 import { demo, fakeLlm, noLlm, pdf, THIS_WEEK } from './helpers.ts'
 
 const LAST_WEEK = addWeeks(THIS_WEEK, -1)
@@ -161,4 +161,12 @@ test('no key means manual entry', async () => {
   const res = await upload(a, await png())
   expect(res.status).toBe(503)
   expect(res.body.error.code).toBe('llm_unconfigured')
+})
+
+test("Grab's weekly statement PDF is read with rules: the week and the paid-out total, no AI", () => {
+  const lines = ['Jumlah', '239.80', '8.88', 'RM248.68', 'Penyata Pemandu', '5 Oktober, 2026 - 11 Oktober, 2026', 'Ringkasan', 'Jumlah Pendapatan', '248.68', 'Jumlah Penolakan', '0.00', 'Jumlah Mingguan', 'RM1,248.68', 'Page']
+  const out = grabStatement(lines.join('\n'))!
+  expect(out.is_earnings_screen).toBe(true)
+  expect(out.weeks[0]).toMatchObject({ platform: 'grab', week_start: '2026-10-05', week_end: '2026-10-11', gross_rm: 1248.68, commission_rm: null, incentives_rm: null })
+  expect(grabStatement('Some bank statement\nJumlah Mingguan RM10.00')).toBeNull()
 })

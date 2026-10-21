@@ -68,7 +68,7 @@ export function createApp() {
   app.get('/api/health', (_req, res) => void res.json({ ok: true }))
   // Public facts the privacy page shows: who processes screenshots and chat, and where.
   app.get('/api/meta', (_req, res) =>
-    void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured() }),
+    void res.json({ llmEnabled: llmConfigured(), llmProvider: env.LLM_PROVIDER_NAME || null, llmRegion: env.LLM_REGION_NOTE || null, noticeVersion: '2026-10', googleEnabled: googleConfigured(), privacyContact: env.PRIVACY_CONTACT_EMAIL || null }),
   )
   app.use('/api/auth', rateLimit(env.AUTH_RATE_PER_MIN), authRouter)
   app.use('/api', profileRouter, weeksRouter, homeRouter, snapRouter, advisorRouter, benefitsRouter, expensesRouter, pushRouter, adminRouter, accountRouter)

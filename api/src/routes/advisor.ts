@@ -7,7 +7,7 @@ import { requireUser, userOf } from '../auth.ts'
 import { db, schema } from '../db/index.ts'
 import { env, llmConfigured } from '../env.ts'
 import { chat } from '../llm/client.ts'
-import { answer } from '../llm/tanya.ts'
+import { answer, type TanyaEvent } from '../llm/tanya.ts'
 import { checkQuota, logUsage } from '../llm/usage.ts'
 import { ml } from '../ml.ts'
 import { checkOffer, instalment, LlmOffer } from '../services/advisor.ts'
@@ -17,6 +17,7 @@ import { checkMessage } from '../services/scam.ts'
 import { buildInputs, currentWeek } from '../services/salary.ts'
 import { readFileSync } from 'node:fs'
 import { ApiError } from '../errors.ts'
+import { errorFields, log } from '../log.ts'
 import { MAX_SEN } from '../lib/limits.ts'
 
 const LENDER_PROMPT = readFileSync(new URL('../llm/prompts/lender.md', import.meta.url), 'utf8')
@@ -50,6 +51,14 @@ advisorRouter.get('/tanya/messages', async (_req, res) => {
   res.json({ messages: rows.map((m) => ({ id: m.id, role: m.role, content: m.content, risk: m.risk, guardTriggered: m.guardTriggered, at: m.createdAt.toISOString() })) })
 })
 
+// "Clear chat": deletes the rider's whole Tanya history
+advisorRouter.delete('/tanya/messages', async (_req, res) => {
+  await db.delete(schema.tanyaMessages).where(eq(schema.tanyaMessages.userId, userOf(res).id))
+  res.status(204).end()
+})
+
+// ?stream=1: the reply arrives as it is written, one JSON event per line (text / reset / done / error).
+// The answer is saved even if the rider leaves the page halfway, so it is there when they come back.
 advisorRouter.post('/tanya/messages', async (req, res) => {
   const user = userOf(res)
   const { message } = z.strictObject({ message: z.string().trim().min(1).max(500) }).parse(req.body)
@@ -57,16 +66,30 @@ advisorRouter.post('/tanya/messages', async (req, res) => {
   await db.delete(schema.tanyaMessages).where(and(eq(schema.tanyaMessages.userId, user.id), lt(schema.tanyaMessages.createdAt, new Date(Date.now() - RETENTION_MS))))
   const recent = await db.select().from(schema.tanyaMessages).where(eq(schema.tanyaMessages.userId, user.id)).orderBy(desc(schema.tanyaMessages.id)).limit(HISTORY_TURNS * 2)
   const history: ChatCompletionMessageParam[] = recent.reverse().map((m) => (m.role === 'user' ? { role: 'user', content: `<rider_message>${m.content}</rider_message>` } : { role: 'assistant', content: m.content }))
-  const out = await answer(user, history, message, (r) => logUsage(user.id, 'tanya', r))
-  const [saved] = await db
-    .insert(schema.tanyaMessages)
-    .values([
-      { userId: user.id, role: 'user', content: message },
-      { userId: user.id, role: 'assistant', content: out.reply, tools: out.tools, risk: out.risk, guardTriggered: out.guardTriggered },
-    ])
-    .returning()
-  await db.insert(schema.events).values({ userId: user.id, name: 'tanya_turn', props: { tools: out.tools, guard_triggered: out.guardTriggered } })
-  res.json({ reply: out.reply, risk: out.risk, guardTriggered: out.guardTriggered, at: saved!.createdAt.toISOString() })
+  const turn = async (onEvent?: (e: TanyaEvent) => void) => {
+    const out = await answer(user, history, message, (r) => logUsage(user.id, 'tanya', r), onEvent)
+    const [saved] = await db
+      .insert(schema.tanyaMessages)
+      .values([
+        { userId: user.id, role: 'user', content: message },
+        { userId: user.id, role: 'assistant', content: out.reply, tools: out.tools, risk: out.risk, guardTriggered: out.guardTriggered },
+      ])
+      .returning()
+    await db.insert(schema.events).values({ userId: user.id, name: 'tanya_turn', props: { tools: out.tools, guard_triggered: out.guardTriggered } })
+    return { reply: out.reply, risk: out.risk, guardTriggered: out.guardTriggered, at: saved!.createdAt.toISOString() }
+  }
+  if (req.query.stream !== '1') return void res.json(await turn())
+
+  res.writeHead(200, { 'Content-Type': 'application/x-ndjson; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' })
+  const send = (e: object) => void (res.writableEnded || res.destroyed || res.write(`${JSON.stringify(e)}\n`))
+  try {
+    send({ type: 'done', ...(await turn(send)) })
+  } catch (err) {
+    const e = err instanceof ApiError ? err : new ApiError(500, 'server', 'Ralat pelayan. Cuba lagi.', 'Server error. Try again.')
+    if (!(err instanceof ApiError)) log('error', 'tanya stream', errorFields(err))
+    send({ type: 'error', error: { code: e.code, message_ms: e.messageMs, message_en: e.message } })
+  }
+  res.end()
 })
 
 const LayakIn = z.strictObject({

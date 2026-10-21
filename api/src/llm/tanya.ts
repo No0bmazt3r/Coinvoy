@@ -10,7 +10,7 @@ import { ml, type Risk, type Scenario } from '../ml.ts'
 import { lesson } from '../services/lessons.ts'
 import { ensurePots } from '../services/pots.ts'
 import { runScenario } from '../services/salary.ts'
-import { type ChatResult, chat } from './client.ts'
+import { type ChatResult, chat, chatStream } from './client.ts'
 import { allowedValues, check } from './guard.ts'
 
 const PROMPT = readFileSync(new URL('./prompts/tanya.md', import.meta.url), 'utf8')
@@ -111,18 +111,56 @@ export function fallback(results: Record<string, unknown>[], lang: 'ms' | 'en'):
   return lang === 'ms' ? 'Maaf, saya tak dapat jawab dengan tepat. Cuba tanya tentang gaji, tabung, bil atau cuti anda.' : "Sorry, I can't answer that precisely. Try asking about your salary, pots, bills or leave."
 }
 
+/** What a streamed reply sends on the way: more text, or "drop what you showed" (a tool round, or the guard said no). */
+export type TanyaEvent = { type: 'text'; text: string } | { type: 'reset' }
+
+/**
+ * How much of a draft that is still arriving can be shown: whole words only, holding back the last two (a number's
+ * unit, or the rest of a number in words, may still be coming), and nothing new while a number in it fails the guard.
+ * The finished reply is still checked in full before it is saved.
+ */
+export function safeLength(draft: string, allowed: Set<number>): number {
+  const complete = draft.slice(0, Math.max(0, draft.search(/\s\S*$/)))
+  const words = [...complete.matchAll(/\S+/g)]
+  if (words.length <= 2 || check(complete, allowed).length) return 0
+  return words.at(-2)!.index
+}
+
 export type TanyaAnswer = { reply: string; risk: Risk | null; tools: string[]; guardTriggered: boolean }
 
-export async function answer(user: User, history: ChatCompletionMessageParam[], message: string, onCall: (r: ChatResult<undefined>) => Promise<void>): Promise<TanyaAnswer> {
+export async function answer(
+  user: User,
+  history: ChatCompletionMessageParam[],
+  message: string,
+  onCall: (r: ChatResult<undefined>) => Promise<void>,
+  onEvent?: (e: TanyaEvent) => void, // given: stream the reply as it is written
+): Promise<TanyaAnswer> {
   const lang = user.lang === 'en' ? 'en' : 'ms'
   const system = PROMPT.replace('{style}', STYLE[lang])
   const messages: ChatCompletionMessageParam[] = [{ role: 'system', content: system }, ...history, { role: 'user', content: `<rider_message>${message}</rider_message>` }]
   const results: Record<string, unknown>[] = []
   const tools: string[] = []
+  const allowedNow = () => allowedValues(message, SCAM_HOTLINE, ...results.map((x) => JSON.stringify(x)))
+  let shown = 0 // characters of the current draft the rider can already see
   const complete = async (msgs: ChatCompletionMessageParam[]) => {
-    const r = await chat('tanya', msgs, { tools: TOOLS, maxTokens: 500 })
+    let draft = ''
+    const allowed = allowedNow()
+    const r = onEvent
+      ? await chatStream('tanya', msgs, { tools: TOOLS, maxTokens: 800 }, (text) => {
+          draft += text
+          const n = safeLength(draft, allowed)
+          if (n > shown) {
+            onEvent({ type: 'text', text: draft.slice(shown, n) })
+            shown = n
+          }
+        })
+      : await chat('tanya', msgs, { tools: TOOLS, maxTokens: 800 })
     await onCall(r)
     return r
+  }
+  const reset = () => {
+    if (shown) onEvent?.({ type: 'reset' })
+    shown = 0
   }
 
   let reply = ''
@@ -133,6 +171,7 @@ export async function answer(user: User, history: ChatCompletionMessageParam[], 
       reply = r.message.content ?? ''
       break
     }
+    reset() // any "let me check" text before a tool call isn't the answer
     messages.push({ role: 'assistant', content: r.message.content ?? '', tool_calls: calls })
     for (const c of calls) {
       let args: unknown = {}
@@ -149,9 +188,10 @@ export async function answer(user: User, history: ChatCompletionMessageParam[], 
   }
 
   // Besides tool results and the rider's words, one fixed fact the prompt tells Tanya to give: the scam hotline
-  const allowed = allowedValues(message, SCAM_HOTLINE, ...results.map((x) => JSON.stringify(x)))
+  const allowed = allowedNow()
   const bad = check(reply, allowed)
   if (bad.length) {
+    reset()
     // One retry, naming the numbers that had no source; then the templated answer.
     const note = `Your draft used numbers no tool returned: ${bad.join(', ')}. Rewrite it using only numbers from the tool results above, or call a tool.`
     const retry = await complete([...messages, { role: 'assistant', content: reply }, { role: 'system', content: note }])

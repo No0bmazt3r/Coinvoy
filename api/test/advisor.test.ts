@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import { allowedValues, check, extract } from '../src/llm/guard.ts'
 import { checkOffer, fcaMatch, instalment } from '../src/services/advisor.ts'
+import { safeLength } from '../src/llm/tanya.ts'
 import { demo, fakeLlm, rider } from './helpers.ts'
 
 // The number guard
@@ -43,6 +44,8 @@ test('Tanya calls the engine, and a reply quoting tool numbers passes the guard'
   expect(JSON.parse(toolMsg.content).salary_rm).toBe(salary)
   const history = (await a.get('/api/tanya/messages')).body.messages
   expect(history.map((m: { role: string }) => m.role)).toEqual(['user', 'assistant'])
+  expect((await a.delete('/api/tanya/messages')).status).toBe(204) // "Clear chat"
+  expect((await a.get('/api/tanya/messages')).body.messages).toEqual([])
 })
 
 test('Tanya: a made-up number is retried once, then replaced by a reply built from the tools', async () => {
@@ -146,4 +149,29 @@ test('Celik lessons are triggered by the rider’s data', async () => {
   const topics = lessons.map((l: { topic: string }) => l.topic)
   expect(topics).toEqual(expect.arrayContaining(['buffer', 'isaraan', 'leave', 'perkeso']))
   expect(lessons.find((l: { topic: string }) => l.topic === 'buffer').text).toContain('RM900')
+})
+
+test('a streamed reply shows only words that pass the number guard, then the saved answer', async () => {
+  const a = await rider()
+  const salary = Math.round((await a.get('/api/home')).body.salary.salarySen / 100)
+  const llm = fakeLlm()
+  llm.replies = [toolCall('get_salary'), `Selamat. Gaji minggu ni RM${salary}, boleh lah. Simpan sikit untuk bil tau.`]
+  const res = await a.post('/api/tanya/messages?stream=1').send({ message: 'Berapa gaji saya?' }).buffer(true).parse((r, cb) => {
+    let text = ''
+    r.on('data', (c: Buffer) => (text += c.toString()))
+    r.on('end', () => cb(null, text))
+  })
+  const events = String(res.body).trim().split('\n').map((l) => JSON.parse(l))
+  const shown = events.filter((e) => e.type === 'text').map((e) => e.text).join('')
+  expect(shown.length).toBeGreaterThan(0)
+  expect(`Selamat. Gaji minggu ni RM${salary}, boleh lah. Simpan sikit untuk bil tau.`.startsWith(shown)).toBe(true)
+  expect(events.at(-1)).toMatchObject({ type: 'done', reply: `Selamat. Gaji minggu ni RM${salary}, boleh lah. Simpan sikit untuk bil tau.`, risk: 'selamat' })
+  expect((await a.get('/api/tanya/messages')).body.messages).toHaveLength(2)
+})
+
+test('streaming holds back a number nothing supports, and the last words until they are complete', () => {
+  const allowed = new Set([617])
+  expect(safeLength('Selamat. Gaji anda RM617 minggu ini, ', allowed)).toBe('Selamat. Gaji anda RM617 '.length)
+  expect(safeLength('Selamat. Gaji anda RM999 minggu ini, ', allowed)).toBe(0)
+  expect(safeLength('Selamat. Gaji', allowed)).toBe(0)
 })

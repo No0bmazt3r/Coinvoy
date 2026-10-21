@@ -200,7 +200,7 @@ export const linksQuery = queryOptions({ queryKey: ['links'], queryFn: async () 
 export const messagesQuery = queryOptions({ queryKey: ['messages'], queryFn: async () => (await api<{ messages: Message[] }>('/api/tanya/messages')).messages })
 export const celikQuery = queryOptions({ queryKey: ['celik'], queryFn: async () => (await api<{ lessons: Lesson[] }>('/api/celik')).lessons })
 export const expensesQuery = (week: string) => queryOptions({ queryKey: ['expenses', week], queryFn: async () => (await api<{ expenses: Expense[] }>(`/api/expenses?week=${week}`)).expenses })
-export const metaQuery = queryOptions({ queryKey: ['meta'], staleTime: Infinity, queryFn: () => api<{ llmEnabled: boolean; llmProvider: string | null; llmRegion: string | null; noticeVersion: string; googleEnabled: boolean }>('/api/meta') })
+export const metaQuery = queryOptions({ queryKey: ['meta'], staleTime: Infinity, queryFn: () => api<{ llmEnabled: boolean; llmProvider: string | null; llmRegion: string | null; noticeVersion: string; googleEnabled: boolean; privacyContact: string | null }>('/api/meta') })
 export const billsQuery = queryOptions({ queryKey: ['bills'], queryFn: async () => (await api<{ bills: Bill[] }>('/api/bills')).bills })
 
 /** Drop the offline copy of personal data (sign-out, account deletion). */

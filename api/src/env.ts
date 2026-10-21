@@ -35,6 +35,12 @@ const schema = z.object({
   LLM_MODEL_LENDER: z.string().default(''),
   LLM_MODEL_BM: z.string().default(''),
   LLM_MODEL_RECO: z.string().default(''),
+  // How hard each job's model thinks before answering (reasoning_effort). Empty = the provider's default.
+  LLM_REASONING_SNAP: z.string().default(''),
+  LLM_REASONING_TANYA: z.string().default(''),
+  LLM_REASONING_LENDER: z.string().default(''),
+  LLM_REASONING_BM: z.string().default(''),
+  LLM_REASONING_RECO: z.string().default(''),
   // false: one AI key for every job. true: each job has its own key, and a job without one is off.
   LLM_SPLIT_KEYS: bool(false),
   LLM_API_KEY_SNAP: z.string().default(''),
@@ -52,6 +58,8 @@ const schema = z.object({
   LLM_MONTHLY_CALL_CAP: z.coerce.number().default(20_000),
   LLM_PROVIDER_NAME: z.string().default(''),
   LLM_REGION_NOTE: z.string().default(''),
+  // Shown on the privacy page as the contact for data questions (PDPA asks for one)
+  PRIVACY_CONTACT_EMAIL: z.string().default(''),
   DEMO_LLM_CACHE: bool(false),
   BM_CLASSIFIER_THRESHOLD: z.coerce.number().default(0.7),
   // Contributions. VERIFY each against the official source before the pitch.

@@ -53,12 +53,40 @@ const MAX_PDF_CHARS = 12_000 // a few weekly statements; more is a whole bank st
 /** A PDF starts with "%PDF-"; anything else goes through the image checks. */
 export const isPdf = (raw: Buffer) => raw.subarray(0, 5).toString('latin1') === '%PDF-'
 
+const BULAN = ['januari', 'februari', 'mac', 'april', 'mei', 'jun', 'julai', 'ogos', 'september', 'oktober', 'november', 'disember']
+
+/**
+ * Grab's weekly "Penyata Pemandu" PDF, read with rules instead of the AI. Its summary ("Ringkasan") prints the week's
+ * total exactly, while the AI tends to mix up the 11 pages of trip lines and invent a commission. null = not this format.
+ */
+export function grabStatement(text: string): SnapOut | null {
+  if (!/Penyata Pemandu/i.test(text)) return null
+  const period = text.match(/(\d{1,2}) (\p{L}+),? (\d{4}) - (\d{1,2}) (\p{L}+),? (\d{4})/u)
+  const total = text.match(/Ringkasan[\s\S]{0,200}?Jumlah Mingguan\s+RM\s?([\d,]+\.\d{2})/)
+  if (!period || !total) return null
+  const iso = (d: string, m: string, y: string) => {
+    const month = BULAN.indexOf(m.toLowerCase()) + 1
+    return month ? `${y}-${String(month).padStart(2, '0')}-${d.padStart(2, '0')}` : null
+  }
+  const week = {
+    ...SnapWeek.parse({}),
+    platform: 'grab' as const,
+    week_start: iso(period[1]!, period[2]!, period[3]!),
+    week_end: iso(period[4]!, period[5]!, period[6]!),
+    gross_rm: Number(total[1]!.replace(/,/g, '')), // what Grab paid out for the week, after its fees
+    confidence: 'high' as const,
+  }
+  return { is_earnings_screen: true, weeks: [week] }
+}
+
 /**
  * Reads a cleaned screenshot, or the text of an earnings PDF. Both get the same checks.
  * The AI has no tools, so text hidden in a screenshot or PDF can't make it do anything.
  */
 export async function extract(input: Buffer | { pdfText: string }, platforms: string[]): Promise<{ out: SnapOut; call: ChatResult<SnapOut> | null }> {
   const pdfText = Buffer.isBuffer(input) ? null : input.pdfText.slice(0, MAX_PDF_CHARS)
+  const known = Buffer.isBuffer(input) ? null : grabStatement(input.pdfText)
+  if (known) return { out: known, call: null }
   const key = createHash('sha256').update(pdfText ?? (input as Buffer)).update(PROMPT_VERSION).digest('hex')
   const cached = `${CACHE_DIR}/${key}.json`
   if (env.DEMO_LLM_CACHE && existsSync(cached)) return { out: SnapOut.parse(JSON.parse(readFileSync(cached, 'utf8'))), call: null }

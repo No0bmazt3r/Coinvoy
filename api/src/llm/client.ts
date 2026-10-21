@@ -57,6 +57,15 @@ export function modelFor(route: Route): string {
   return perRoute || env.LLM_MODEL
 }
 
+/** LLM_REASONING_SNAP, … : the reasoning_effort to send, or none (the provider's default). */
+const reasoningFor = (route: Route) => ({ snap: env.LLM_REASONING_SNAP, tanya: env.LLM_REASONING_TANYA, lender: env.LLM_REASONING_LENDER, bm: env.LLM_REASONING_BM, reco: env.LLM_REASONING_RECO })[route]
+
+function failed(route: Route, err: unknown): ApiError {
+  if (err instanceof ApiError) return err
+  log('error', 'llm failed', { route, err: err instanceof Error ? err.message : String(err) })
+  return new ApiError(502, 'llm_failed', 'AI tidak dapat dihubungi. Cuba lagi atau isi secara manual.', "The AI couldn't be reached. Try again or enter it manually.")
+}
+
 /** An image as a message part. Every OpenAI-compatible provider accepts data URLs. */
 export const imagePart = (data: Buffer, mime = 'image/jpeg') => ({ type: 'image_url' as const, image_url: { url: `data:${mime};base64,${data.toString('base64')}` } })
 
@@ -70,6 +79,7 @@ export async function chat<T = undefined>(
   const model = modelFor(route)
   const body: OpenAI.Chat.ChatCompletionCreateParamsNonStreaming = { model, messages, max_tokens: opts.maxTokens ?? 1024 }
   if (opts.tools) body.tools = opts.tools
+  if (reasoningFor(route)) body.reasoning_effort = reasoningFor(route) as OpenAI.ReasoningEffort
   if (opts.schema) body.response_format = { type: 'json_schema', json_schema: { name: route, schema: z.toJSONSchema(opts.schema) as Record<string, unknown>, strict: false } }
   let res: OpenAI.Chat.ChatCompletion
   try {
@@ -82,13 +92,53 @@ export async function chat<T = undefined>(
       res = await client(route).chat.completions.create(body)
     }
   } catch (err) {
-    if (err instanceof ApiError) throw err
-    log('error', 'llm failed', { route, err: err instanceof Error ? err.message : String(err) })
-    throw new ApiError(502, 'llm_failed', 'AI tidak dapat dihubungi. Cuba lagi atau isi secara manual.', "The AI couldn't be reached. Try again or enter it manually.")
+    throw failed(route, err)
   }
   const message = res.choices[0]!.message
   const parsed = (opts.schema ? parseJson(message.content ?? '', opts.schema) : undefined) as T
   return { message, parsed, model, inputTokens: res.usage?.prompt_tokens ?? 0, outputTokens: res.usage?.completion_tokens ?? 0 }
+}
+
+/** Like chat() without a schema, but streamed: onText gets the reply's text as it arrives. Tool calls come back whole. */
+export async function chatStream(
+  route: Route,
+  messages: ChatCompletionMessageParam[],
+  opts: { tools?: ChatCompletionTool[]; maxTokens?: number },
+  onText: (text: string) => void,
+): Promise<ChatResult<undefined>> {
+  const model = modelFor(route)
+  const body: OpenAI.Chat.ChatCompletionCreateParamsStreaming = { model, messages, max_tokens: opts.maxTokens ?? 1024, stream: true, stream_options: { include_usage: true } }
+  if (opts.tools) body.tools = opts.tools
+  if (reasoningFor(route)) body.reasoning_effort = reasoningFor(route) as OpenAI.ReasoningEffort
+  let content = ''
+  let usage: OpenAI.CompletionUsage | undefined
+  const calls: { id: string; name: string; args: string; extra?: unknown }[] = []
+  try {
+    for await (const chunk of await client(route).chat.completions.create(body)) {
+      usage = chunk.usage ?? usage
+      const delta = chunk.choices[0]?.delta
+      if (delta?.content) {
+        content += delta.content
+        onText(delta.content)
+      }
+      for (const tc of delta?.tool_calls ?? []) {
+        // OpenAI sends a call in pieces by index; some providers send each call whole with no index
+        const call = (calls[tc.index ?? (tc.id ? calls.length : calls.length - 1)] ??= { id: '', name: '', args: '' })
+        call.id ||= tc.id ?? ''
+        call.name ||= tc.function?.name ?? ''
+        call.args += tc.function?.arguments ?? ''
+        // Gemini 3 signs each call (extra_content.google.thought_signature) and refuses the next turn without it
+        call.extra ??= (tc as { extra_content?: unknown }).extra_content
+      }
+    }
+  } catch (err) {
+    throw failed(route, err)
+  }
+  const message: ChatCompletionMessage = { role: 'assistant', content, refusal: null }
+  if (calls.length) {
+    message.tool_calls = calls.map((c, i) => ({ id: c.id || `call_${i}`, type: 'function', function: { name: c.name, arguments: c.args || '{}' }, ...(c.extra ? { extra_content: c.extra } : {}) }))
+  }
+  return { message, parsed: undefined, model, inputTokens: usage?.prompt_tokens ?? 0, outputTokens: usage?.completion_tokens ?? 0 }
 }
 
 function parseJson<T>(text: string, schema: z.ZodType<T>): T {

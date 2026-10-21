@@ -28,3 +28,9 @@ export function restoreAppearance() {
     // nothing saved
   }
 }
+
+/** Whether the app is showing dark mode right now: the rider's choice, or the phone's when it follows the system. */
+export function isDark() {
+  const theme = document.documentElement.dataset.theme
+  return theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches
+}
