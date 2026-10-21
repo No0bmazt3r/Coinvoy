@@ -9,10 +9,10 @@ const schema = z.object({
   // Supabase signs its database certificate with its own CA: paste that certificate (PEM) here so the connection is
   // verified. Empty: the system's trusted CAs (enough for most hosted Postgres; not for Supabase).
   DATABASE_SSL_CA: z.string().default(''),
-  // Apply migrations at startup (local). Deployed it's false: the deploy pipeline checks and applies them first.
+  // Apply migrations at startup (local). Deployed it's false: the "Database (Supabase)" workflow checks and applies them.
   MIGRATE_ON_START: bool(true),
-  // The commit the running build came from, shown by /api/health (set by the deploy pipeline)
-  GIT_SHA: z.string().default('dev'),
+  // The commit the running build came from, shown by /api/health. Render sets RENDER_GIT_COMMIT itself.
+  GIT_SHA: z.string().default(process.env.RENDER_GIT_COMMIT || 'dev'),
   // Local PGlite only: also accept Postgres connections (DBeaver, psql) on this port while the API runs. 0 = off.
   PGLITE_PORT: z.coerce.number().int().min(0).max(65535).default(5433),
   APP_URL: z.url().default('http://localhost:5173'),

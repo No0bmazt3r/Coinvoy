@@ -33,10 +33,6 @@ COPY backend/api/data backend/api/data
 COPY backend/api/scripts backend/api/scripts
 COPY backend/start.sh backend/start.sh
 
-# Which commit this is, shown by /api/health (the deploy pipeline passes it)
-ARG GIT_SHA=dev
-ENV GIT_SHA=$GIT_SHA
-
 # Run as a normal user, not root
 RUN useradd --create-home --uid 1000 app && chown -R app:app /app
 USER app

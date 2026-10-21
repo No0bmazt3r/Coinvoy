@@ -1,0 +1,55 @@
+# Checks the Supabase database and runs its migrations, only when the repository owner starts it by hand:
+# Actions → "Database (Supabase)" → Run workflow (branch: main), then choose "check" or "migrate".
+#   check    is the database reachable? which migrations are pending? (changes nothing)
+#   migrate  the same, then applies the pending ones
+# Run "migrate" before deploying backend code that changes the database (Render builds and deploys the backend).
+#
+# Why nobody else can run it: the job runs only when the owner both started the run and (for a re-run) clicked
+# re-run, and only on main; DATABASE_URL lives in the "production" GitHub Environment, which only main may use.
+name: Database (Supabase)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: What to do
+        type: choice
+        options: [check, migrate]
+        default: check
+
+concurrency:
+  group: database
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: ${{ inputs.action == 'migrate' && 'Check and migrate' || 'Check' }} database
+    runs-on: ubuntu-latest
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.ref == 'refs/heads/main'
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_SSL_CA: ${{ secrets.DATABASE_SSL_CA }}
+    defaults:
+      run:
+        working-directory: backend/api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile --prod --filter coinvoy-api
+      - name: Secrets present?
+        run: |
+          # Without DATABASE_URL the API falls back to its built-in local database, so this would "migrate" a
+          # throwaway copy on GitHub's machine and pass without touching Supabase. Stop instead.
+          case "$DATABASE_URL" in postgres://*|postgresql://*) ;; *) echo "DATABASE_URL is missing or isn't a postgres:// address (GitHub → Settings → Environments → production)." >&2; exit 1 ;; esac
+      - name: Is the database reachable, and what's pending?
+        id: check
+        run: node scripts/migrate.ts --check
+      - name: Apply pending migrations
+        if: inputs.action == 'migrate' && steps.check.outputs.pending != '0'
+        run: node scripts/migrate.ts

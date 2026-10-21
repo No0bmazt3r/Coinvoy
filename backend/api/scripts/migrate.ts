@@ -1,4 +1,4 @@
-// Checks the database and its migrations; the deploy pipeline runs it before deploying a new version.
+// Checks the database and its migrations. The "Database (Supabase)" workflow runs it; run it before deploying new code.
 //   node --env-file=../.env scripts/migrate.ts --check   reachable? which migrations are pending? (changes nothing)
 //   node --env-file=../.env scripts/migrate.ts           the same, then applies the pending ones
 // "Pending" uses Drizzle's own rule: a migration newer than the newest one recorded in drizzle.__drizzle_migrations.
