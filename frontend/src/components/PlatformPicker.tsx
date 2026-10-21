@@ -12,6 +12,10 @@ const MARK: Record<Platform, { bg: string; src?: string }> = {
   other: { bg: 'var(--border-strong)' },
 }
 
+// Fetch the logos as soon as this file loads (onboarding's first screen, or Profil), not when the tiles first show:
+// otherwise the step that shows them opens with empty squares on a slow connection, and only going back looks instant.
+for (const { src } of Object.values(MARK)) if (src) new Image().src = src
+
 /** Multi-select tiles for the apps a rider works on: one per row on phones so every name fits, two on wider screens. */
 export function PlatformPicker({ value, onChange }: { value: Platform[]; onChange: (v: Platform[]) => void }) {
   const { t } = useI18n()
