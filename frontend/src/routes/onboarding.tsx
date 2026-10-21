@@ -3,6 +3,7 @@ import { Link, createFileRoute, redirect, useNavigate } from '@tanstack/react-ro
 import { ArrowLeft, Camera, Check, PencilLine } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import { LangToggle } from '../components/LangToggle'
+import { Logo } from '../components/Logo'
 import { MoneyField } from '../components/MoneyField'
 import { useI18n, type Key } from '../i18n/t'
 import { api, errorText, meQuery, type Platform, type User } from '../lib/api'
@@ -152,36 +153,56 @@ function Onboarding() {
   const last = step === screens.length - 1
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-5 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
-      <div className="flex min-h-11 items-center gap-2">
-        {step > 0 && !last && (
-          <button type="button" onClick={() => setStep(step - 1)} aria-label={t('common.back')} className="pressable -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
-            <ArrowLeft size={24} aria-hidden />
+    // Desktop: an ink panel listing every step beside the question, which sits centred on the right
+    <div className="lg:grid lg:min-h-dvh lg:grid-cols-[minmax(340px,2fr)_3fr]">
+      <aside className="sticky top-0 hidden h-dvh flex-col gap-12 bg-ink px-12 py-10 text-on-ink lg:flex">
+        <span className="flex items-center gap-2">
+          <Logo className="h-9 w-auto" />
+          <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
+        </span>
+        <ol className="flex flex-col gap-1" aria-label={t('onb.progress', { n: step + 1, total: screens.length })}>
+          {screens.map((sc, i) => (
+            <li key={sc.title} aria-current={i === step ? 'step' : undefined} className={`flex items-center gap-4 rounded-[var(--radius-md)] px-3 py-3 transition-colors duration-200 ${i === step ? 'bg-white/5 text-on-ink' : 'text-on-ink-muted'}`}>
+              <span className={`grid size-8 shrink-0 place-items-center rounded-full text-sm font-bold transition-colors duration-200 ${i < step ? 'bg-brand text-on-brand' : i === step ? 'border-2 border-brand text-brand' : 'border border-white/20'}`}>
+                {i < step ? <Check size={16} strokeWidth={3} aria-hidden /> : i + 1}
+              </span>
+              <span className="font-semibold">{t(sc.title)}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-auto max-w-xs text-lg font-medium text-on-ink-muted">{t('app.tagline')}</p>
+      </aside>
+      <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col gap-5 px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:w-full lg:max-w-lg lg:justify-center lg:py-16">
+        <div className="flex min-h-11 items-center gap-2">
+          {step > 0 && !last && (
+            <button type="button" onClick={() => setStep(step - 1)} aria-label={t('common.back')} className="pressable -ml-2 grid size-11 place-items-center rounded-full hover:bg-surface-2">
+              <ArrowLeft size={24} aria-hidden />
+            </button>
+          )}
+          <div className="flex flex-1 justify-center gap-1.5 lg:invisible" aria-label={t('onb.progress', { n: step + 1, total: screens.length })} role="img">
+            {screens.map((_, i) => (
+              <span key={i} className={`h-2 rounded-full transition-all duration-200 ${i === step ? 'w-6 bg-brand-text' : i < step ? 'w-2 bg-brand-text/60' : 'w-2 bg-line'}`} />
+            ))}
+          </div>
+          <LangToggle />
+        </div>
+        <div key={step} className="page-in flex flex-1 flex-col gap-4 lg:flex-none">
+          <h1 className="text-2xl font-bold tracking-tight lg:text-4xl">{t(screen.title)}</h1>
+          {screen.body && <p className="text-muted">{t(screen.body)}</p>}
+          {screen.content}
+        </div>
+        {save.isError && (
+          <p role="alert" className="text-sm font-semibold text-[var(--risky)]">
+            {errorText(save.error, lang, t('common.tryAgain'))}
+          </p>
+        )}
+        {!last && (
+          <button type="button" className="btn btn-primary" disabled={!canNext || save.isPending} onClick={() => save.mutate(step)}>
+            {t('intro.next')}
           </button>
         )}
-        <div className="flex flex-1 justify-center gap-1.5" aria-label={t('onb.progress', { n: step + 1, total: screens.length })} role="img">
-          {screens.map((_, i) => (
-            <span key={i} className={`h-2 rounded-full transition-all duration-200 ${i === step ? 'w-6 bg-brand-text' : i < step ? 'w-2 bg-brand-text/60' : 'w-2 bg-line'}`} />
-          ))}
-        </div>
-        <LangToggle />
-      </div>
-      <div key={step} className="page-in flex flex-1 flex-col gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">{t(screen.title)}</h1>
-        {screen.body && <p className="text-muted">{t(screen.body)}</p>}
-        {screen.content}
-      </div>
-      {save.isError && (
-        <p role="alert" className="text-sm font-semibold text-[var(--risky)]">
-          {errorText(save.error, lang, t('common.tryAgain'))}
-        </p>
-      )}
-      {!last && (
-        <button type="button" className="btn btn-primary" disabled={!canNext || save.isPending} onClick={() => save.mutate(step)}>
-          {t('intro.next')}
-        </button>
-      )}
-    </main>
+      </main>
+    </div>
   )
 }
 

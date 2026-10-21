@@ -29,6 +29,8 @@ const PERKS: { icon: LucideIcon; label: Key }[] = [
 const TRUST: Key[] = ['intro.trust1', 'intro.trust2', 'intro.trust3']
 // Weekly earnings as a share of the best week: the uneven bars the steady line smooths over.
 const WEEKS = [0.9, 0.42, 0.75, 0.3, 1, 0.55]
+// Desktop side padding: content up to 72rem wide, centred
+const GUTTER = 'lg:px-[max(2.5rem,calc(50vw-36rem))]'
 
 // First launch: swipe (native scroll-snap) or tap Next through four slides, then on to login.
 function Welcome() {
@@ -112,62 +114,86 @@ function Welcome() {
   }, [])
 
   return (
-    // Desktop: the same carousel as a centred card on the dark background
-    <div className="lg:grid lg:min-h-dvh lg:place-items-center lg:bg-ink">
-      <main
-        aria-label={t('intro.label')}
-        className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-ink pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-on-ink lg:h-[min(760px,90dvh)] lg:w-[480px] lg:rounded-[var(--radius-lg)] lg:border lg:border-white/10 lg:bg-white/5"
-      >
-        <div className="flex items-center justify-between px-4 pt-3">
-          <LangToggle />
-          <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-on-ink-muted ${last ? 'invisible' : ''}`}>
-            {t('intro.skip')}
-          </button>
-        </div>
+    // Desktop: the whole page, with the words on the left, the art large on the right, and every slide's title in the step bar
+    <main
+      aria-label={t('intro.label')}
+      className="mx-auto flex h-dvh max-w-[480px] flex-col overflow-hidden bg-ink pt-[env(safe-area-inset-top)] pb-[max(1.5rem,env(safe-area-inset-bottom))] text-on-ink lg:max-w-none lg:pb-10"
+    >
+      <div className={`flex items-center justify-between gap-3 px-4 pt-3 lg:justify-end lg:pt-6 ${GUTTER}`}>
+        <span className="mr-auto hidden items-center gap-2 lg:flex">
+          <Logo className="h-9 w-auto" />
+          <span className="text-xl font-extrabold tracking-tight">Coinvoy</span>
+        </span>
+        <LangToggle />
+        <button type="button" onClick={finish} className={`pressable min-h-11 px-3 text-sm font-semibold text-on-ink-muted ${last ? 'invisible' : ''}`}>
+          {t('intro.skip')}
+        </button>
+      </div>
 
-        <div
-          ref={track}
-          onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
-          className="no-scrollbar flex flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
-        >
+      <div
+        ref={track}
+        onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}
+        className="no-scrollbar flex flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
+      >
+        {slides.map((s, i) => (
+          <section
+            key={s.title}
+            aria-hidden={i !== index}
+            className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center lg:grid lg:grid-cols-2 lg:gap-16 lg:text-left ${GUTTER} ${i === index ? 'intro-active' : ''}`}
+          >
+            <div className="intro-art grid min-h-48 w-full place-items-center lg:order-2 lg:h-full lg:max-h-[560px] lg:rounded-[40px] lg:bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--brand)_16%,transparent),transparent)]">
+              {/* scale (not transform) so it stacks with the float/pop animations; on the children so the track never widens */}
+              <div className="flex w-full justify-center lg:*:scale-150">{s.art}</div>
+            </div>
+            <div className="flex flex-col gap-3 lg:gap-5">
+              <p className="intro-rise hidden text-sm font-bold tracking-widest text-brand lg:block">
+                {String(i + 1).padStart(2, '0')} / {String(slides.length).padStart(2, '0')}
+              </p>
+              <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight lg:text-5xl lg:leading-[1.1]">{t(s.title)}</h1>
+              <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms] lg:mx-0 lg:max-w-lg lg:text-lg">{t(s.body)}</p>
+            </div>
+          </section>
+        ))}
+      </div>
+
+      <div className={`flex flex-col items-center gap-6 px-4 pt-4 lg:flex-row lg:items-end lg:gap-12 ${GUTTER}`}>
+        <div className="flex gap-2 lg:hidden">
           {slides.map((s, i) => (
-            <section
+            <button
               key={s.title}
-              aria-hidden={i !== index}
-              className={`flex w-full shrink-0 snap-center flex-col items-center justify-center gap-8 px-6 text-center ${i === index ? 'intro-active' : ''}`}
+              type="button"
+              aria-label={t('intro.goTo', { n: i + 1 })}
+              aria-current={i === index ? 'step' : undefined}
+              onClick={() => goTo(i)}
+              className="grid h-6 place-items-center"
             >
-              <div className="intro-art grid min-h-48 w-full place-items-center">{s.art}</div>
-              <div className="flex flex-col gap-3">
-                <h1 className="intro-rise text-[1.75rem] leading-tight font-extrabold tracking-tight">{t(s.title)}</h1>
-                <p className="intro-rise mx-auto max-w-sm text-on-ink-muted [animation-delay:80ms]">{t(s.body)}</p>
-              </div>
-            </section>
+              <span
+                className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-white/25'}`}
+              />
+            </button>
           ))}
         </div>
-
-        <div className="flex flex-col items-center gap-6 px-4 pt-4">
-          <div className="flex gap-2">
-            {slides.map((s, i) => (
+        <ol className="hidden flex-1 grid-cols-4 gap-6 lg:grid">
+          {slides.map((s, i) => (
+            <li key={s.title}>
               <button
-                key={s.title}
                 type="button"
-                aria-label={t('intro.goTo', { n: i + 1 })}
                 aria-current={i === index ? 'step' : undefined}
                 onClick={() => goTo(i)}
-                className="grid h-6 place-items-center"
+                className={`flex w-full flex-col gap-2 text-left text-sm transition-colors duration-200 hover:text-on-ink ${i === index ? 'text-on-ink' : 'text-on-ink-muted'}`}
               >
-                <span
-                  className={`block h-2 rounded-full transition-all duration-300 ease-[var(--ease-out)] ${i === index ? 'w-6 bg-brand' : 'w-2 bg-white/25'}`}
-                />
+                <span className={`block h-1 rounded-full transition-colors duration-300 ${i <= index ? 'bg-brand' : 'bg-white/15'}`} />
+                <span className="font-bold tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+                <span className="line-clamp-2 font-semibold">{t(s.title)}</span>
               </button>
-            ))}
-          </div>
-          <button type="button" onClick={() => (last ? finish() : goTo(index + 1))} className="btn btn-primary">
-            {t(last ? 'intro.start' : 'intro.next')}
-            {last ? <HandCoins size={20} aria-hidden /> : <ArrowRight size={20} aria-hidden />}
-          </button>
-        </div>
-      </main>
-    </div>
+            </li>
+          ))}
+        </ol>
+        <button type="button" onClick={() => (last ? finish() : goTo(index + 1))} className="btn btn-primary lg:w-auto lg:min-w-52 lg:px-8">
+          {t(last ? 'intro.start' : 'intro.next')}
+          {last ? <HandCoins size={20} aria-hidden /> : <ArrowRight size={20} aria-hidden />}
+        </button>
+      </div>
+    </main>
   )
 }
