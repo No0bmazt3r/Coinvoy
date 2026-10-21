@@ -72,7 +72,19 @@ jobs:
     steps:
       - name: Trigger Render deploy for this commit
         run: |
+          case "$RENDER_DEPLOY_HOOK_URL" in
+            https://api.render.com/deploy/*) ;;
+            *)
+              echo "RENDER_DEPLOY_HOOK_URL must be the Render deploy-hook URL from the service Settings page." >&2
+              echo "It should start with https://api.render.com/deploy/." >&2
+              exit 1
+              ;;
+          esac
+          separator='?'
+          case "$RENDER_DEPLOY_HOOK_URL" in
+            *\?*) separator='&' ;;
+          esac
           curl --fail-with-body --silent --show-error --request POST \
-            "${RENDER_DEPLOY_HOOK_URL}?ref=${GITHUB_SHA}"
+            "${RENDER_DEPLOY_HOOK_URL}${separator}ref=${GITHUB_SHA}"
         env:
           RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
