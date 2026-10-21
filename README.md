@@ -511,10 +511,10 @@ All routes are under `/api` and return JSON. Errors look like `{ "error": { "cod
 
 | What | Status |
 |---|---|
-| Walk-forward backtest (`ml/scripts/backtest.py`) | **Dry run on 30 synthetic riders only**: Coinvoy ran short in 0.0% of 660 replayed weeks vs 1.2% for "4-week average − 20%", at a higher median salary (RM594 vs RM511). Synthetic data follows the engine's own assumptions, so this is **not evidence**. The real run waits on consented rider histories. |
+| Walk-forward backtest (`ml/scripts/backtest.py`) | **Dry run on 30 synthetic riders only**: Coinvoy ran short in 0.0% of 660 replayed weeks vs 1.2% for "4-week average − 20%", at a higher median salary (RM594 vs RM511). Synthetic data follows the engine's own assumptions, so this is **not evidence**; a real-data run comes after launch. |
 | Pooled rate model | **Synthetic dry run only**; off by default (`RATE_MODEL`). |
 | Calendar data | Transcribed from the official calendars but **not yet checked line by line** (`verified: false`); season effects are team estimates. |
-| BM classifier (`ml/app/nlp/artifacts/model_card.md`) | Trained on 770 **synthetic seed** phrases; the real held-out set is not collected yet. |
+| BM classifier (`ml/app/nlp/artifacts/model_card.md`) | Trained on 770 **synthetic seed** phrases; no real-world accuracy figure yet. |
 | Snap accuracy (`api/scripts/eval-snap.ts`) | Script ready; needs labelled real screenshots. |
 | Cost per rider (`api/scripts/llm-cost-report.ts`) | Script ready; needs real usage and a dated price table. |
 
